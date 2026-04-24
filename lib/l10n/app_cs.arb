@@ -1,0 +1,304 @@
+{
+  "@@locale": "cs",
+  "systemDefault": "Podle systému",
+  "language": "Jazyk",
+  "theme": "Motiv",
+  "themeSystem": "Systémový",
+  "themeLight": "Světlý",
+  "themeDark": "Tmavý",
+  "appearance": "Vzhled",
+  "background": "Pozadí",
+  "backgroundDefault": "Výchozí",
+  "backgroundChooseColor": "Vybrat barvu",
+  "backgroundChooseImage": "Vybrat obrázek",
+  "reset": "Resetovat",
+  "cancel": "Zrušit",
+  "save": "Uložit",
+  "close": "Zavřít",
+  "search": "Hledat",
+  "refresh": "Obnovit",
+  "accept": "Přijmout",
+  "decline": "Odmítnout",
+  "server": "Server",
+  "serverUrl": "URL serveru",
+  "serverConnected": "Připojeno k {host}",
+  "serverDisconnected": "Odpojeno",
+  "login": "Přihlášení",
+  "registration": "Registrace",
+  "register": "Registrovat",
+  "password": "Heslo",
+  "chats": "Chaty",
+  "contacts": "Kontakty",
+  "requests": "Žádosti",
+  "addContact": "Přidat kontakt",
+  "privacy": "Soukromí",
+  "backup": "Záloha",
+  "devices": "Zařízení",
+  "everyone": "Všichni",
+  "message": "Zpráva",
+  "send": "Odeslat",
+  "reply": "Odpovědět",
+  "forward": "Přeposlat",
+  "forwarded": "Přeposláno",
+  "attachment": "Příloha",
+  "open": "Otevřít",
+  "verify": "Ověřit",
+  "audioCall": "Audio hovor",
+  "videoCall": "Video hovor",
+  "incomingCall": "Příchozí hovor",
+  "voiceCall": "Hlasový hovor",
+  "calling": "Volání...",
+  "connected": "Připojeno",
+  "endCall": "Ukončit",
+  "languageEnglish": "English",
+  "languageUkrainian": "Українська",
+  "languageRussian": "Русский",
+  "languagePolish": "Polski",
+  "languageSpanish": "Español",
+  "languageCzech": "Čeština",
+  "languageGerman": "Deutsch",
+  "appName": "Hestia",
+  "splashTagline": "Soukromý prostor pro vaše blízké",
+  "settings": "Nastavení",
+  "continueAction": "Pokračovat",
+  "request": "Žádost",
+  "error": "Chyba",
+  "@serverConnected": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "nicknameRequired": "Uživatelské jméno je povinné",
+  "passwordRequired": "Heslo je povinné",
+  "nicknameTooShort": "Uživatelské jméno musí mít alespoň 2 znaky",
+  "passwordTooShort": "Heslo musí mít alespoň 6 znaků",
+  "chooseNickname": "Zvolte nové uživatelské jméno",
+  "yourNickname": "Vaše uživatelské jméno",
+  "choosePassword": "Zvolte heslo",
+  "showPassword": "Zobrazit heslo",
+  "hidePassword": "Skrýt heslo",
+  "allowUsernameSearch": "Povolit vyhledávání podle jména",
+  "messagesFrom": "Zprávy od",
+  "callsFrom": "Hovory od",
+  "noChatsYet": "Zatím žádné chaty.",
+  "noContactsYet": "Přidejte kontakt a začněte konverzaci",
+  "firstRunNoContactsTitle": "Přidejte kontakt a začněte konverzaci",
+  "firstRunNoContactsBody": "Najděte člověka podle uživatelského jména a pošlete žádost.",
+  "hintAddContact": "Najděte člověka podle uživatelského jména",
+  "hintRequests": "Tady se zobrazují žádosti o přidání",
+  "hintMessageInput": "Napište zprávu",
+  "noPendingRequests": "Žádné čekající žádosti.",
+  "findUsername": "Najít uživatelské jméno",
+  "username": "Uživatelské jméno",
+  "enterUsername": "Zadejte uživatelské jméno",
+  "userFound": "Uživatel nalezen",
+  "userNotFound": "Uživatel nebyl nalezen nebo je vyhledávání vypnuté.",
+  "sendContactRequest": "Poslat žádost o kontakt",
+  "requestSentTo": "Žádost odeslána uživateli {name}",
+  "@requestSentTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "retentionContactAdded": "Kontakt přidán. Můžete začít chat.",
+  "retentionFirstMessageSent": "Zpráva odeslána. Hestia udrží konverzaci klidnou a soukromou.",
+  "retentionStartChatHint": "Otevřete chat a pošlete první zprávu, až budete připraveni.",
+  "retentionDayReminder": "Už jste si chvíli nepsali. Soukromé chaty jsou tady, až budete chtít odpovědět.",
+  "retentionThreeDayReminder": "Jemné připomenutí: důvěryhodné konverzace tu na vás čekají.",
+  "retentionNewMessages": "Máte nové zprávy.",
+  "contact": "Kontakt",
+  "contactOnline": "Právě online",
+  "block": "Blokovat",
+  "unblockUser": "Odblokovat uživatele",
+  "blockUser": "Blokovat uživatele",
+  "wantsToAddYou": "Chce si vás přidat do kontaktů",
+  "attachmentNamed": "Příloha: {name}",
+  "@attachmentNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mute": "Ztlumit",
+  "unmute": "Zrušit ztlumení",
+  "pin": "Připnout",
+  "unpin": "Odepnout",
+  "archive": "Archivovat",
+  "deleteForMe": "Smazat u mě",
+  "backupWarning": "Zálohy jsou šifrované lokálně. Heslo si bezpečně uložte: bez něj zálohu nelze obnovit.",
+  "backupPassword": "Heslo zálohy",
+  "confirmBackupPassword": "Potvrďte heslo pro export",
+  "backupPasswordsDoNotMatch": "Hesla zálohy se neshodují.",
+  "backupExportCancelled": "Export zálohy byl zrušen.",
+  "backupSaved": "Záloha uložena.",
+  "backupImported": "Záloha importována. Místní data byla obnovena.",
+  "import": "Importovat",
+  "export": "Exportovat",
+  "noSessionData": "Zatím žádná data o relacích.",
+  "unknownActivity": "Neznámá aktivita",
+  "lastActive": "Poslední aktivita {time}",
+  "@lastActive": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "currentDevice": "{name} (aktuální)",
+  "@currentDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "revoke": "Odvolat",
+  "logoutCurrent": "Odhlásit aktuální",
+  "sendFile": "Odeslat soubor",
+  "messageSendFailed": "Zprávu se nepodařilo odeslat: {error}",
+  "@messageSendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSendFailed": "Soubor se nepodařilo odeslat: {error}",
+  "@fileSendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noMessagesYet": "Napište první zprávu",
+  "forwardTo": "Přeposlat komu",
+  "forwardedFrom": "Přeposláno od {name}",
+  "@forwardedFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forwardedTo": "Přeposláno uživateli {name}",
+  "@forwardedTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forwardFailed": "Přeposlání selhalo: {error}",
+  "@forwardFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noForwardTargets": "Nejsou dostupné kontakty pro přeposlání",
+  "cancelReply": "Zrušit odpověď",
+  "originalMessage": "Původní zpráva",
+  "originalMessageUnavailable": "Původní zpráva není dostupná",
+  "savedTo": "Uloženo do {path}",
+  "@savedTo": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "saveFailed": "Uložení selhalo: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "userUnavailable": "Uživatel není dostupný.",
+  "callRejected": "Hovor byl odmítnut.",
+  "sessionRevoked": "Tato relace byla odvolána.",
+  "couldNotConnectTo": "Nepodařilo se připojit k {host}",
+  "unknownServerError": "Neznámá chyba serveru",
+  "authenticationRequired": "Je vyžadováno ověření.",
+  "localFileNotFound": "Místní soubor nebyl nalezen.",
+  "webAttachmentAvailable": "Soubor je dostupný v aktuální relaci prohlížeče.",
+  "webAttachmentUnavailable": "Soubor po restartu prohlížeče není dostupný.",
+  "attachmentTypeNotAllowed": "Tento typ přílohy není povolen.",
+  "attachmentValidationFailed": "Přílohu se nepodařilo ověřit.",
+  "attachmentTooLarge": "Příloha je příliš velká.",
+  "attachmentLimits": "Povolené soubory: dokumenty, obrázky, audio a video. Limity: obrázky 25 MB, audio/dokumenty 50 MB, video 200 MB.",
+  "selectedFileReadFailed": "Vybraný soubor se nepodařilo přečíst.",
+  "forwardLocalFileUnavailable": "Přeposlání selhalo: místní soubor není dostupný.",
+  "attachmentUploadFailed": "Přílohu se nepodařilo nahrát.",
+  "peerKeyChangedCall": "Šifrovací klíč uživatele {name} se změnil. Před hovorem ověřte otisk.",
+  "peerNoEncryptionKey": "{name} zatím nemá šifrovací klíč.",
+  "encryptionKey": "Šifrovací klíč",
+  "trustKey": "Důvěřovat klíči",
+  "trustNewKey": "Důvěřovat novému klíči",
+  "removeTrust": "Odebrat důvěru",
+  "verifiedEncryptionKey": "Ověřený šifrovací klíč",
+  "encryptionKeyChanged": "Šifrovací klíč se změnil",
+  "noEncryptionKey": "Žádný šifrovací klíč",
+  "verifyEncryptionKey": "Ověřit šifrovací klíč",
+  "sendingBlockedKeyChanged": "Odesílání je zablokováno, dokud tento kontakt znovu neověříte.",
+  "keyTrusted": "Tento klíč je na tomto zařízení důvěryhodný.",
+  "keyChangedWarning": "Upozornění: tento klíč se změnil. Před opětovnou důvěrou porovnejte otisk.",
+  "keyMissing": "Tento uživatel zatím nezveřejnil šifrovací klíč.",
+  "keyUntrusted": "Porovnejte tento otisk s druhým uživatelem a potom klíči důvěřujte.",
+  "noFingerprint": "Otisk není dostupný",
+  "callFailed": "Hovor selhal: {error}",
+  "@callFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "anotherCallActive": "Jiný hovor je už aktivní",
+  "muteCall": "Ztlumit",
+  "unmuteCall": "Zrušit ztlumení",
+  "pushSyncChannelDescription": "Synchronizační oznámení Hestia pro zprávy a žádosti.",
+  "pushCallChannelDescription": "Upozornění Hestia na příchozí hovory.",
+  "newContactRequestNotification": "Nová žádost o kontakt",
+  "newMessageNotification": "Nová zpráva",
+  "incomingVideoCallNotification": "Příchozí videohovor",
+  "incomingVoiceCallNotification": "Příchozí hlasový hovor",
+  "unknownCaller": "Neznámý",
+  "rejectCall": "Odmítnout",
+  "updateAvailable": "Dostupná aktualizace",
+  "versionAvailable": "Je dostupná verze {version}.",
+  "startingDownload": "Spouštění stahování...",
+  "downloadingProgress": "Stahování... {percent}%",
+  "downloadFailedRetry": "Stažení selhalo. Zkuste to znovu.",
+  "later": "Později",
+  "downloading": "Stahování...",
+  "updateViaAppStore": "Aktualizovat přes App Store",
+  "downloadAndInstall": "Stáhnout a nainstalovat",
+  "openDownloadPage": "Otevřít stránku stažení",
+  "onboardingSkip": "Přeskočit",
+  "onboardingNext": "Další",
+  "onboardingGetStarted": "Začít",
+  "onboardingWelcomeTitle": "Vítejte v Hestia",
+  "onboardingWelcomeBody": "Klidný messenger pro soukromé chaty, hovory a soubory.",
+  "onboardingPrivacyTitle": "Soukromí od návrhu",
+  "onboardingPrivacyBody": "Zprávy používají šifrovací klíče. Chaty a soubory zůstávají lokálně.",
+  "onboardingHowItWorksTitle": "Jednoduchý postup",
+  "onboardingHowItWorksBody": "Vyberte server, přidejte kontakty a schvalujte žádosti před chatem.",
+  "onboardingCallsFilesTitle": "Hovory a soubory",
+  "onboardingCallsFilesBody": "Spouštějte hlasové hovory a sdílejte soubory ve stejném chráněném prostoru.",
+  "onboardingServerTitle": "Vyberte server",
+  "onboardingServerBody": "Použijte výchozí server nebo připojte Hestia k vlastnímu serveru.",
+  "onboardingDefaultServer": "Výchozí server",
+  "onboardingCustomServer": "Vlastní server",
+  "onboardingCustomServerBody": "Pro self-hosted nebo soukromé nasazení.",
+  "onboardingGetStartedTitle": "Můžete začít",
+  "onboardingGetStartedBody": "Vytvořte nový účet nebo se přihlaste ke stávajícímu."
+}

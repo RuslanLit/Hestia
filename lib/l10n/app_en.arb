@@ -1,0 +1,339 @@
+{
+  "@@locale": "en",
+  "appName": "Hestia",
+  "splashTagline": "Private space for people you trust",
+  "systemDefault": "System default",
+  "language": "Language",
+  "settings": "Settings",
+  "theme": "Theme",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "appearance": "Appearance",
+  "background": "Background",
+  "backgroundDefault": "Default",
+  "backgroundChooseColor": "Choose color",
+  "backgroundChooseImage": "Choose image",
+  "reset": "Reset",
+  "cancel": "Cancel",
+  "save": "Save",
+  "close": "Close",
+  "continueAction": "Continue",
+  "search": "Search",
+  "refresh": "Refresh",
+  "accept": "Accept",
+  "decline": "Decline",
+  "request": "Request",
+  "error": "Error",
+  "server": "Server",
+  "serverUrl": "Server URL",
+  "serverConnected": "Connected to {host}",
+  "@serverConnected": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "serverDisconnected": "Disconnected",
+  "login": "Login",
+  "registration": "Registration",
+  "register": "Register",
+  "nicknameRequired": "Nickname is required",
+  "passwordRequired": "Password is required",
+  "nicknameTooShort": "Nickname must be at least 2 characters",
+  "passwordTooShort": "Password must be at least 6 characters",
+  "chooseNickname": "Choose a new nickname",
+  "yourNickname": "Your nickname",
+  "choosePassword": "Choose a password",
+  "password": "Password",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
+  "chats": "Chats",
+  "contacts": "Contacts",
+  "requests": "Requests",
+  "addContact": "Add contact",
+  "privacy": "Privacy",
+  "backup": "Backup",
+  "devices": "Devices",
+  "allowUsernameSearch": "Allow username search",
+  "messagesFrom": "Messages from",
+  "callsFrom": "Calls from",
+  "everyone": "Everyone",
+  "noChatsYet": "No chats yet.",
+  "noContactsYet": "Add a contact to start a conversation",
+  "firstRunNoContactsTitle": "Add a contact to start a conversation",
+  "firstRunNoContactsBody": "Find someone by username and send a request.",
+  "hintAddContact": "Find someone by username",
+  "hintRequests": "Contact requests appear here",
+  "hintMessageInput": "Write a message",
+  "noPendingRequests": "No pending requests.",
+  "findUsername": "Find username",
+  "username": "Username",
+  "enterUsername": "Enter username",
+  "userFound": "User found",
+  "userNotFound": "User not found or discovery is disabled.",
+  "sendContactRequest": "Send contact request",
+  "requestSentTo": "Request sent to {name}",
+  "@requestSentTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "retentionContactAdded": "Contact added. You can start a chat.",
+  "retentionFirstMessageSent": "Message sent. Hestia will keep the conversation quiet and private.",
+  "retentionStartChatHint": "Open a chat and send your first message when you are ready.",
+  "retentionDayReminder": "You have not talked for a while. Your private chats are here when you need them.",
+  "retentionThreeDayReminder": "A quiet check-in: your trusted conversations are waiting here.",
+  "retentionNewMessages": "You have new messages.",
+  "contact": "Contact",
+  "contactOnline": "Online now",
+  "block": "Block",
+  "unblockUser": "Unblock user",
+  "blockUser": "Block user",
+  "wantsToAddYou": "Wants to add you as a contact",
+  "attachment": "Attachment",
+  "attachmentNamed": "Attachment: {name}",
+  "@attachmentNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mute": "Mute",
+  "unmute": "Unmute",
+  "pin": "Pin",
+  "unpin": "Unpin",
+  "archive": "Archive",
+  "deleteForMe": "Delete for me",
+  "backupWarning": "Backups are encrypted locally. Keep the password safe: without it the backup cannot be restored.",
+  "backupPassword": "Backup password",
+  "confirmBackupPassword": "Confirm password for export",
+  "backupPasswordsDoNotMatch": "Backup passwords do not match.",
+  "backupExportCancelled": "Backup export cancelled.",
+  "backupSaved": "Backup saved.",
+  "backupImported": "Backup imported. Local data was restored.",
+  "import": "Import",
+  "export": "Export",
+  "noSessionData": "No session data yet.",
+  "unknownActivity": "Unknown activity",
+  "lastActive": "Last active {time}",
+  "@lastActive": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "currentDevice": "{name} (current)",
+  "@currentDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "revoke": "Revoke",
+  "logoutCurrent": "Logout current",
+  "message": "Message",
+  "send": "Send",
+  "sendFile": "Send file",
+  "messageSendFailed": "Message send failed: {error}",
+  "@messageSendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSendFailed": "File send failed: {error}",
+  "@fileSendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noMessagesYet": "Write the first message",
+  "reply": "Reply",
+  "forward": "Forward",
+  "forwardTo": "Forward to",
+  "forwarded": "Forwarded",
+  "forwardedFrom": "Forwarded from {name}",
+  "@forwardedFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forwardedTo": "Forwarded to {name}",
+  "@forwardedTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forwardFailed": "Forward failed: {error}",
+  "@forwardFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noForwardTargets": "No available contacts to forward to",
+  "cancelReply": "Cancel reply",
+  "originalMessage": "Original message",
+  "originalMessageUnavailable": "Original message unavailable",
+  "savedTo": "Saved to {path}",
+  "@savedTo": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "saveFailed": "Save failed: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "open": "Open",
+  "userUnavailable": "User is unavailable.",
+  "callRejected": "Call was rejected.",
+  "sessionRevoked": "This session was revoked.",
+  "couldNotConnectTo": "Could not connect to {host}",
+  "@couldNotConnectTo": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "unknownServerError": "Unknown server error",
+  "authenticationRequired": "Authentication required.",
+  "localFileNotFound": "Local file not found.",
+  "webAttachmentAvailable": "The file is available in this browser session.",
+  "webAttachmentUnavailable": "The file is unavailable after restarting the browser.",
+  "attachmentTypeNotAllowed": "This attachment type is not allowed.",
+  "attachmentValidationFailed": "Attachment validation failed.",
+  "attachmentTooLarge": "Attachment is too large.",
+  "attachmentLimits": "Allowed files: documents, images, audio, and video. Limits: images 25 MB, audio/documents 50 MB, video 200 MB.",
+  "selectedFileReadFailed": "Could not read the selected file.",
+  "forwardLocalFileUnavailable": "Forward failed: the local file is unavailable.",
+  "attachmentUploadFailed": "Attachment upload failed.",
+  "peerKeyChangedCall": "{name}'s encryption key changed. Verify the fingerprint before calling.",
+  "@peerKeyChangedCall": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "peerNoEncryptionKey": "{name} has no encryption key yet.",
+  "@peerNoEncryptionKey": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "encryptionKey": "Encryption key",
+  "verify": "Verify",
+  "trustKey": "Trust key",
+  "trustNewKey": "Trust new key",
+  "removeTrust": "Remove trust",
+  "verifiedEncryptionKey": "Verified encryption key",
+  "encryptionKeyChanged": "Encryption key changed",
+  "noEncryptionKey": "No encryption key",
+  "verifyEncryptionKey": "Verify encryption key",
+  "sendingBlockedKeyChanged": "Sending is blocked until you verify this contact again.",
+  "keyTrusted": "This key is trusted on this device.",
+  "keyChangedWarning": "Warning: this key changed. Compare the fingerprint before trusting it again.",
+  "keyMissing": "This user has not published an encryption key yet.",
+  "keyUntrusted": "Compare this fingerprint with the other user, then trust it.",
+  "noFingerprint": "No fingerprint available",
+  "audioCall": "Audio call",
+  "videoCall": "Video call",
+  "callFailed": "Call failed: {error}",
+  "@callFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "anotherCallActive": "Another call is already active",
+  "calling": "Calling...",
+  "connected": "Connected",
+  "muteCall": "Mute",
+  "unmuteCall": "Unmute",
+  "endCall": "End",
+  "incomingCall": "Incoming call",
+  "voiceCall": "Voice call",
+  "pushSyncChannelDescription": "Sync notifications for Hestia messages and requests.",
+  "pushCallChannelDescription": "Incoming call alerts for Hestia.",
+  "newContactRequestNotification": "New contact request",
+  "newMessageNotification": "New message",
+  "incomingVideoCallNotification": "Incoming video call",
+  "incomingVoiceCallNotification": "Incoming voice call",
+  "unknownCaller": "Unknown",
+  "rejectCall": "Reject",
+  "updateAvailable": "Update available",
+  "versionAvailable": "Version {version} is available.",
+  "@versionAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "startingDownload": "Starting download...",
+  "downloadingProgress": "Downloading... {percent}%",
+  "@downloadingProgress": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadFailedRetry": "Download failed. Please try again.",
+  "later": "Later",
+  "downloading": "Downloading...",
+  "updateViaAppStore": "Update via App Store",
+  "downloadAndInstall": "Download and install",
+  "openDownloadPage": "Open download page",
+  "languageEnglish": "English",
+  "languageUkrainian": "Українська",
+  "languageRussian": "Русский",
+  "languagePolish": "Polski",
+  "languageSpanish": "Español",
+  "languageCzech": "Čeština",
+  "languageGerman": "Deutsch",
+  "onboardingSkip": "Skip",
+  "onboardingNext": "Next",
+  "onboardingGetStarted": "Get started",
+  "onboardingWelcomeTitle": "Welcome to Hestia",
+  "onboardingWelcomeBody": "A quiet messenger for private chats, calls, and files.",
+  "onboardingPrivacyTitle": "Private by design",
+  "onboardingPrivacyBody": "Messages use encryption keys. Your chats and files stay stored locally.",
+  "onboardingHowItWorksTitle": "Simple flow",
+  "onboardingHowItWorksBody": "Choose a server, add contacts, and approve requests before chatting.",
+  "onboardingCallsFilesTitle": "Calls and files",
+  "onboardingCallsFilesBody": "Start voice calls and share files from the same protected space.",
+  "onboardingServerTitle": "Choose your server",
+  "onboardingServerBody": "Use the default server or connect Hestia to your own server.",
+  "onboardingDefaultServer": "Default server",
+  "onboardingCustomServer": "Custom server",
+  "onboardingCustomServerBody": "For self-hosted or private deployments.",
+  "onboardingGetStartedTitle": "Ready when you are",
+  "onboardingGetStartedBody": "Create a new account or login with an existing one."
+}

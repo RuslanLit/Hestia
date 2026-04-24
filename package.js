@@ -1,0 +1,8 @@
+{
+    "name";"ws",
+    "version";"1.0.0",
+    "main";"server.js",
+    "dependencies"; {
+      "ws";"^8.18.0"
+    }
+  }

@@ -1,0 +1,304 @@
+{
+  "@@locale": "es",
+  "systemDefault": "Predeterminado del sistema",
+  "language": "Idioma",
+  "theme": "Tema",
+  "themeSystem": "Sistema",
+  "themeLight": "Claro",
+  "themeDark": "Oscuro",
+  "appearance": "Apariencia",
+  "background": "Fondo",
+  "backgroundDefault": "Predeterminado",
+  "backgroundChooseColor": "Elegir color",
+  "backgroundChooseImage": "Elegir imagen",
+  "reset": "Restablecer",
+  "cancel": "Cancelar",
+  "save": "Guardar",
+  "close": "Cerrar",
+  "search": "Buscar",
+  "refresh": "Actualizar",
+  "accept": "Aceptar",
+  "decline": "Rechazar",
+  "server": "Servidor",
+  "serverUrl": "URL del servidor",
+  "serverConnected": "Conectado a {host}",
+  "serverDisconnected": "Desconectado",
+  "login": "Iniciar sesión",
+  "registration": "Registro",
+  "register": "Registrarse",
+  "password": "Contraseña",
+  "chats": "Chats",
+  "contacts": "Contactos",
+  "requests": "Solicitudes",
+  "addContact": "Añadir contacto",
+  "privacy": "Privacidad",
+  "backup": "Copia de seguridad",
+  "devices": "Dispositivos",
+  "everyone": "Todos",
+  "message": "Mensaje",
+  "send": "Enviar",
+  "reply": "Responder",
+  "forward": "Reenviar",
+  "forwarded": "Reenviado",
+  "attachment": "Adjunto",
+  "open": "Abrir",
+  "verify": "Verificar",
+  "audioCall": "Llamada de audio",
+  "videoCall": "Videollamada",
+  "incomingCall": "Llamada entrante",
+  "voiceCall": "Llamada de voz",
+  "calling": "Llamando...",
+  "connected": "Conectado",
+  "endCall": "Finalizar",
+  "languageEnglish": "English",
+  "languageUkrainian": "Українська",
+  "languageRussian": "Русский",
+  "languagePolish": "Polski",
+  "languageSpanish": "Español",
+  "languageCzech": "Čeština",
+  "languageGerman": "Deutsch",
+  "appName": "Hestia",
+  "splashTagline": "Un espacio privado para tu gente",
+  "settings": "Ajustes",
+  "continueAction": "Continuar",
+  "request": "Solicitud",
+  "error": "Error",
+  "@serverConnected": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "nicknameRequired": "El nombre de usuario es obligatorio",
+  "passwordRequired": "La contraseña es obligatoria",
+  "nicknameTooShort": "El nombre de usuario debe tener al menos 2 caracteres",
+  "passwordTooShort": "La contraseña debe tener al menos 6 caracteres",
+  "chooseNickname": "Elige un nuevo nombre de usuario",
+  "yourNickname": "Tu nombre de usuario",
+  "choosePassword": "Elige una contraseña",
+  "showPassword": "Mostrar contraseña",
+  "hidePassword": "Ocultar contraseña",
+  "allowUsernameSearch": "Permitir búsqueda por nombre de usuario",
+  "messagesFrom": "Mensajes de",
+  "callsFrom": "Llamadas de",
+  "noChatsYet": "Aún no hay chats.",
+  "noContactsYet": "Añade un contacto para empezar a hablar",
+  "firstRunNoContactsTitle": "Añade un contacto para empezar a hablar",
+  "firstRunNoContactsBody": "Busca a alguien por nombre de usuario y envía una solicitud.",
+  "hintAddContact": "Busca a alguien por nombre de usuario",
+  "hintRequests": "Aquí aparecen las solicitudes de contacto",
+  "hintMessageInput": "Escribe un mensaje",
+  "noPendingRequests": "No hay solicitudes pendientes.",
+  "findUsername": "Buscar nombre de usuario",
+  "username": "Nombre de usuario",
+  "enterUsername": "Introduce un nombre de usuario",
+  "userFound": "Usuario encontrado",
+  "userNotFound": "Usuario no encontrado o la búsqueda está desactivada.",
+  "sendContactRequest": "Enviar solicitud de contacto",
+  "requestSentTo": "Solicitud enviada a {name}",
+  "@requestSentTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "retentionContactAdded": "Contacto añadido. Puedes iniciar un chat.",
+  "retentionFirstMessageSent": "Mensaje enviado. Hestia mantiene la conversación tranquila y privada.",
+  "retentionStartChatHint": "Abre un chat y envía tu primer mensaje cuando estés listo.",
+  "retentionDayReminder": "Hace tiempo que no habláis. Tus chats privados están aquí cuando quieras responder con calma.",
+  "retentionThreeDayReminder": "Un recordatorio suave: tus conversaciones de confianza esperan aquí.",
+  "retentionNewMessages": "Tienes mensajes nuevos.",
+  "contact": "Contacto",
+  "contactOnline": "En línea ahora",
+  "block": "Bloquear",
+  "unblockUser": "Desbloquear usuario",
+  "blockUser": "Bloquear usuario",
+  "wantsToAddYou": "Quiere añadirte como contacto",
+  "attachmentNamed": "Adjunto: {name}",
+  "@attachmentNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mute": "Silenciar",
+  "unmute": "Quitar silencio",
+  "pin": "Fijar",
+  "unpin": "Desfijar",
+  "archive": "Archivar",
+  "deleteForMe": "Eliminar para mí",
+  "backupWarning": "Las copias de seguridad se cifran localmente. Guarda bien la contraseña: sin ella no se puede restaurar la copia.",
+  "backupPassword": "Contraseña de la copia",
+  "confirmBackupPassword": "Confirma la contraseña de exportación",
+  "backupPasswordsDoNotMatch": "Las contraseñas de la copia no coinciden.",
+  "backupExportCancelled": "Exportación de copia cancelada.",
+  "backupSaved": "Copia de seguridad guardada.",
+  "backupImported": "Copia importada. Los datos locales se han restaurado.",
+  "import": "Importar",
+  "export": "Exportar",
+  "noSessionData": "Aún no hay datos de sesión.",
+  "unknownActivity": "Actividad desconocida",
+  "lastActive": "Última actividad {time}",
+  "@lastActive": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "currentDevice": "{name} (actual)",
+  "@currentDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "revoke": "Revocar",
+  "logoutCurrent": "Cerrar sesión actual",
+  "sendFile": "Enviar archivo",
+  "messageSendFailed": "No se pudo enviar el mensaje: {error}",
+  "@messageSendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSendFailed": "No se pudo enviar el archivo: {error}",
+  "@fileSendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noMessagesYet": "Escribe el primer mensaje",
+  "forwardTo": "Reenviar a",
+  "forwardedFrom": "Reenviado de {name}",
+  "@forwardedFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forwardedTo": "Reenviado a {name}",
+  "@forwardedTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forwardFailed": "No se pudo reenviar: {error}",
+  "@forwardFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noForwardTargets": "No hay contactos disponibles para reenviar",
+  "cancelReply": "Cancelar respuesta",
+  "originalMessage": "Mensaje original",
+  "originalMessageUnavailable": "Mensaje original no disponible",
+  "savedTo": "Guardado en {path}",
+  "@savedTo": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "saveFailed": "No se pudo guardar: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "userUnavailable": "El usuario no está disponible.",
+  "callRejected": "La llamada fue rechazada.",
+  "sessionRevoked": "Esta sesión fue revocada.",
+  "couldNotConnectTo": "No se pudo conectar con {host}",
+  "unknownServerError": "Error desconocido del servidor",
+  "authenticationRequired": "Se requiere autenticación.",
+  "localFileNotFound": "No se encontró el archivo local.",
+  "webAttachmentAvailable": "El archivo está disponible en esta sesión del navegador.",
+  "webAttachmentUnavailable": "El archivo no está disponible después de reiniciar el navegador.",
+  "attachmentTypeNotAllowed": "Este tipo de adjunto no está permitido.",
+  "attachmentValidationFailed": "No se pudo validar el adjunto.",
+  "attachmentTooLarge": "El adjunto es demasiado grande.",
+  "attachmentLimits": "Archivos permitidos: documentos, imágenes, audio y vídeo. Límites: imágenes 25 MB, audio/documentos 50 MB, vídeo 200 MB.",
+  "selectedFileReadFailed": "No se pudo leer el archivo seleccionado.",
+  "forwardLocalFileUnavailable": "No se pudo reenviar: el archivo local no está disponible.",
+  "attachmentUploadFailed": "No se pudo subir el adjunto.",
+  "peerKeyChangedCall": "La clave de cifrado de {name} cambió. Verifica la huella antes de llamar.",
+  "peerNoEncryptionKey": "{name} aún no tiene clave de cifrado.",
+  "encryptionKey": "Clave de cifrado",
+  "trustKey": "Confiar en la clave",
+  "trustNewKey": "Confiar en la nueva clave",
+  "removeTrust": "Quitar confianza",
+  "verifiedEncryptionKey": "Clave de cifrado verificada",
+  "encryptionKeyChanged": "La clave de cifrado cambió",
+  "noEncryptionKey": "Sin clave de cifrado",
+  "verifyEncryptionKey": "Verificar clave de cifrado",
+  "sendingBlockedKeyChanged": "El envío está bloqueado hasta que vuelvas a verificar este contacto.",
+  "keyTrusted": "Esta clave es de confianza en este dispositivo.",
+  "keyChangedWarning": "Atención: esta clave cambió. Compara la huella antes de volver a confiar.",
+  "keyMissing": "Este usuario aún no ha publicado una clave de cifrado.",
+  "keyUntrusted": "Compara esta huella con la otra persona y luego confía en la clave.",
+  "noFingerprint": "No hay huella disponible",
+  "callFailed": "La llamada falló: {error}",
+  "@callFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "anotherCallActive": "Ya hay otra llamada activa",
+  "muteCall": "Silenciar",
+  "unmuteCall": "Quitar silencio",
+  "pushSyncChannelDescription": "Notificaciones de sincronización de mensajes y solicitudes de Hestia.",
+  "pushCallChannelDescription": "Alertas de llamadas entrantes de Hestia.",
+  "newContactRequestNotification": "Nueva solicitud de contacto",
+  "newMessageNotification": "Nuevo mensaje",
+  "incomingVideoCallNotification": "Videollamada entrante",
+  "incomingVoiceCallNotification": "Llamada de voz entrante",
+  "unknownCaller": "Desconocido",
+  "rejectCall": "Rechazar",
+  "updateAvailable": "Actualización disponible",
+  "versionAvailable": "La versión {version} está disponible.",
+  "startingDownload": "Iniciando descarga...",
+  "downloadingProgress": "Descargando... {percent}%",
+  "downloadFailedRetry": "La descarga falló. Inténtalo de nuevo.",
+  "later": "Más tarde",
+  "downloading": "Descargando...",
+  "updateViaAppStore": "Actualizar mediante App Store",
+  "downloadAndInstall": "Descargar e instalar",
+  "openDownloadPage": "Abrir página de descarga",
+  "onboardingSkip": "Omitir",
+  "onboardingNext": "Siguiente",
+  "onboardingGetStarted": "Empezar",
+  "onboardingWelcomeTitle": "Bienvenido a Hestia",
+  "onboardingWelcomeBody": "Un mensajero tranquilo para chats, llamadas y archivos privados.",
+  "onboardingPrivacyTitle": "Privacidad desde el diseño",
+  "onboardingPrivacyBody": "Los mensajes usan claves de cifrado. Tus chats y archivos se guardan localmente.",
+  "onboardingHowItWorksTitle": "Flujo simple",
+  "onboardingHowItWorksBody": "Elige un servidor, añade contactos y aprueba solicitudes antes de chatear.",
+  "onboardingCallsFilesTitle": "Llamadas y archivos",
+  "onboardingCallsFilesBody": "Inicia llamadas de voz y comparte archivos en el mismo espacio protegido.",
+  "onboardingServerTitle": "Elige tu servidor",
+  "onboardingServerBody": "Usa el servidor predeterminado o conecta Hestia a tu propio servidor.",
+  "onboardingDefaultServer": "Servidor predeterminado",
+  "onboardingCustomServer": "Servidor personalizado",
+  "onboardingCustomServerBody": "Para instalaciones self-hosted o privadas.",
+  "onboardingGetStartedTitle": "Todo listo",
+  "onboardingGetStartedBody": "Crea una cuenta nueva o inicia sesión con una existente."
+}

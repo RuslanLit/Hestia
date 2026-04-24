@@ -1,0 +1,20 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Network -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+    <!-- Microphone — required for WebRTC audio -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
+    <!-- Audio routing (speaker / earpiece switching) -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+
+    <!-- Bluetooth headset support -->
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+
+    <!-- Keep CPU alive during a call -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
+</manifest>
