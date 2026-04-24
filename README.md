@@ -121,7 +121,8 @@ Note:
 
 - some variables are already consumed by `server.js`
 - some are documented for deployment consistency
-- the current codebase still defaults to `localhost:3000` in code unless you wire additional env handling
+- production client builds default to the official Hestia API at `https://api.hestiachat.site`
+- local backend development still uses `localhost:3000`
 
 ## Custom Server URL
 
@@ -129,11 +130,14 @@ The client supports changing the backend URL from inside the app.
 
 Current default:
 
-- `http://localhost:3000`
+- official website: `https://hestiachat.site`
+- API: `https://api.hestiachat.site`
+- WebSocket: `wss://api.hestiachat.site`
+- update manifest: `https://hestiachat.site/releases/latest.json`
 
 Client config is handled in [lib/config.dart](lib/config.dart).
 
-You can point the app to another server through the server settings dialog in the client UI.
+You can point the app to another server through the server settings dialog in the client UI. A saved custom server URL is preserved and is not overwritten by the official defaults.
 
 ## Flutter Build Examples
 

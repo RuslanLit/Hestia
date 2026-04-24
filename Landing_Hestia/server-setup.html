@@ -12,20 +12,21 @@
     <meta property="og:title" content="Server Setup Guide | Hestia Messenger">
     <meta property="og:description" content="Practical self-hosted server setup guide for Hestia Messenger.">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="og/en/server-setup.png">
+    <meta property="og:url" content="https://hestiachat.site/server-setup.html?lang=en">
+    <meta property="og:image" content="https://hestiachat.site/og/en/server-setup.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Server Setup Guide | Hestia Messenger">
     <meta name="twitter:description" content="Practical self-hosted server setup guide for Hestia Messenger.">
-    <meta name="twitter:image" content="og/en/server-setup.png">
-    <link rel="canonical" href="https://hestia.example/server-setup.html?lang=en">
-    <link rel="alternate" hreflang="en" href="https://hestia.example/server-setup.html?lang=en">
-    <link rel="alternate" hreflang="uk" href="https://hestia.example/server-setup.html?lang=uk">
-    <link rel="alternate" hreflang="ru" href="https://hestia.example/server-setup.html?lang=ru">
-    <link rel="alternate" hreflang="pl" href="https://hestia.example/server-setup.html?lang=pl">
-    <link rel="alternate" hreflang="es" href="https://hestia.example/server-setup.html?lang=es">
-    <link rel="alternate" hreflang="cs" href="https://hestia.example/server-setup.html?lang=cs">
-    <link rel="alternate" hreflang="de" href="https://hestia.example/server-setup.html?lang=de">
-    <link rel="alternate" hreflang="x-default" href="https://hestia.example/server-setup.html?lang=en">
+    <meta name="twitter:image" content="https://hestiachat.site/og/en/server-setup.png">
+    <link rel="canonical" href="https://hestiachat.site/server-setup.html?lang=en">
+    <link rel="alternate" hreflang="en" href="https://hestiachat.site/server-setup.html?lang=en">
+    <link rel="alternate" hreflang="uk" href="https://hestiachat.site/server-setup.html?lang=uk">
+    <link rel="alternate" hreflang="ru" href="https://hestiachat.site/server-setup.html?lang=ru">
+    <link rel="alternate" hreflang="pl" href="https://hestiachat.site/server-setup.html?lang=pl">
+    <link rel="alternate" hreflang="es" href="https://hestiachat.site/server-setup.html?lang=es">
+    <link rel="alternate" hreflang="cs" href="https://hestiachat.site/server-setup.html?lang=cs">
+    <link rel="alternate" hreflang="de" href="https://hestiachat.site/server-setup.html?lang=de">
+    <link rel="alternate" hreflang="x-default" href="https://hestiachat.site/server-setup.html?lang=en">
     <link rel="stylesheet" href="CSS/style.css">
   </head>
   <body>
@@ -116,7 +117,7 @@
             <h2>What you need before starting</h2>
             <ul class="check-list two-column-list">
               <li>VPS or server with shell access</li>
-              <li>Domain or subdomain, for example <code>chat.example.com</code></li>
+              <li>Domain or subdomain, for example <code>chat.your-domain.test</code></li>
               <li>Node.js and npm</li>
               <li>Git</li>
               <li>Firewall access for HTTP/HTTPS and the internal app port</li>
@@ -133,7 +134,7 @@
               Replace the repository placeholder with the real Hestia server
               repository URL when it is published.
             </p>
-            <pre><code>git clone &lt;HESTIA_SERVER_REPOSITORY_URL&gt; hestia-server
+            <pre><code>git clone https://github.com/RuslanLit/Hestia.git hestia-server
 cd hestia-server
 npm install</code></pre>
             <div class="note-block">
@@ -194,7 +195,7 @@ FIREBASE_PRIVATE_KEY=</code></pre>
             </p>
             <pre><code>server {
     listen 443 ssl http2;
-    server_name chat.example.com;
+    server_name chat.your-domain.test;
 
     ssl_certificate /path/to/fullchain.pem;
     ssl_certificate_key /path/to/privkey.pem;
@@ -211,7 +212,7 @@ FIREBASE_PRIVATE_KEY=</code></pre>
     }
 }</code></pre>
             <div class="note-block">
-              Replace <code>chat.example.com</code> and certificate paths with
+              Replace <code>chat.your-domain.test</code> and certificate paths with
               your real domain and TLS certificate locations.
             </div>
           </section>
@@ -226,7 +227,7 @@ FIREBASE_PRIVATE_KEY=</code></pre>
             </p>
             <pre><code>TURN_SERVERS=[
   {
-    "urls": "turn:turn.example.com:3478",
+    "urls": "turn:turn.your-domain.test:3478",
     "username": "&lt;TURN_USERNAME&gt;",
     "credential": "&lt;TURN_PASSWORD&gt;"
   }
@@ -242,7 +243,7 @@ FIREBASE_PRIVATE_KEY=</code></pre>
             <h2>Connect the client</h2>
             <ol class="plain-steps">
               <li>Open the Hestia client.</li>
-              <li>Enter your server URL, for example <code>https://chat.example.com</code>, if the build asks for it.</li>
+              <li>Enter your server URL, for example <code>https://chat.your-domain.test</code>, if the build asks for it.</li>
               <li>Use the default server URL if your app build already includes it.</li>
               <li>Register or log in.</li>
               <li>Create two test users and send a message between them.</li>
@@ -304,7 +305,7 @@ FIREBASE_PRIVATE_KEY=</code></pre>
               </article>
               <article>
                 <h3>Invalid server URL</h3>
-                <p>Use a full HTTPS origin such as <code>https://chat.example.com</code>.</p>
+                <p>Use a full HTTPS origin such as <code>https://chat.your-domain.test</code>.</p>
               </article>
             </div>
           </section>

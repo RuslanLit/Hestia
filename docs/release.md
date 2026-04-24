@@ -70,6 +70,7 @@ For a GitHub release:
 2. Add release notes
 3. Upload release assets
 4. Verify download links used by the landing page
+5. Verify `https://hestiachat.site/releases/latest.json`
 
 Suggested release note sections:
 
@@ -87,6 +88,7 @@ If release assets change:
 2. verify platform download URLs
 3. verify release notes URL
 4. verify checksums if you publish them
+5. verify the update manifest at `https://hestiachat.site/releases/latest.json`
 
 ## 7. Manual Validation
 

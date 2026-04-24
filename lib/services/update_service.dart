@@ -16,34 +16,63 @@ import 'dart:convert';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../config.dart';
 import '../l10n/l10n.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Config — point this at your server's version manifest
+// Config — official Hestia release manifest
 // ─────────────────────────────────────────────────────────────────────────────
-const String _kVersionUrl =
-    'http://localhost:3000/version.json'; // ← change to your real URL
+const String _kVersionUrl = AppConfig.defaultUpdateManifestUrl;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Version manifest returned by the server
 // ─────────────────────────────────────────────────────────────────────────────
 class _VersionInfo {
-  final String version;   // e.g. "1.0.2"
-  final String apkUrl;    // direct APK download link (Android only)
-  final String notes;     // release notes shown in the dialog
+  final String version; // e.g. "1.0.2"
+  final String build; // e.g. "12"
+  final String apkUrl; // direct APK download link (Android only)
+  final String downloadUrl; // current-platform installer or release page
+  final String notes; // release notes shown in the dialog
+  final bool platformAvailable;
+  final String unavailableReason;
 
   const _VersionInfo({
     required this.version,
+    required this.build,
     required this.apkUrl,
+    required this.downloadUrl,
     required this.notes,
+    required this.platformAvailable,
+    required this.unavailableReason,
   });
 
-  factory _VersionInfo.fromJson(Map<String, dynamic> j) => _VersionInfo(
-    version: j['version'] as String? ?? '',
-    apkUrl:  j['apk_url'] as String? ?? '',
-    notes:   j['notes']   as String? ?? '',
-  );
+  factory _VersionInfo.fromJson(Map<String, dynamic> j) {
+    final platforms = j['platforms'];
+    final platform = platforms is Map<String, dynamic>
+        ? platforms[_currentPlatformKey()]
+        : null;
+    final platformMap =
+        platform is Map<String, dynamic> ? platform : <String, dynamic>{};
+    final available = platformMap['available'];
+    final platformUrl = platformMap['url'] as String?;
+    final legacyApkUrl = j['apk_url'] as String? ?? '';
+    final legacyDownloadUrl = _legacyDownloadUrl(j);
+
+    return _VersionInfo(
+      version: j['version'] as String? ?? '',
+      build: (j['build'] as Object?)?.toString() ?? '',
+      apkUrl: legacyApkUrl,
+      downloadUrl: platformUrl ?? legacyDownloadUrl,
+      notes: j['notes'] as String? ??
+          j['releaseNotesUrl'] as String? ??
+          j['release_notes_url'] as String? ??
+          '',
+      platformAvailable: available is bool ? available : true,
+      unavailableReason: platformMap['reason'] as String? ?? '',
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -64,6 +93,50 @@ bool _isNewer(String remote, String current) {
   }
 }
 
+bool _isNewerRelease(
+  String remoteVersion,
+  String remoteBuild,
+  String currentVersion,
+  String currentBuild,
+) {
+  if (_isNewer(remoteVersion, currentVersion)) return true;
+  if (_isNewer(currentVersion, remoteVersion)) return false;
+
+  final remoteBuildNumber = int.tryParse(remoteBuild);
+  final currentBuildNumber = int.tryParse(currentBuild);
+  if (remoteBuildNumber == null || currentBuildNumber == null) return false;
+  return remoteBuildNumber > currentBuildNumber;
+}
+
+String _currentPlatformKey() {
+  if (kIsWeb) return 'webStatic';
+  if (Platform.isAndroid) return 'android';
+  if (Platform.isWindows) return 'windows';
+  if (Platform.isLinux) return 'linuxAppImage';
+  if (Platform.isMacOS) return 'macos';
+  if (Platform.isIOS) return 'ios';
+  return 'webStatic';
+}
+
+String _legacyDownloadUrl(Map<String, dynamic> j) {
+  if (kIsWeb) {
+    return j['web_url'] as String? ?? j['downloads_url'] as String? ?? '';
+  }
+  if (Platform.isAndroid) return j['apk_url'] as String? ?? '';
+  if (Platform.isWindows) {
+    return j['windows_url'] as String? ?? j['downloads_url'] as String? ?? '';
+  }
+  if (Platform.isLinux) {
+    return j['linux_appimage_url'] as String? ??
+        j['downloads_url'] as String? ??
+        '';
+  }
+  if (Platform.isMacOS) {
+    return j['macos_dmg_url'] as String? ?? j['downloads_url'] as String? ?? '';
+  }
+  return j['downloads_url'] as String? ?? '';
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Public entry point
 // Call this once from AppShell.initState() after the first frame.
@@ -81,10 +154,19 @@ Future<void> checkForUpdate(BuildContext context) async {
         jsonDecode(response.body) as Map<String, dynamic>);
 
     // 2. Get current app version
-    final pkg     = await PackageInfo.fromPlatform();
+    final pkg = await PackageInfo.fromPlatform();
     final current = pkg.version; // e.g. "1.0.1"
 
-    if (!_isNewer(info.version, current)) return; // already up to date
+    if (!_isNewerRelease(info.version, info.build, current, pkg.buildNumber)) {
+      return; // already up to date
+    }
+    if (!info.platformAvailable) {
+      debugPrint(
+        '[UpdateService] update not available for this platform: '
+        '${info.unavailableReason}',
+      );
+      return;
+    }
 
     // 3. Show update dialog (must still be mounted)
     if (!context.mounted) return;
@@ -207,7 +289,7 @@ class _UpdateDialogState extends State<_UpdateDialog> {
     return FilledButton(
       onPressed: () {
         Navigator.pop(context);
-        _openUrl(widget.info.apkUrl);
+        _openUrl(widget.info.downloadUrl);
       },
       child: Text(context.l10n.openDownloadPage),
     );
@@ -215,31 +297,39 @@ class _UpdateDialogState extends State<_UpdateDialog> {
 
   // ── Android APK download ──────────────────────────────────────────────────
   Future<void> _downloadAndInstall() async {
-    setState(() { _progress = 0; });
+    setState(() {
+      _progress = 0;
+    });
 
     try {
-      final client   = http.Client();
-      final request  = http.Request('GET', Uri.parse(widget.info.apkUrl));
+      final client = http.Client();
+      final request = http.Request('GET', Uri.parse(widget.info.downloadUrl));
       final response = await client.send(request);
 
-      final total    = response.contentLength ?? 0;
-      var   received = 0;
+      final total = response.contentLength ?? 0;
+      var received = 0;
 
-      final dir     = await getTemporaryDirectory();
+      final dir = await getTemporaryDirectory();
       final apkFile = File('${dir.path}/update.apk');
-      final sink    = apkFile.openWrite();
+      final sink = apkFile.openWrite();
 
       await response.stream.forEach((chunk) {
         sink.add(chunk);
         received += chunk.length;
-        if (total > 0) setState(() { _progress = received / total; });
+        if (total > 0) {
+          setState(() {
+            _progress = received / total;
+          });
+        }
       });
       await sink.close();
       client.close();
 
       if (!mounted) return;
 
-      setState(() { _progress = 1.0; });
+      setState(() {
+        _progress = 1.0;
+      });
 
       // Launch the APK installer
       final result = await OpenFile.open(apkFile.path);
@@ -248,16 +338,18 @@ class _UpdateDialogState extends State<_UpdateDialog> {
       if (mounted) Navigator.pop(context);
     } catch (e) {
       debugPrint('[UpdateService] download error: $e');
-      if (mounted) setState(() { _progress = -1; });
+      if (mounted) {
+        setState(() {
+          _progress = -1;
+        });
+      }
     }
   }
 
   // ── Fallback URL opener (Web / Desktop) ───────────────────────────────────
-  void _openUrl(String url) {
-    // url_launcher is not a dependency — use http GET trick to hand off to OS.
-    // On Web the browser handles it natively; on desktop show a snackbar.
+  Future<void> _openUrl(String url) async {
     debugPrint('[UpdateService] open URL: $url');
-    // If you add url_launcher to pubspec, replace this with:
-    //   launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    if (url.isEmpty) return;
+    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
   }
 }

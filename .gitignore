@@ -78,6 +78,10 @@ flutter_*.png
 pubspec_overrides.yaml
 
 # Generated installers and release bundles
+/dist/*
+!/dist/.gitkeep
+/releases/*
+!/releases/.gitkeep
 *.apk
 *.aab
 *.apks

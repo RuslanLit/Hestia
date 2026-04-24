@@ -422,7 +422,8 @@ class ChatService extends ChangeNotifier {
   }
 
   Future<void> refreshPushRegistration() async {
-    final registration = await FirebasePushService.instance.currentRegistration();
+    final registration =
+        await FirebasePushService.instance.currentRegistration();
     if (registration == null || profile == null) {
       return;
     }
@@ -448,7 +449,10 @@ class ChatService extends ChangeNotifier {
   Future<void> rejectPushCall(PushAction action) async {
     final callId = action.requestId;
     final fromUserId = action.fromUserId;
-    if (callId == null || callId.isEmpty || fromUserId == null || fromUserId.isEmpty) {
+    if (callId == null ||
+        callId.isEmpty ||
+        fromUserId == null ||
+        fromUserId.isEmpty) {
       return;
     }
     try {
@@ -939,6 +943,15 @@ class ChatService extends ChangeNotifier {
     final channel = _channel!;
     unawaited(
       channel.ready.timeout(const Duration(seconds: 6)).catchError((error) {
+        if (AppConfig.switchToFallbackServer()) {
+          if (kDebugMode) {
+            debugPrint(
+              '[ChatService] Official server unavailable, trying ${AppConfig.host}',
+            );
+          }
+          _openSocket(onReady: onReady);
+          return;
+        }
         _handleSocketError(error);
       }),
     );

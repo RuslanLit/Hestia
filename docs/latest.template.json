@@ -1,0 +1,78 @@
+{
+  "version": "4.0.0",
+  "build": "1",
+  "releasedAt": "2026-04-24T00:00:00Z",
+  "releaseNotesUrl": "https://github.com/RuslanLit/Hestia/releases/tag/v4.0.0_1",
+  "checksumsUrl": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/4.0.0-checksums.txt",
+  "notes": "Hestia 4.0.0_1 release.",
+  "release_notes_url": "https://github.com/RuslanLit/Hestia/releases/tag/v4.0.0_1",
+  "downloads_url": "https://github.com/RuslanLit/Hestia/releases/tag/v4.0.0_1",
+  "apk_url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-android.apk",
+  "windows_url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-windows-setup.exe",
+  "windows_portable_url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-windows-portable.zip",
+  "web_url": "https://hestiachat.site",
+  "platforms": {
+    "android": {
+      "available": true,
+      "file": "hestia-4.0.0_1-android.apk",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-android.apk",
+      "sha256": "47932f8b404c6237c472911dfdf67d72160e0028f304c20f3a68aa72b0ab694f",
+      "sizeBytes": 96819838
+    },
+    "windows": {
+      "available": true,
+      "file": "hestia-4.0.0_1-windows-setup.exe",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-windows-setup.exe",
+      "sha256": "7afc08f52ddcfaecdfbda197512bd6681b94b7af0fdb7a0304dd1909df0c1033",
+      "sizeBytes": 24784384
+    },
+    "windowsPortable": {
+      "available": true,
+      "file": "hestia-4.0.0_1-windows-portable.zip",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-windows-portable.zip",
+      "sha256": "099d97583ccf32663beb5dd2ea9366e4dd0d935ca7de13a918abd23e2a4cb818",
+      "sizeBytes": 24776771
+    },
+    "webStatic": {
+      "available": true,
+      "file": "hestia-4.0.0_1-web-static.zip",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-web-static.zip",
+      "sha256": "5eb2be36882d8dd941a2b5b3b02b4e12354887d2e09135ece48711abdfac97f2",
+      "sizeBytes": 14150997
+    },
+    "backend": {
+      "available": true,
+      "file": "hestia-4.0.0_1-backend.zip",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-backend.zip",
+      "sha256": "ee376597fd98b584708462ea0143f5fe016f81d128394ba2220850cf74098b8b",
+      "sizeBytes": 31927
+    },
+    "landing": {
+      "available": true,
+      "file": "hestia-4.0.0_1-landing.zip",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-landing.zip",
+      "sha256": "57a3db07a3aa13621eae3014cc8f3ec7d04d5a7296d68c39df805eda63ec1b47",
+      "sizeBytes": 2457578
+    },
+    "linuxAppImage": {
+      "available": false,
+      "reason": "Linux AppImage is not included in v4.0.0_1 yet."
+    },
+    "linuxDeb": {
+      "available": false,
+      "reason": "Linux DEB is not included in v4.0.0_1 yet."
+    },
+    "linuxTarGz": {
+      "available": false,
+      "reason": "Linux tar.gz is not included in v4.0.0_1 yet."
+    },
+    "macos": {
+      "available": false,
+      "reason": "macOS DMG is not included in v4.0.0_1 yet."
+    },
+    "ios": {
+      "available": false,
+      "reason": "iOS build is not included in v4.0.0_1 yet."
+    }
+  }
+}

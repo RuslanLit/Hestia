@@ -75,7 +75,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
     try {
       await AppConfig.setServerInput(
-        _customServer ? _serverCtrl.text : AppConfig.defaultHost,
+        _customServer ? _serverCtrl.text : AppConfig.defaultServerInput,
       );
       if (!_customServer) {
         _serverCtrl.text = AppConfig.serverInput;
@@ -320,7 +320,7 @@ class _ServerChoice extends StatelessWidget {
             selected: !customServer,
             enabled: !saving,
             title: Text(defaultLabel),
-            subtitle: Text(AppConfig.defaultHost),
+            subtitle: Text(AppConfig.defaultServerInput),
             onTap: () => onCustomChanged(false),
           ),
           _ServerOption(
@@ -335,7 +335,7 @@ class _ServerChoice extends StatelessWidget {
             HestiaTextInput(
               controller: controller,
               label: context.l10n.serverUrl,
-              hint: 'https://example.com',
+              hint: 'https://api.hestiachat.site',
               prefixIcon: Icons.link,
               textInputAction: TextInputAction.done,
             ),
