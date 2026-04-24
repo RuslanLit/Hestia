@@ -8,9 +8,14 @@ const siteConfig = {
 const platformNames = {
   android: "Android",
   windows: "Windows",
+  windowsPortable: "Windows portable",
   macos: "macOS",
   linux: "Linux",
+  ios: "iOS",
   web: "Web",
+  server: "Backend server",
+  landing: "Landing/site",
+  checksums: "Checksums",
 };
 
 function getPlatformSignal() {
@@ -138,6 +143,12 @@ function createDownloadRow(key, platform) {
   checksum.className = "checksum";
   checksum.textContent = platform.checksum;
 
+  if (platform.available === false) {
+    checksum.className = "release-status";
+    checksum.textContent = platform.description;
+    row.classList.add("is-disabled");
+  }
+
   info.append(title, description, meta, checksum);
 
   const actions = document.createElement("div");
@@ -147,12 +158,19 @@ function createDownloadRow(key, platform) {
   fileName.className = "release-file";
   fileName.textContent = platform.fileName;
 
-  const button = document.createElement("a");
-  button.className = "button button-download";
-  button.href = platform.url;
-  button.textContent = platform.cardLabel;
+  const button = document.createElement(platform.available === false ? "span" : "a");
+  button.className = platform.available === false
+    ? "button button-disabled"
+    : "button button-download";
+  button.textContent = platform.available === false ? "Coming later" : platform.cardLabel;
 
-  if (/^https?:\/\//.test(platform.url)) {
+  if (platform.available === false) {
+    button.setAttribute("aria-disabled", "true");
+  } else {
+    button.href = platform.url;
+  }
+
+  if (platform.available !== false && /^https?:\/\//.test(platform.url)) {
     button.target = "_blank";
     button.rel = "noopener noreferrer";
   }
@@ -170,7 +188,18 @@ function renderDownloadsPage() {
     return;
   }
 
-  const platformOrder = ["android", "windows", "macos", "linux", "web"];
+  const platformOrder = [
+    "android",
+    "windows",
+    "windowsPortable",
+    "web",
+    "server",
+    "landing",
+    "checksums",
+    "linux",
+    "macos",
+    "ios",
+  ];
   list.replaceChildren(
     ...platformOrder
       .filter((key) => downloadConfig[key])
@@ -193,13 +222,18 @@ function setRecommendedDownload(platformKey) {
     return;
   }
 
-  if (!platformKey || !downloadConfig[platformKey]) {
+  if (
+    !platformKey ||
+    !downloadConfig[platformKey] ||
+    downloadConfig[platformKey].available === false
+  ) {
     primaryDownload.textContent = "View all downloads";
     primaryDownload.href = "#downloads";
     primaryDownload.removeAttribute("target");
     primaryDownload.removeAttribute("rel");
-    platformNote.textContent =
-      "We could not identify your platform, so no download will start automatically.";
+    platformNote.textContent = downloadConfig[platformKey]?.available === false
+      ? downloadConfig[platformKey].description
+      : "We could not identify your platform, so no download will start automatically.";
     return;
   }
 

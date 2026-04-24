@@ -31,10 +31,14 @@
       platform: {
         android: ["Android", "Download for Android", "Download APK"],
         windows: ["Windows", "Download for Windows", "Download for Windows"],
+        windowsPortable: ["Windows portable", "Download portable ZIP", "Download ZIP"],
         macos: ["macOS", "Download for macOS", "Download for macOS"],
         linux: ["Linux", "Download for Linux", "Download for Linux"],
+        ios: ["iOS", "iOS build", "Not available"],
         web: ["Web", "Open Web Version", "Open Web Version"],
         server: ["Self-hosted server", "Self-host your server", "Server setup guide"],
+        landing: ["Landing/site", "Download site package", "Download site ZIP"],
+        checksums: ["Checksums", "Download checksums", "Download checksums"],
       },
       landing: {
         eyebrow: "Private messenger for people you trust",
@@ -81,9 +85,15 @@
         notes: "Release notes",
         current: "Current release",
         version: "Version",
-        sectionCopy: "Each platform row shows the package type, version, size placeholder, checksum placeholder, and the direct download action.",
+        sectionCopy: "Download files are hosted on GitHub Releases. Checksums are provided for verification before installing or running packages.",
+        releasePage: "GitHub Release page",
         checksums: "Checksums",
         serverGuide: "Server setup guide",
+        available: "Available downloads",
+        unavailable: "Coming later",
+        status: "Status",
+        installTitle: "Install safely",
+        installSteps: ["Download the file for your platform.", "Verify the SHA-256 checksum.", "Install or run the package."],
       },
       server: {
         eyebrow: "Self-hosting",
@@ -133,9 +143,9 @@
       nav: ["Возможности", "Приватность", "Сервер", "Загрузки"],
       footer: ["Приватность", "Исходный код", "Документация", "Настройка сервера"],
       common: { version: "Версия", recommended: "Рекомендуется для {platform}. Загрузка начнется только после клика.", unknown: "Платформа не распознана, автоматическая загрузка не запускается.", viewDownloads: "Все загрузки", type: "Тип", size: "Размер" },
-      platform: { android: ["Android", "Скачать для Android", "Скачать APK"], windows: ["Windows", "Скачать для Windows", "Скачать для Windows"], macos: ["macOS", "Скачать для macOS", "Скачать для macOS"], linux: ["Linux", "Скачать для Linux", "Скачать для Linux"], web: ["Web", "Открыть Web-версию", "Открыть Web-версию"], server: ["Собственный сервер", "Развернуть сервер", "Инструкция по серверу"] },
+      platform: { android: ["Android", "Скачать для Android", "Скачать APK"], windows: ["Windows", "Скачать для Windows", "Скачать для Windows"], windowsPortable: ["Windows portable", "Скачать portable ZIP", "Скачать ZIP"], macos: ["macOS", "Скачать для macOS", "Скачать для macOS"], linux: ["Linux", "Скачать для Linux", "Скачать для Linux"], ios: ["iOS", "Сборка iOS", "Недоступно"], web: ["Web", "Скачать Web-сборку", "Скачать Web ZIP"], server: ["Сервер", "Скачать backend", "Скачать backend"], landing: ["Лендинг/site", "Скачать site-пакет", "Скачать site ZIP"], checksums: ["Checksums", "Скачать checksums", "Скачать checksums"] },
       landing: { eyebrow: "Приватный мессенджер для людей, которым вы доверяете", copy: "Ваше личное пространство для общения с семьей, близкими друзьями и небольшими командами: сообщения, файлы и звонки с локальной историей и сервером на выбор.", web: "Открыть Web-версию", featuresEyebrow: "Сделано для своего круга", featuresTitle: "Спокойное место для разговоров, файлов и контроля.", featuresCopy: "Hestia фокусируется на людях, которых выбираете вы: семье, близких друзьях и небольших командах, которым нужна приватность без лишней сложности.", howEyebrow: "Как это работает", howTitle: "Четыре шага от установки до разговора.", downloadsEyebrow: "Выберите клиент", downloadsTitle: "Загрузки", downloadsCopy: "Hestia рекомендует клиент для устройства, но загрузка начинается только после вашего выбора.", releaseDetails: "Детали релиза", releaseNotes: "Заметки релиза", privacyEyebrow: "Модель приватности", privacyTitle: "Приватность, которую легко понять." },
-      downloads: { eyebrow: "Релизные загрузки", title: "Скачать Hestia", copy: "Ссылки, версии, заметки релиза и checksums управляются из одного config.", recommended: "Рекомендуемая загрузка", notes: "Заметки релиза", current: "Текущий релиз", version: "Версия", sectionCopy: "Каждая строка показывает тип пакета, версию, размер, checksum и кнопку загрузки.", checksums: "Checksums", serverGuide: "Настройка сервера" },
+      downloads: { eyebrow: "Релизные загрузки", title: "Скачать Hestia", copy: "Ссылки ведут на assets в GitHub Releases; latest.json используется для актуальной версии и проверки обновлений.", recommended: "Рекомендуемая загрузка", notes: "Заметки релиза", current: "Текущий релиз", version: "Версия", sectionCopy: "Файлы хранятся в GitHub Releases. Checksums доступны для проверки перед установкой.", releasePage: "Страница релиза GitHub", checksums: "Checksums", serverGuide: "Настройка сервера", available: "Доступные загрузки", unavailable: "Будет позже", status: "Статус", installTitle: "Безопасная установка", installSteps: ["Скачайте файл для своей платформы.", "Проверьте SHA-256 checksum.", "Установите или запустите пакет."] },
       server: { eyebrow: "Self-hosting", title: "Инструкция по настройке сервера", intro: "Запустите сервер Hestia для своих пользователей. Сервер ретранслирует зашифрованный трафик и signaling; plaintext сообщения и файлы не должны храниться на сервере.", note: "Важно: self-hosted сервер все равно обрабатывает metadata: аккаунты, время подключений, IP и состояние доставки.", toc: ["Требования", "Перед началом", "Код сервера", "Environment", "Запуск", "HTTPS / WSS", "TURN для звонков", "Клиент", "Проверка", "Безопасность", "Проблемы"] },
       privacyPage: { eyebrow: "Модель безопасности", title: "Приватность и безопасность", intro: "Hestia спроектирована как privacy-first мессенджер, который снижает раскрытие данных на стороне сервера. В текущей архитектуре сообщения и файлы шифруются на клиенте до отправки.", note: "Эта страница описывает свойства и ограничения. Это не обещание анонимности или идеальной защиты.", toc: ["Что защищено", "Что видит сервер", "Модель доверия", "Что не защищено", "Локальные данные", "Push", "Модель сервера", "Self-hosted", "Рекомендации", "Ограничения", "Будущее"] },
     },
@@ -143,9 +153,9 @@
       nav: ["Можливості", "Приватність", "Сервер", "Завантаження"],
       footer: ["Приватність", "Код", "Документація", "Налаштування сервера"],
       common: { version: "Версія", recommended: "Рекомендовано для {platform}. Завантаження почнеться лише після натискання.", unknown: "Платформу не розпізнано, автоматичне завантаження не запускається.", viewDownloads: "Усі завантаження", type: "Тип", size: "Розмір" },
-      platform: { android: ["Android", "Завантажити для Android", "Завантажити APK"], windows: ["Windows", "Завантажити для Windows", "Завантажити для Windows"], macos: ["macOS", "Завантажити для macOS", "Завантажити для macOS"], linux: ["Linux", "Завантажити для Linux", "Завантажити для Linux"], web: ["Web", "Відкрити Web-версію", "Відкрити Web-версію"], server: ["Власний сервер", "Розгорнути сервер", "Інструкція для сервера"] },
+      platform: { android: ["Android", "Завантажити для Android", "Завантажити APK"], windows: ["Windows", "Завантажити для Windows", "Завантажити для Windows"], windowsPortable: ["Windows portable", "Завантажити portable ZIP", "Завантажити ZIP"], macos: ["macOS", "Завантажити для macOS", "Завантажити для macOS"], linux: ["Linux", "Завантажити для Linux", "Завантажити для Linux"], ios: ["iOS", "Збірка iOS", "Недоступно"], web: ["Web", "Завантажити Web-збірку", "Завантажити Web ZIP"], server: ["Сервер", "Завантажити backend", "Завантажити backend"], landing: ["Лендинг/site", "Завантажити site-пакет", "Завантажити site ZIP"], checksums: ["Checksums", "Завантажити checksums", "Завантажити checksums"] },
       landing: { eyebrow: "Приватний месенджер для людей, яким ви довіряєте", copy: "Ваш особистий простір для спілкування з родиною, близькими друзями й невеликими командами: повідомлення, файли та дзвінки з локальною історією і сервером на вибір.", web: "Відкрити Web-версію", featuresEyebrow: "Створено для свого кола", featuresTitle: "Спокійне місце для розмов, файлів і контролю.", featuresCopy: "Hestia зосереджується на людях, яких ви обираєте: родині, близьких друзях і невеликих командах, яким потрібна приватність без складності.", howEyebrow: "Як це працює", howTitle: "Чотири кроки від встановлення до розмови.", downloadsEyebrow: "Оберіть клієнт", downloadsTitle: "Завантаження", downloadsCopy: "Hestia рекомендує клієнт для пристрою, але завантаження починається тільки після вибору.", releaseDetails: "Деталі релізу", releaseNotes: "Нотатки релізу", privacyEyebrow: "Модель приватності", privacyTitle: "Приватність, яку легко зрозуміти." },
-      downloads: { eyebrow: "Релізні завантаження", title: "Завантажити Hestia", copy: "Посилання, версії, нотатки релізу та checksums керуються з одного config.", recommended: "Рекомендоване завантаження", notes: "Нотатки релізу", current: "Поточний реліз", version: "Версія", sectionCopy: "Кожен рядок показує тип пакета, версію, розмір, checksum і кнопку.", checksums: "Checksums", serverGuide: "Налаштування сервера" },
+      downloads: { eyebrow: "Релізні завантаження", title: "Завантажити Hestia", copy: "Посилання ведуть на assets у GitHub Releases; latest.json використовується для актуальної версії та перевірки оновлень.", recommended: "Рекомендоване завантаження", notes: "Нотатки релізу", current: "Поточний реліз", version: "Версія", sectionCopy: "Файли зберігаються в GitHub Releases. Checksums доступні для перевірки перед встановленням.", releasePage: "Сторінка релізу GitHub", checksums: "Checksums", serverGuide: "Налаштування сервера", available: "Доступні завантаження", unavailable: "Буде пізніше", status: "Статус", installTitle: "Безпечне встановлення", installSteps: ["Завантажте файл для своєї платформи.", "Перевірте SHA-256 checksum.", "Встановіть або запустіть пакет."] },
       server: { eyebrow: "Self-hosting", title: "Інструкція з налаштування сервера", intro: "Запустіть сервер Hestia для своїх користувачів. Сервер ретранслює зашифрований трафік і signaling; plaintext повідомлення та файли не повинні зберігатися на сервері.", note: "Важливо: self-hosted сервер усе одно обробляє metadata: акаунти, час підключень, IP та стан доставки.", toc: ["Вимоги", "Перед початком", "Код сервера", "Environment", "Запуск", "HTTPS / WSS", "TURN для дзвінків", "Клієнт", "Перевірка", "Безпека", "Проблеми"] },
       privacyPage: { eyebrow: "Модель безпеки", title: "Приватність і безпека", intro: "Hestia спроєктована як privacy-first месенджер, що зменшує розкриття даних на сервері. У поточній архітектурі повідомлення та файли шифруються на клієнті до надсилання.", note: "Ця сторінка описує властивості й обмеження. Це не обіцянка анонімності або ідеального захисту.", toc: ["Що захищено", "Що бачить сервер", "Модель довіри", "Що не захищено", "Локальні дані", "Push", "Модель сервера", "Self-hosted", "Поради", "Обмеження", "Майбутнє"] },
     },
@@ -153,9 +163,9 @@
       nav: ["Funkcje", "Prywatność", "Serwer", "Pobieranie"],
       footer: ["Prywatność", "Kod źródłowy", "Dokumentacja", "Konfiguracja serwera"],
       common: { version: "Wersja", recommended: "Zalecane dla {platform}. Pobieranie zacznie się dopiero po kliknięciu.", unknown: "Nie rozpoznano platformy; pobieranie nie rozpocznie się automatycznie.", viewDownloads: "Wszystkie pliki", type: "Typ", size: "Rozmiar" },
-      platform: { android: ["Android", "Pobierz dla Androida", "Pobierz APK"], windows: ["Windows", "Pobierz dla Windows", "Pobierz dla Windows"], macos: ["macOS", "Pobierz dla macOS", "Pobierz dla macOS"], linux: ["Linux", "Pobierz dla Linux", "Pobierz dla Linux"], web: ["Web", "Otwórz wersję web", "Otwórz wersję web"], server: ["Własny serwer", "Uruchom własny serwer", "Instrukcja serwera"] },
+      platform: { android: ["Android", "Pobierz dla Androida", "Pobierz APK"], windows: ["Windows", "Pobierz dla Windows", "Pobierz dla Windows"], windowsPortable: ["Windows portable", "Pobierz portable ZIP", "Pobierz ZIP"], macos: ["macOS", "Pobierz dla macOS", "Pobierz dla macOS"], linux: ["Linux", "Pobierz dla Linux", "Pobierz dla Linux"], ios: ["iOS", "Build iOS", "Niedostępne"], web: ["Web", "Pobierz build web", "Pobierz Web ZIP"], server: ["Serwer", "Pobierz backend", "Pobierz backend"], landing: ["Landing/site", "Pobierz pakiet site", "Pobierz site ZIP"], checksums: ["Checksums", "Pobierz checksums", "Pobierz checksums"] },
       landing: { eyebrow: "Prywatny komunikator dla ludzi, którym ufasz", copy: "Twoja osobista przestrzeń do rozmów z rodziną, bliskimi znajomymi i małymi zespołami: wiadomości, pliki i połączenia z lokalną historią oraz wyborem serwera.", web: "Otwórz wersję web", featuresEyebrow: "Dla Twojego kręgu", featuresTitle: "Spokojne miejsce do rozmów, dzielenia się i kontroli.", featuresCopy: "Hestia skupia się na osobach, które wybierasz: rodzinie, bliskich znajomych i małych zespołach, które chcą prywatności bez złożoności.", howEyebrow: "Jak to działa", howTitle: "Cztery kroki od instalacji do rozmowy.", downloadsEyebrow: "Wybierz klienta", downloadsTitle: "Pobieranie", downloadsCopy: "Hestia zaleca klienta dla urządzenia, ale pobieranie startuje tylko po wyborze.", releaseDetails: "Szczegóły wydania", releaseNotes: "Notatki wydania", privacyEyebrow: "Model prywatności", privacyTitle: "Prywatność, którą łatwo zrozumieć." },
-      downloads: { eyebrow: "Pliki wydania", title: "Pobierz Hestia", copy: "Linki, wersje, notatki wydania i checksums są zarządzane z jednego config.", recommended: "Zalecane pobranie", notes: "Notatki wydania", current: "Bieżące wydanie", version: "Wersja", sectionCopy: "Każdy wiersz pokazuje typ pakietu, wersję, rozmiar, checksum i przycisk.", checksums: "Checksums", serverGuide: "Konfiguracja serwera" },
+      downloads: { eyebrow: "Pliki wydania", title: "Pobierz Hestia", copy: "Linki prowadzą do assets w GitHub Releases; latest.json obsługuje aktualną wersję i sprawdzanie aktualizacji.", recommended: "Zalecane pobranie", notes: "Notatki wydania", current: "Bieżące wydanie", version: "Wersja", sectionCopy: "Pliki są hostowane w GitHub Releases. Checksums służą do weryfikacji przed instalacją.", releasePage: "Strona wydania GitHub", checksums: "Checksums", serverGuide: "Konfiguracja serwera", available: "Dostępne pliki", unavailable: "Później", status: "Status", installTitle: "Bezpieczna instalacja", installSteps: ["Pobierz plik dla swojej platformy.", "Zweryfikuj checksum SHA-256.", "Zainstaluj lub uruchom pakiet."] },
       server: { eyebrow: "Self-hosting", title: "Instrukcja konfiguracji serwera", intro: "Uruchom serwer Hestia dla swoich użytkowników. Serwer przekazuje szyfrowany ruch i signaling; wiadomości i pliki plaintext nie powinny być na nim przechowywane.", note: "Ważne: self-hosted serwer nadal obsługuje metadata, takie jak konta, czas połączeń, IP i stan dostarczenia.", toc: ["Wymagania", "Przed startem", "Kod serwera", "Environment", "Uruchomienie", "HTTPS / WSS", "TURN dla rozmów", "Klient", "Weryfikacja", "Bezpieczeństwo", "Problemy"] },
       privacyPage: { eyebrow: "Model bezpieczeństwa", title: "Prywatność i bezpieczeństwo", intro: "Hestia jest projektowana jako privacy-first komunikator ograniczający ekspozycję danych po stronie serwera. W obecnej architekturze wiadomości i pliki są szyfrowane po stronie klienta przed wysłaniem.", note: "Ta strona opisuje zamierzone właściwości i ograniczenia. Nie jest obietnicą anonimowości ani idealnej ochrony.", toc: ["Chronione dane", "Widoczne dla serwera", "Model zaufania", "Niechronione", "Dane lokalne", "Push", "Model serwera", "Self-hosted", "Zalecenia", "Ograniczenia", "Przyszłość"] },
     },
@@ -163,9 +173,9 @@
       nav: ["Funciones", "Privacidad", "Servidor", "Descargas"],
       footer: ["Privacidad", "Código fuente", "Documentación", "Guía del servidor"],
       common: { version: "Versión", recommended: "Recomendado para {platform}. La descarga empieza solo después de hacer clic.", unknown: "No se pudo identificar la plataforma; no se inicia ninguna descarga automática.", viewDownloads: "Ver todas las descargas", type: "Tipo", size: "Tamaño" },
-      platform: { android: ["Android", "Descargar para Android", "Descargar APK"], windows: ["Windows", "Descargar para Windows", "Descargar para Windows"], macos: ["macOS", "Descargar para macOS", "Descargar para macOS"], linux: ["Linux", "Descargar para Linux", "Descargar para Linux"], web: ["Web", "Abrir versión web", "Abrir versión web"], server: ["Servidor propio", "Alojar tu servidor", "Guía del servidor"] },
+      platform: { android: ["Android", "Descargar para Android", "Descargar APK"], windows: ["Windows", "Descargar para Windows", "Descargar para Windows"], windowsPortable: ["Windows portable", "Descargar portable ZIP", "Descargar ZIP"], macos: ["macOS", "Descargar para macOS", "Descargar para macOS"], linux: ["Linux", "Descargar para Linux", "Descargar para Linux"], ios: ["iOS", "Build iOS", "No disponible"], web: ["Web", "Descargar build web", "Descargar Web ZIP"], server: ["Servidor", "Descargar backend", "Descargar backend"], landing: ["Landing/site", "Descargar paquete site", "Descargar site ZIP"], checksums: ["Checksums", "Descargar checksums", "Descargar checksums"] },
       landing: { eyebrow: "Mensajero privado para personas en las que confías", copy: "Tu espacio personal para comunicarte con familia, amistades cercanas y equipos pequeños: mensajes, archivos y llamadas con historial local y un servidor que puedes elegir.", web: "Abrir versión web", featuresEyebrow: "Hecho para tu círculo", featuresTitle: "Un lugar tranquilo para hablar, compartir y mantener el control.", featuresCopy: "Hestia se centra en las personas que eliges: familia, amistades cercanas y equipos pequeños que quieren privacidad sin complejidad.", howEyebrow: "Cómo funciona", howTitle: "Cuatro pasos desde instalar hasta conversar.", downloadsEyebrow: "Elige tu cliente", downloadsTitle: "Descargas", downloadsCopy: "Hestia recomienda el cliente correcto, pero la descarga solo empieza cuando lo eliges.", releaseDetails: "Detalles de la versión", releaseNotes: "Notas de la versión", privacyEyebrow: "Modelo de privacidad", privacyTitle: "Privacidad fácil de entender." },
-      downloads: { eyebrow: "Descargas de versión", title: "Obtener Hestia", copy: "Enlaces, versiones, notas y checksums se administran desde un solo config.", recommended: "Descarga recomendada", notes: "Notas de la versión", current: "Versión actual", version: "Versión", sectionCopy: "Cada fila muestra tipo de paquete, versión, tamaño, checksum y acción directa.", checksums: "Checksums", serverGuide: "Guía del servidor" },
+      downloads: { eyebrow: "Descargas de versión", title: "Obtener Hestia", copy: "Los enlaces apuntan a assets de GitHub Releases; latest.json mantiene la versión actual y el update checker.", recommended: "Descarga recomendada", notes: "Notas de la versión", current: "Versión actual", version: "Versión", sectionCopy: "Los archivos están alojados en GitHub Releases. Usa checksums para verificar antes de instalar.", releasePage: "Página del release en GitHub", checksums: "Checksums", serverGuide: "Guía del servidor", available: "Descargas disponibles", unavailable: "Más adelante", status: "Estado", installTitle: "Instalación segura", installSteps: ["Descarga el archivo para tu plataforma.", "Verifica el checksum SHA-256.", "Instala o ejecuta el paquete."] },
       server: { eyebrow: "Self-hosting", title: "Guía de configuración del servidor", intro: "Ejecuta un servidor Hestia para tus usuarios. El servidor retransmite tráfico cifrado y signaling; mensajes y archivos plaintext no deberían guardarse en el servidor.", note: "Importante: un servidor self-hosted aún maneja metadata como cuentas, tiempos de conexión, IP y estado de entrega.", toc: ["Requisitos", "Antes de empezar", "Código", "Environment", "Iniciar", "HTTPS / WSS", "TURN para llamadas", "Cliente", "Verificar", "Seguridad", "Problemas"] },
       privacyPage: { eyebrow: "Modelo de seguridad", title: "Privacidad y seguridad", intro: "Hestia está diseñada como mensajero privacy-first para reducir la exposición de datos en el servidor. En la arquitectura actual, mensajes y archivos se cifran en el cliente antes de enviarse.", note: "Esta página describe propiedades previstas y limitaciones conocidas. No promete anonimato ni protección perfecta.", toc: ["Datos protegidos", "Visible al servidor", "Modelo de confianza", "No protegido", "Datos locales", "Push", "Modelo servidor", "Self-hosted", "Recomendaciones", "Limitaciones", "Futuro"] },
     },
@@ -173,9 +183,9 @@
       nav: ["Funkce", "Soukromí", "Server", "Stahování"],
       footer: ["Soukromí", "Zdrojový kód", "Dokumentace", "Nastavení serveru"],
       common: { version: "Verze", recommended: "Doporučeno pro {platform}. Stahování začne až po kliknutí.", unknown: "Platformu se nepodařilo rozpoznat; nic se nestáhne automaticky.", viewDownloads: "Všechna stahování", type: "Typ", size: "Velikost" },
-      platform: { android: ["Android", "Stáhnout pro Android", "Stáhnout APK"], windows: ["Windows", "Stáhnout pro Windows", "Stáhnout pro Windows"], macos: ["macOS", "Stáhnout pro macOS", "Stáhnout pro macOS"], linux: ["Linux", "Stáhnout pro Linux", "Stáhnout pro Linux"], web: ["Web", "Otevřít webovou verzi", "Otevřít webovou verzi"], server: ["Vlastní server", "Hostovat server", "Průvodce serverem"] },
+      platform: { android: ["Android", "Stáhnout pro Android", "Stáhnout APK"], windows: ["Windows", "Stáhnout pro Windows", "Stáhnout pro Windows"], windowsPortable: ["Windows portable", "Stáhnout portable ZIP", "Stáhnout ZIP"], macos: ["macOS", "Stáhnout pro macOS", "Stáhnout pro macOS"], linux: ["Linux", "Stáhnout pro Linux", "Stáhnout pro Linux"], ios: ["iOS", "Build iOS", "Nedostupné"], web: ["Web", "Stáhnout web build", "Stáhnout Web ZIP"], server: ["Server", "Stáhnout backend", "Stáhnout backend"], landing: ["Landing/site", "Stáhnout site balíček", "Stáhnout site ZIP"], checksums: ["Checksums", "Stáhnout checksums", "Stáhnout checksums"] },
       landing: { eyebrow: "Soukromý messenger pro lidi, kterým věříte", copy: "Váš osobní prostor pro komunikaci s rodinou, blízkými přáteli a malými týmy: zprávy, soubory a hovory s lokální historií a serverem, který si můžete vybrat.", web: "Otevřít webovou verzi", featuresEyebrow: "Pro váš okruh lidí", featuresTitle: "Klidné místo pro rozhovor, sdílení a kontrolu.", featuresCopy: "Hestia se soustředí na lidi, které si vyberete: rodinu, blízké přátele a malé týmy, které chtějí soukromí bez složitosti.", howEyebrow: "Jak to funguje", howTitle: "Čtyři kroky od instalace ke konverzaci.", downloadsEyebrow: "Vyberte klienta", downloadsTitle: "Stahování", downloadsCopy: "Hestia doporučí klienta pro zařízení, ale stahování začne jen po výběru.", releaseDetails: "Detaily vydání", releaseNotes: "Poznámky k vydání", privacyEyebrow: "Model soukromí", privacyTitle: "Soukromí, kterému lze rozumět." },
-      downloads: { eyebrow: "Stažení vydání", title: "Získat Hestia", copy: "Odkazy, verze, poznámky a checksums se spravují z jednoho config.", recommended: "Doporučené stažení", notes: "Poznámky k vydání", current: "Aktuální vydání", version: "Verze", sectionCopy: "Každý řádek ukazuje typ balíčku, verzi, velikost, checksum a tlačítko.", checksums: "Checksums", serverGuide: "Nastavení serveru" },
+      downloads: { eyebrow: "Stažení vydání", title: "Získat Hestia", copy: "Odkazy vedou na assets v GitHub Releases; latest.json drží aktuální verzi a update checker.", recommended: "Doporučené stažení", notes: "Poznámky k vydání", current: "Aktuální vydání", version: "Verze", sectionCopy: "Soubory jsou hostované v GitHub Releases. Checksums slouží k ověření před instalací.", releasePage: "Stránka vydání GitHub", checksums: "Checksums", serverGuide: "Nastavení serveru", available: "Dostupná stažení", unavailable: "Později", status: "Stav", installTitle: "Bezpečná instalace", installSteps: ["Stáhněte soubor pro svou platformu.", "Ověřte SHA-256 checksum.", "Nainstalujte nebo spusťte balíček."] },
       server: { eyebrow: "Self-hosting", title: "Průvodce nastavením serveru", intro: "Spusťte server Hestia pro své uživatele. Server přenáší šifrovaný provoz a signaling; plaintext zprávy a soubory by na něm neměly být uloženy.", note: "Důležité: self-hosted server stále zpracovává metadata jako účty, časy připojení, IP a stav doručení.", toc: ["Požadavky", "Před začátkem", "Kód serveru", "Environment", "Spuštění", "HTTPS / WSS", "TURN pro hovory", "Klient", "Ověření", "Bezpečnost", "Problémy"] },
       privacyPage: { eyebrow: "Model bezpečnosti", title: "Soukromí a bezpečnost", intro: "Hestia je navržena jako privacy-first messenger omezující vystavení dat na serveru. V aktuální architektuře se zprávy a soubory šifrují v klientu před odesláním.", note: "Tato stránka popisuje zamýšlené vlastnosti a omezení. Neslibuje anonymitu ani dokonalou ochranu.", toc: ["Chráněná data", "Viditelné serveru", "Model důvěry", "Nechráněné", "Lokální data", "Push", "Model serveru", "Self-hosted", "Doporučení", "Omezení", "Budoucnost"] },
     },
@@ -183,9 +193,9 @@
       nav: ["Funktionen", "Datenschutz", "Server", "Downloads"],
       footer: ["Datenschutz", "Quellcode", "Dokumentation", "Server-Anleitung"],
       common: { version: "Version", recommended: "Empfohlen für {platform}. Der Download startet erst nach einem Klick.", unknown: "Die Plattform wurde nicht erkannt; es startet kein automatischer Download.", viewDownloads: "Alle Downloads", type: "Typ", size: "Größe" },
-      platform: { android: ["Android", "Für Android herunterladen", "APK herunterladen"], windows: ["Windows", "Für Windows herunterladen", "Für Windows herunterladen"], macos: ["macOS", "Für macOS herunterladen", "Für macOS herunterladen"], linux: ["Linux", "Für Linux herunterladen", "Für Linux herunterladen"], web: ["Web", "Web-Version öffnen", "Web-Version öffnen"], server: ["Eigener Server", "Server selbst hosten", "Server-Anleitung"] },
+      platform: { android: ["Android", "Für Android herunterladen", "APK herunterladen"], windows: ["Windows", "Für Windows herunterladen", "Für Windows herunterladen"], windowsPortable: ["Windows portable", "Portable ZIP herunterladen", "ZIP herunterladen"], macos: ["macOS", "Für macOS herunterladen", "Für macOS herunterladen"], linux: ["Linux", "Für Linux herunterladen", "Für Linux herunterladen"], ios: ["iOS", "iOS-Build", "Nicht verfügbar"], web: ["Web", "Web-Build herunterladen", "Web ZIP herunterladen"], server: ["Server", "Backend herunterladen", "Backend herunterladen"], landing: ["Landing/site", "Site-Paket herunterladen", "Site ZIP herunterladen"], checksums: ["Checksums", "Checksums herunterladen", "Checksums herunterladen"] },
       landing: { eyebrow: "Privater Messenger für Menschen, denen du vertraust", copy: "Dein persönlicher Raum für Kommunikation mit Familie, engen Freunden und kleinen Teams: Nachrichten, Dateien und Anrufe mit lokaler Historie und einem Server, den du wählen kannst.", web: "Web-Version öffnen", featuresEyebrow: "Gemacht für deinen Kreis", featuresTitle: "Ein ruhiger Ort zum Reden, Teilen und Kontrollieren.", featuresCopy: "Hestia konzentriert sich auf die Menschen, die du auswählst: Familie, enge Freunde und kleine Teams, die Privatsphäre ohne Komplexität wollen.", howEyebrow: "So funktioniert es", howTitle: "Vier Schritte von der Installation zum Gespräch.", downloadsEyebrow: "Client wählen", downloadsTitle: "Downloads", downloadsCopy: "Hestia empfiehlt den passenden Client, aber der Download startet erst nach Ihrer Auswahl.", releaseDetails: "Release-Details", releaseNotes: "Release Notes", privacyEyebrow: "Datenschutzmodell", privacyTitle: "Datenschutz, den man verstehen kann." },
-      downloads: { eyebrow: "Release-Downloads", title: "Hestia herunterladen", copy: "Links, Versionen, Release Notes und Checksums werden aus einer Config verwaltet.", recommended: "Empfohlener Download", notes: "Release Notes", current: "Aktuelles Release", version: "Version", sectionCopy: "Jede Zeile zeigt Pakettyp, Version, Größe, Checksum und Download-Aktion.", checksums: "Checksums", serverGuide: "Server-Anleitung" },
+      downloads: { eyebrow: "Release-Downloads", title: "Hestia herunterladen", copy: "Links zeigen auf GitHub Release assets; latest.json liefert aktuelle Version und Update-Prüfung.", recommended: "Empfohlener Download", notes: "Release Notes", current: "Aktuelles Release", version: "Version", sectionCopy: "Dateien liegen in GitHub Releases. Checksums helfen bei der Prüfung vor Installation.", releasePage: "GitHub Release-Seite", checksums: "Checksums", serverGuide: "Server-Anleitung", available: "Verfügbare Downloads", unavailable: "Kommt später", status: "Status", installTitle: "Sicher installieren", installSteps: ["Datei für deine Plattform herunterladen.", "SHA-256 Checksum prüfen.", "Paket installieren oder starten."] },
       server: { eyebrow: "Self-hosting", title: "Server-Einrichtungsanleitung", intro: "Betreiben Sie einen Hestia-Server für Ihre Nutzer. Der Server leitet verschlüsselten Traffic und Signaling weiter; Plaintext-Nachrichten und Dateien sollten nicht auf dem Server gespeichert werden.", note: "Wichtig: Ein self-hosted Server verarbeitet weiterhin Metadata wie Konten, Verbindungszeiten, IPs und Zustellstatus.", toc: ["Anforderungen", "Vorbereitung", "Server-Code", "Environment", "Start", "HTTPS / WSS", "TURN für Anrufe", "Client", "Prüfen", "Sicherheit", "Probleme"] },
       privacyPage: { eyebrow: "Sicherheitsmodell", title: "Datenschutz & Sicherheit", intro: "Hestia ist als privacy-first Messenger konzipiert, der serverseitige Datenexposition reduziert. In der aktuellen Architektur werden Nachrichten und Dateien vor dem Senden im Client verschlüsselt.", note: "Diese Seite beschreibt beabsichtigte Eigenschaften und bekannte Grenzen. Sie verspricht keine Anonymität und keinen perfekten Schutz.", toc: ["Geschützte Daten", "Für Server sichtbar", "Vertrauensmodell", "Nicht geschützt", "Lokale Daten", "Push", "Servermodell", "Self-hosted", "Empfehlungen", "Grenzen", "Zukunft"] },
     },
@@ -1081,6 +1091,15 @@
         cs: "Instalátor pro počítače Windows.",
         de: "Desktop-Installer für Windows-PCs.",
       },
+      windowsPortable: {
+        en: "Portable Windows package without an installer.",
+        ru: "Портативный Windows-пакет без установщика.",
+        uk: "Портативний Windows-пакет без інсталятора.",
+        pl: "Przenośny pakiet Windows bez instalatora.",
+        es: "Paquete portátil de Windows sin instalador.",
+        cs: "Přenosný balíček Windows bez instalátoru.",
+        de: "Portables Windows-Paket ohne Installer.",
+      },
       macos: {
         en: "Desktop package for Mac devices.",
         ru: "Пакет для устройств Mac.",
@@ -1100,22 +1119,49 @@
         de: "Portable Desktop-Version für Linux.",
       },
       web: {
-        en: "Use Hestia in a modern browser.",
-        ru: "Используйте Hestia в современном браузере.",
-        uk: "Використовуйте Hestia в сучасному браузері.",
-        pl: "Użyj Hestia w nowoczesnej przeglądarce.",
-        es: "Usa Hestia en un navegador moderno.",
-        cs: "Použijte Hestia v moderním prohlížeči.",
-        de: "Nutzen Sie Hestia in einem modernen Browser.",
+        en: "Static web client bundle for hosting.",
+        ru: "Статическая Web-сборка для хостинга.",
+        uk: "Статична Web-збірка для хостингу.",
+        pl: "Statyczny pakiet web do hostingu.",
+        es: "Bundle web estático para hosting.",
+        cs: "Statický webový balíček pro hosting.",
+        de: "Statisches Web-Bundle für Hosting.",
       },
       server: {
-        en: "Prepare your own Hestia backend when you want infrastructure control.",
-        ru: "Подготовьте свой backend Hestia для контроля инфраструктуры.",
-        uk: "Підготуйте власний backend Hestia для контролю інфраструктури.",
-        pl: "Przygotuj własny backend Hestia, gdy potrzebujesz kontroli infrastruktury.",
-        es: "Prepara tu propio backend Hestia cuando quieras controlar la infraestructura.",
-        cs: "Připravte vlastní backend Hestia, když chcete kontrolu nad infrastrukturou.",
-        de: "Bereiten Sie Ihr eigenes Hestia-Backend vor, wenn Sie Infrastrukturkontrolle möchten.",
+        en: "Backend server package for self-hosting.",
+        ru: "Пакет backend-сервера для self-hosting.",
+        uk: "Пакет backend-сервера для self-hosting.",
+        pl: "Pakiet backend serwera do self-hostingu.",
+        es: "Paquete backend del servidor para self-hosting.",
+        cs: "Backend balíček serveru pro self-hosting.",
+        de: "Backend-Serverpaket für Self-Hosting.",
+      },
+      landing: {
+        en: "Static landing/site package for deployment.",
+        ru: "Статический пакет лендинга/site для deployment.",
+        uk: "Статичний пакет лендингу/site для deployment.",
+        pl: "Statyczny pakiet landing/site do wdrożenia.",
+        es: "Paquete estático landing/site para despliegue.",
+        cs: "Statický balíček landing/site pro nasazení.",
+        de: "Statisches Landing/site-Paket für Deployment.",
+      },
+      ios: {
+        en: "Not available without Apple Developer Program signing and distribution.",
+        ru: "Недоступно без Apple Developer Program, подписи и distribution.",
+        uk: "Недоступно без Apple Developer Program, підпису й distribution.",
+        pl: "Niedostępne bez Apple Developer Program, podpisu i dystrybucji.",
+        es: "No disponible sin Apple Developer Program, firma y distribución.",
+        cs: "Nedostupné bez Apple Developer Program, podpisu a distribuce.",
+        de: "Nicht verfügbar ohne Apple Developer Program, Signierung und Distribution.",
+      },
+      checksums: {
+        en: "SHA-256 hashes for verifying release files.",
+        ru: "SHA-256 хэши для проверки релизных файлов.",
+        uk: "SHA-256 хеші для перевірки релізних файлів.",
+        pl: "Hashe SHA-256 do weryfikacji plików wydania.",
+        es: "Hashes SHA-256 para verificar archivos del release.",
+        cs: "SHA-256 hashe pro ověření souborů vydání.",
+        de: "SHA-256 Hashes zur Prüfung der Release-Dateien.",
       },
     };
     return descriptions[key]?.[window.HestiaLang] || descriptions[key]?.en || "";
@@ -1252,30 +1298,47 @@
   function downloadCard(key) {
     const platform = platforms[key] || {};
     const wide = key === "server" ? " download-card-wide" : "";
-    return `<article class="download-card${wide}" data-platform-card="${key}"><div><h3>${escapeHtml(platformLabel(key, 0))}</h3><p>${escapeHtml(platformDescription(key))}</p></div><a class="button button-download" href="${platform.url || "#"}">${escapeHtml(platformLabel(key, 2))}</a></article>`;
+    const available = platform.available !== false && !!platform.url;
+    const action = available
+      ? `<a class="button button-download" href="${platform.url}" rel="noopener">${escapeHtml(platformLabel(key, 2))}</a>`
+      : `<span class="button button-disabled" aria-disabled="true">${escapeHtml(langData().downloads.unavailable || "Coming later")}</span>`;
+    return `<article class="download-card${wide}${available ? "" : " is-disabled"}" data-platform-card="${key}"><div><h3>${escapeHtml(platformLabel(key, 0))}</h3><p>${escapeHtml(platformDescription(key))}</p></div>${action}</article>`;
   }
 
   function renderDownloads() {
     const d = langData().downloads;
+    const availableKeys = ["android", "windows", "windowsPortable", "web", "server", "landing", "checksums"];
+    const unavailableKeys = ["linux", "macos", "ios"];
     document.querySelector("main").innerHTML = `
       <section class="download-page-hero" aria-labelledby="download-page-title">
         <div class="download-page-heading">
           <p class="eyebrow">${escapeHtml(d.eyebrow)}</p><h1 id="download-page-title">${escapeHtml(d.title)}</h1><p class="hero-copy">${escapeHtml(d.copy)}</p>
-          <div class="cta-row"><a class="button button-primary" id="primary-download" href="#release-list">${escapeHtml(d.recommended)}</a><a class="button button-secondary" href="${release.releaseNotesUrl || "#"}">${escapeHtml(d.notes)}</a></div>
+          <div class="cta-row"><a class="button button-primary" id="primary-download" href="#release-list">${escapeHtml(d.recommended)}</a><a class="button button-secondary" href="${release.releasePageUrl || release.releaseNotesUrl || "#"}">${escapeHtml(d.releasePage || "GitHub Release page")}</a></div>
           <p class="platform-note" id="platform-note" aria-live="polite"></p>
         </div>
       </section>
       <section class="section release-section" aria-labelledby="release-title">
-        <div class="section-heading"><div><p class="eyebrow">${escapeHtml(d.current)}</p><h2 id="release-title">${escapeHtml(d.version)} <span>${escapeHtml(release.currentVersion || "preview")}</span></h2></div><p class="section-copy">${escapeHtml(d.sectionCopy)}</p></div>
-        <div class="release-toolbar"><a class="release-link" href="${release.releaseNotesUrl || "#"}">${escapeHtml(d.notes)}</a><a class="release-link" href="${release.checksumUrl || "#"}">${escapeHtml(d.checksums)}</a><a class="release-link" href="${release.updateManifestUrl || "#"}">Update manifest</a><a class="release-link" href="${linkFor("serverGuide")}">${escapeHtml(d.serverGuide)}</a></div>
-        <div class="release-list" id="release-list">${["android", "windows", "macos", "linux", "web"].map(releaseRow).join("")}</div>
+        <div class="section-heading"><div><p class="eyebrow">${escapeHtml(d.current)}</p><h2 id="release-title">Hestia <span>${escapeHtml(release.currentVersion || "preview")}</span></h2></div><p class="section-copy">${escapeHtml(d.sectionCopy)}</p></div>
+        <div class="release-toolbar"><a class="release-link" href="${release.releasePageUrl || release.releaseNotesUrl || "#"}">${escapeHtml(d.releasePage || "GitHub Release page")}</a><a class="release-link" href="${release.checksumUrl || "#"}">${escapeHtml(d.checksums)}</a><a class="release-link" href="${release.updateManifestUrl || "#"}">latest.json</a><a class="release-link" href="${linkFor("serverGuide")}">${escapeHtml(d.serverGuide)}</a></div>
+        <div class="release-install"><h3>${escapeHtml(d.installTitle || "Install safely")}</h3><ol>${(d.installSteps || copy.en.downloads.installSteps).map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol></div>
+        <h3 class="release-subtitle">${escapeHtml(d.available || "Available downloads")}</h3>
+        <div class="release-list" id="release-list">${availableKeys.map(releaseRow).join("")}</div>
+        <h3 class="release-subtitle">${escapeHtml(d.unavailable || "Coming later")}</h3>
+        <div class="release-list release-list-status">${unavailableKeys.map(releaseRow).join("")}</div>
       </section>`;
   }
 
   function releaseRow(key) {
     const p = platforms[key] || {};
     const d = langData();
-    return `<article class="release-row" data-platform-card="${key}"><div><h3>${escapeHtml(platformLabel(key, 0))}</h3><p>${escapeHtml(platformDescription(key))}</p><div class="release-meta"><span class="release-meta-item">${escapeHtml(d.common.type)}: ${escapeHtml(p.fileType || "")}</span><span class="release-meta-item">${escapeHtml(d.downloads.version)}: ${escapeHtml(release.currentVersion || "")}</span><span class="release-meta-item">${escapeHtml(d.common.size)}: ${escapeHtml(p.fileSize || "")}</span></div><code class="checksum">${escapeHtml(p.checksum || "")}</code></div><div class="release-actions"><span class="release-file">${escapeHtml(p.fileName || "")}</span><a class="button button-download" href="${p.url || "#"}">${escapeHtml(platformLabel(key, 2))}</a></div></article>`;
+    const available = p.available !== false && !!p.url;
+    const action = available
+      ? `<a class="button button-download" href="${p.url}" rel="noopener">${escapeHtml(platformLabel(key, 2))}</a>`
+      : `<span class="button button-disabled" aria-disabled="true">${escapeHtml(d.downloads.unavailable || "Coming later")}</span>`;
+    const checksum = available
+      ? `<code class="checksum">${escapeHtml(p.checksum || "")}</code>`
+      : `<p class="release-status">${escapeHtml(platformDescription(key))}</p>`;
+    return `<article class="release-row${available ? "" : " is-disabled"}" data-platform-card="${key}"><div><h3>${escapeHtml(platformLabel(key, 0))}</h3><p>${escapeHtml(available ? platformDescription(key) : d.downloads.status || "Status")}</p><div class="release-meta"><span class="release-meta-item">${escapeHtml(d.common.type)}: ${escapeHtml(p.fileType || "")}</span><span class="release-meta-item">${escapeHtml(d.downloads.version)}: ${escapeHtml(release.currentVersion || "")}</span><span class="release-meta-item">${escapeHtml(d.common.size)}: ${escapeHtml(p.fileSize || "")}</span></div>${checksum}</div><div class="release-actions"><span class="release-file">${escapeHtml(p.fileName || "")}</span>${action}</div></article>`;
   }
 
   function renderGuide(kind) {
@@ -1374,10 +1437,12 @@
       card.classList.toggle("is-recommended", card.dataset.platformCard === detected);
     });
     if (!primary || !note) return;
-    if (!detected || !platforms[detected]) {
+    if (!detected || !platforms[detected] || platforms[detected].available === false) {
       primary.textContent = langData().common.viewDownloads;
       primary.href = pageKey() === "downloads" ? "#release-list" : "#downloads";
-      note.textContent = langData().common.unknown;
+      note.textContent = platforms[detected]?.available === false
+        ? platformDescription(detected)
+        : langData().common.unknown;
       return;
     }
     primary.textContent = platformLabel(detected, 1);

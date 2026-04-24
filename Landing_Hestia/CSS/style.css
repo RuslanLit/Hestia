@@ -770,6 +770,10 @@ h3 {
   background: var(--recommended-background);
 }
 
+.download-card.is-disabled {
+  opacity: 0.74;
+}
+
 .download-card p {
   margin: 12px 0 0;
   color: var(--muted);
@@ -780,6 +784,22 @@ h3 {
   min-height: 44px;
   padding: 0 14px;
   font-size: 0.92rem;
+}
+
+.button-disabled {
+  display: inline-flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 14px;
+  background: var(--surface-strong);
+  color: var(--muted);
+  cursor: not-allowed;
+  font-size: 0.92rem;
+  font-weight: 800;
 }
 
 .download-card-wide {
@@ -808,6 +828,41 @@ h3 {
   margin: 32px auto 0;
 }
 
+.release-list-status {
+  margin-top: 16px;
+}
+
+.release-subtitle,
+.release-install {
+  width: min(1120px, 100%);
+  margin-inline: auto;
+}
+
+.release-subtitle {
+  margin-top: 32px;
+  font-size: clamp(1.25rem, 2vw, 1.6rem);
+}
+
+.release-install {
+  margin-top: 28px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px 24px;
+  background: var(--surface);
+}
+
+.release-install h3 {
+  margin: 0 0 12px;
+}
+
+.release-install ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 22px;
+  color: var(--muted);
+}
+
 .release-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
@@ -824,10 +879,21 @@ h3 {
   background: var(--recommended-background);
 }
 
+.release-row.is-disabled {
+  opacity: 0.78;
+}
+
 .release-row p {
   max-width: 640px;
   margin: 12px 0 0;
   color: var(--muted);
+}
+
+.release-status {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--bg);
 }
 
 .release-meta {

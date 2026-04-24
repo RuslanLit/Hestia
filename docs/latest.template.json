@@ -51,8 +51,8 @@
       "available": true,
       "file": "hestia-4.0.0_1-landing.zip",
       "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-landing.zip",
-      "sha256": "57a3db07a3aa13621eae3014cc8f3ec7d04d5a7296d68c39df805eda63ec1b47",
-      "sizeBytes": 2457578
+      "sha256": "7dffa656cbb30c10cecfd639a17b37e105f2f0a3fc0588fe1d17d535566948c2",
+      "sizeBytes": 2461753
     },
     "linuxAppImage": {
       "available": false,
@@ -76,3 +76,5 @@
     }
   }
 }
+
+
