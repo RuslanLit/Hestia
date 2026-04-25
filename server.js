@@ -7,7 +7,8 @@ const http = require('http');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 
-const PORT = Number(process.env.PORT || 3000);
+const LISTEN_TARGET = process.env.PORT || process.env.SOCKET || process.env.LISTEN_SOCKET || '3000';
+const PORT = /^\d+$/.test(LISTEN_TARGET) ? Number(LISTEN_TARGET) : LISTEN_TARGET;
 const DATA_FILE = path.join(__dirname, 'data.json');
 const PUBLIC_DIR = resolvePublicDir();
 const QUEUE_BLOB_DIR = path.join(__dirname, 'queue_blobs');
@@ -2976,8 +2977,30 @@ wss.on('connection', (ws) => {
   });
 });
 
+if (typeof PORT === 'string') {
+  try {
+    if (fs.existsSync(PORT)) {
+      fs.unlinkSync(PORT);
+    }
+  } catch (error) {
+    logInfo(`[server] unable to remove stale socket ${PORT}: ${error.message}`);
+  }
+}
+
+server.on('error', (error) => {
+  console.error(`[server] failed to start: ${error.stack || error.message}`);
+});
+
 server.listen(PORT, () => {
-  logInfo(`Hestia relay server is listening on http://localhost:${PORT}`);
+  if (typeof PORT === 'string') {
+    try {
+      fs.chmodSync(PORT, 0o777);
+    } catch (error) {
+      logInfo(`[server] unable to chmod socket ${PORT}: ${error.message}`);
+    }
+  }
+  const listenLabel = typeof PORT === 'number' ? `http://localhost:${PORT}` : PORT;
+  logInfo(`Hestia relay server is listening on ${listenLabel}`);
 });
 
 setInterval(runQueueMaintenance, QUEUE_CLEANUP_INTERVAL_MS).unref();
