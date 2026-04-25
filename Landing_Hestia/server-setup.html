@@ -117,7 +117,7 @@
             <h2>What you need before starting</h2>
             <ul class="check-list two-column-list">
               <li>VPS or server with shell access</li>
-              <li>Domain or subdomain, for example <code>chat.your-domain.test</code></li>
+              <li>One domain, for example <code>hestiachat.site</code></li>
               <li>Node.js and npm</li>
               <li>Git</li>
               <li>Firewall access for HTTP/HTTPS and the internal app port</li>
@@ -177,25 +177,25 @@ FIREBASE_PRIVATE_KEY=</code></pre>
             <h2>Start the server</h2>
             <pre><code>npm start</code></pre>
             <p>
-              The server should expose <code>/config</code>, accept WebSocket
-              connections, and have writable persistence storage for its data
-              files or database.
+              The same Node.js app can serve the landing at <code>/</code>,
+              backend config at <code>/api/config</code>, and WebSocket traffic
+              at <code>/ws</code>. It also needs writable persistence storage
+              for its data files or database.
             </p>
-            <pre><code>curl http://127.0.0.1:3000/config</code></pre>
+            <pre><code>curl http://127.0.0.1:3000/api/config</code></pre>
           </section>
 
           <section class="guide-section" id="reverse-proxy">
             <p class="eyebrow">06</p>
             <h2>Reverse proxy, HTTPS, and WSS</h2>
             <p>
-              For production, put the Hestia server behind a reverse proxy with
-              TLS. Public self-hosted applications are commonly exposed through
-              a domain with HTTPS, and WebSocket proxy support is required for
-              realtime messaging and signaling.
+              For production, put the single Hestia Node.js app behind a reverse
+              proxy with TLS. One domain is enough: static pages, release files,
+              HTTP API, and WebSocket traffic all pass through the same handler.
             </p>
             <pre><code>server {
     listen 443 ssl http2;
-    server_name chat.your-domain.test;
+    server_name hestiachat.site;
 
     ssl_certificate /path/to/fullchain.pem;
     ssl_certificate_key /path/to/privkey.pem;
@@ -212,8 +212,9 @@ FIREBASE_PRIVATE_KEY=</code></pre>
     }
 }</code></pre>
             <div class="note-block">
-              Replace <code>chat.your-domain.test</code> and certificate paths with
-              your real domain and TLS certificate locations.
+              Replace <code>hestiachat.site</code> and certificate paths with
+              your real domain and TLS certificate locations. A separate
+              <code>api</code> subdomain is not required.
             </div>
           </section>
 
@@ -243,7 +244,7 @@ FIREBASE_PRIVATE_KEY=</code></pre>
             <h2>Connect the client</h2>
             <ol class="plain-steps">
               <li>Open the Hestia client.</li>
-              <li>Enter your server URL, for example <code>https://chat.your-domain.test</code>, if the build asks for it.</li>
+              <li>Enter your server URL, for example <code>https://hestiachat.site</code>, if the build asks for it.</li>
               <li>Use the default server URL if your app build already includes it.</li>
               <li>Register or log in.</li>
               <li>Create two test users and send a message between them.</li>
@@ -254,8 +255,10 @@ FIREBASE_PRIVATE_KEY=</code></pre>
             <p class="eyebrow">09</p>
             <h2>Verification checklist</h2>
             <ul class="check-list two-column-list">
-              <li><code>/config</code> is reachable over HTTPS</li>
-              <li>WebSocket connects over WSS</li>
+              <li><code>/</code> serves the landing</li>
+              <li><code>/releases/latest.json</code> is reachable</li>
+              <li><code>/api/config</code> is reachable over HTTPS</li>
+              <li>WebSocket connects over <code>/ws</code></li>
               <li>Registration or login works</li>
               <li>Two users can exchange messages</li>
               <li>Offline delivery works within your configured TTL</li>
@@ -305,7 +308,7 @@ FIREBASE_PRIVATE_KEY=</code></pre>
               </article>
               <article>
                 <h3>Invalid server URL</h3>
-                <p>Use a full HTTPS origin such as <code>https://chat.your-domain.test</code>.</p>
+                <p>Use a full HTTPS origin such as <code>https://hestiachat.site</code>. The client derives <code>wss://hestiachat.site/ws</code> automatically.</p>
               </article>
             </div>
           </section>

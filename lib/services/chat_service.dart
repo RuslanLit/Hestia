@@ -319,7 +319,7 @@ class ChatService extends ChangeNotifier {
   Future<void> loadBackendConfig() async {
     try {
       final response = await http
-          .get(Uri.parse('${AppConfig.httpUrl}/config'))
+          .get(Uri.parse(AppConfig.configUrl))
           .timeout(const Duration(seconds: 4));
       if (response.statusCode != 200) {
         return;

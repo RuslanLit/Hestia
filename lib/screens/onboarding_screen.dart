@@ -335,7 +335,7 @@ class _ServerChoice extends StatelessWidget {
             HestiaTextInput(
               controller: controller,
               label: context.l10n.serverUrl,
-              hint: 'https://api.hestiachat.site',
+              hint: 'https://hestiachat.site',
               prefixIcon: Icons.link,
               textInputAction: TextInputAction.done,
             ),

@@ -121,7 +121,7 @@ Note:
 
 - some variables are already consumed by `server.js`
 - some are documented for deployment consistency
-- production client builds default to the official Hestia API at `https://api.hestiachat.site`
+- production client builds default to the single-domain Hestia deployment at `https://hestiachat.site`
 - local backend development still uses `localhost:3000`
 
 ## Custom Server URL
@@ -131,8 +131,8 @@ The client supports changing the backend URL from inside the app.
 Current default:
 
 - official website: `https://hestiachat.site`
-- API: `https://api.hestiachat.site`
-- WebSocket: `wss://api.hestiachat.site`
+- API config: `https://hestiachat.site/api/config`
+- WebSocket: `wss://hestiachat.site/ws`
 - update manifest: `https://hestiachat.site/releases/latest.json`
 
 Client config is handled in [lib/config.dart](lib/config.dart).

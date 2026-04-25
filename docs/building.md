@@ -5,8 +5,8 @@ This guide covers local client builds and release packaging for the existing Flu
 Official URLs:
 
 - website: `https://hestiachat.site`
-- API: `https://api.hestiachat.site`
-- WebSocket: `wss://api.hestiachat.site`
+- API config: `https://hestiachat.site/api/config`
+- WebSocket: `wss://hestiachat.site/ws`
 - update manifest: `https://hestiachat.site/releases/latest.json`
 
 ## Platform Audit

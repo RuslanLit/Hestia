@@ -16,43 +16,43 @@
       "available": true,
       "file": "hestia-4.0.0_1-android.apk",
       "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-android.apk",
-      "sha256": "47932f8b404c6237c472911dfdf67d72160e0028f304c20f3a68aa72b0ab694f",
+      "sha256": "42608d1bc018027b42f5a4d4fd903617eaffd574fcc125f5c133662ebd2c93e9",
       "sizeBytes": 96819838
     },
     "windows": {
       "available": true,
       "file": "hestia-4.0.0_1-windows-setup.exe",
       "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-windows-setup.exe",
-      "sha256": "7afc08f52ddcfaecdfbda197512bd6681b94b7af0fdb7a0304dd1909df0c1033",
-      "sizeBytes": 24784384
+      "sha256": "fe3473a92bb870f847f32d9a1e31415f9c49169daf2aa52c00d0a17118309ec2",
+      "sizeBytes": 24785920
     },
     "windowsPortable": {
       "available": true,
       "file": "hestia-4.0.0_1-windows-portable.zip",
       "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-windows-portable.zip",
-      "sha256": "099d97583ccf32663beb5dd2ea9366e4dd0d935ca7de13a918abd23e2a4cb818",
-      "sizeBytes": 24776771
+      "sha256": "22c8a0145da03d6d0462be7f884350a17d7d3f573e0eb5fa69a8c603f17934da",
+      "sizeBytes": 24778512
     },
     "webStatic": {
       "available": true,
       "file": "hestia-4.0.0_1-web-static.zip",
       "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-web-static.zip",
-      "sha256": "5eb2be36882d8dd941a2b5b3b02b4e12354887d2e09135ece48711abdfac97f2",
-      "sizeBytes": 14150997
+      "sha256": "bdd9cf7d53ba5ada83ecb79ae2b81c4922117cb8af417c48a7051909a369bf66",
+      "sizeBytes": 14151479
     },
     "backend": {
       "available": true,
       "file": "hestia-4.0.0_1-backend.zip",
       "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-backend.zip",
-      "sha256": "ee376597fd98b584708462ea0143f5fe016f81d128394ba2220850cf74098b8b",
-      "sizeBytes": 31927
+      "sha256": "f91b65daa3773afbc279f770a26d67434aebf097a47dfcd9d9d5555a2b6df006",
+      "sizeBytes": 32940
     },
     "landing": {
       "available": true,
       "file": "hestia-4.0.0_1-landing.zip",
       "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.0_1/hestia-4.0.0_1-landing.zip",
-      "sha256": "7dffa656cbb30c10cecfd639a17b37e105f2f0a3fc0588fe1d17d535566948c2",
-      "sizeBytes": 2461753
+      "sha256": "ee2dc03a9b168be0b100347b2099e4a6f5d698f82f3b45dc07df40fc677a3e09",
+      "sizeBytes": 2462127
     },
     "linuxAppImage": {
       "available": false,
@@ -76,5 +76,3 @@
     }
   }
 }
-
-

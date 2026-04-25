@@ -7,8 +7,9 @@ const http = require('http');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 
-const PORT = 3000;
+const PORT = Number(process.env.PORT || 3000);
 const DATA_FILE = path.join(__dirname, 'data.json');
+const PUBLIC_DIR = resolvePublicDir();
 const QUEUE_BLOB_DIR = path.join(__dirname, 'queue_blobs');
 const ATTACHMENT_BLOB_DIR = path.join(__dirname, 'attachment_blobs');
 const OFFLINE_TTL_MS = Number(process.env.OFFLINE_TTL_MS || 7 * 24 * 60 * 60 * 1000);
@@ -110,6 +111,31 @@ const ICE_SERVERS = [
   ...parseTurnServers(process.env.TURN_SERVERS || ''),
 ];
 const PUSH_PROVIDERS = new Set(['fcm']);
+const LANDING_PAGES = new Set([
+  'index.html',
+  'downloads.html',
+  'privacy.html',
+  'faq.html',
+  'comparison.html',
+  'server-setup.html',
+]);
+const STATIC_DIRS = new Set([
+  'assets',
+  'content',
+  'CSS',
+  'JS',
+  'logo',
+  'og',
+  'releases',
+  'scripts',
+]);
+const STATIC_FILES = new Set([
+  'robots.txt',
+  'sitemap.xml',
+  'favicon.ico',
+  'favicon.png',
+  'manifest.json',
+]);
 let fcmServiceAccount = null;
 let fcmAccessToken = null;
 let fcmAccessTokenExpiresAt = 0;
@@ -553,6 +579,98 @@ function jsonResponse(res, statusCode, payload) {
     'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token, X-User-Id, X-Auth-Token',
   });
   res.end(JSON.stringify(payload));
+}
+
+function resolvePublicDir() {
+  const candidates = [
+    process.env.PUBLIC_DIR,
+    path.join(__dirname, 'public'),
+    path.join(__dirname, 'Landing_Hestia'),
+    __dirname,
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    const resolved = path.resolve(candidate);
+    if (fs.existsSync(path.join(resolved, 'index.html'))) {
+      return resolved;
+    }
+  }
+  return null;
+}
+
+function staticContentType(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  const types = {
+    '.css': 'text/css; charset=utf-8',
+    '.html': 'text/html; charset=utf-8',
+    '.js': 'application/javascript; charset=utf-8',
+    '.json': 'application/json; charset=utf-8',
+    '.map': 'application/json; charset=utf-8',
+    '.svg': 'image/svg+xml',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.webp': 'image/webp',
+    '.ico': 'image/x-icon',
+    '.txt': 'text/plain; charset=utf-8',
+    '.xml': 'application/xml; charset=utf-8',
+    '.webmanifest': 'application/manifest+json; charset=utf-8',
+  };
+  return types[ext] || 'application/octet-stream';
+}
+
+function serveLandingStatic(req, res, url) {
+  if (!PUBLIC_DIR || (req.method !== 'GET' && req.method !== 'HEAD')) {
+    return false;
+  }
+
+  let requestPath;
+  try {
+    requestPath = decodeURIComponent(url.pathname);
+  } catch {
+    return false;
+  }
+
+  if (requestPath === '/') {
+    requestPath = '/index.html';
+  }
+
+  const relativePath = requestPath.replace(/^\/+/, '');
+  const firstSegment = relativePath.split('/')[0];
+  const isAllowed =
+    LANDING_PAGES.has(relativePath) ||
+    STATIC_FILES.has(relativePath) ||
+    STATIC_DIRS.has(firstSegment);
+
+  if (!isAllowed) {
+    return false;
+  }
+
+  const filePath = path.resolve(PUBLIC_DIR, relativePath);
+  const publicRoot = path.resolve(PUBLIC_DIR);
+  if (filePath !== publicRoot && !filePath.startsWith(`${publicRoot}${path.sep}`)) {
+    return false;
+  }
+
+  if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+    return false;
+  }
+
+  const stat = fs.statSync(filePath);
+  res.writeHead(200, {
+    'Content-Type': staticContentType(filePath),
+    'Content-Length': String(stat.size),
+    'Cache-Control': relativePath === 'index.html' ||
+      relativePath === 'releases/latest.json'
+      ? 'no-cache'
+      : 'public, max-age=300',
+  });
+  if (req.method === 'HEAD') {
+    res.end();
+    return true;
+  }
+  fs.createReadStream(filePath).pipe(res);
+  return true;
 }
 
 function requireAdmin(req, res) {
@@ -2584,7 +2702,7 @@ function handleDownloadBlob(req, res) {
     return jsonResponse(res, 429, { error: 'Too many requests. Try again later.' });
   }
   const url = requestUrl(req);
-  const match = url.pathname.match(/^\/download_blob\/([^/]+)$/);
+  const match = url.pathname.match(/^\/(?:api\/)?download_blob\/([^/]+)$/);
   const blobId = String((match && match[1]) || url.searchParams.get('blobId') || '').trim();
   const blob = findBlobById(blobId);
   if (!blob ||
@@ -2611,6 +2729,36 @@ function handleDownloadBlob(req, res) {
   fs.createReadStream(filePath).pipe(res);
 }
 
+function backendConfigPayload() {
+  return {
+    serverName: SERVER_NAME,
+    registrationEnabled: REGISTRATION_ENABLED,
+    inviteOnly: INVITE_ONLY,
+    iceServers: ICE_SERVERS,
+    offlineTtlMs: OFFLINE_TTL_MS,
+    websocketPath: '/ws',
+    blobTransfer: {
+      enabled: true,
+      uploadPath: '/api/upload_blob',
+      downloadPath: '/api/download_blob/{blobId}',
+      legacyUploadPath: '/upload_blob',
+      legacyDownloadPath: '/download_blob/{blobId}',
+    },
+    queueLimits: {
+      recipientMaxMessages: OFFLINE_QUEUE_RECIPIENT_MAX_MESSAGES,
+      serverMaxMessages: OFFLINE_QUEUE_SERVER_MAX_MESSAGES,
+      recipientMaxBytes: OFFLINE_QUEUE_RECIPIENT_MAX_BYTES,
+      serverMaxBytes: OFFLINE_QUEUE_SERVER_MAX_BYTES,
+      recipientAttachmentMaxBytes: OFFLINE_QUEUE_RECIPIENT_ATTACHMENT_MAX_BYTES,
+      serverAttachmentMaxBytes: OFFLINE_QUEUE_SERVER_ATTACHMENT_MAX_BYTES,
+      recipientAttachmentMaxFiles: OFFLINE_QUEUE_RECIPIENT_ATTACHMENT_MAX_FILES,
+      serverAttachmentMaxFiles: OFFLINE_QUEUE_SERVER_ATTACHMENT_MAX_FILES,
+    },
+    callMedia: CALL_MEDIA_CONFIG,
+    attachmentPolicy: publicAttachmentPolicy(),
+  };
+}
+
 const server = http.createServer();
 server.on('request', async (req, res) => {
   if (req.method === 'OPTIONS') {
@@ -2620,42 +2768,24 @@ server.on('request', async (req, res) => {
 
   const url = requestUrl(req);
 
-  if (req.method === 'POST' && url.pathname === '/upload_blob') {
+  if (req.method === 'POST' &&
+      (url.pathname === '/api/upload_blob' || url.pathname === '/upload_blob')) {
     handleUploadBlob(req, res);
     return;
   }
 
   if (req.method === 'GET' &&
-      (url.pathname === '/download_blob' || url.pathname.startsWith('/download_blob/'))) {
+      (url.pathname === '/download_blob' ||
+       url.pathname === '/api/download_blob' ||
+       url.pathname.startsWith('/download_blob/') ||
+       url.pathname.startsWith('/api/download_blob/'))) {
     handleDownloadBlob(req, res);
     return;
   }
 
-  if (req.method === 'GET' && req.url === '/config') {
-    jsonResponse(res, 200, {
-      serverName: SERVER_NAME,
-      registrationEnabled: REGISTRATION_ENABLED,
-      inviteOnly: INVITE_ONLY,
-      iceServers: ICE_SERVERS,
-      offlineTtlMs: OFFLINE_TTL_MS,
-      blobTransfer: {
-        enabled: true,
-        uploadPath: '/upload_blob',
-        downloadPath: '/download_blob/{blobId}',
-      },
-      queueLimits: {
-        recipientMaxMessages: OFFLINE_QUEUE_RECIPIENT_MAX_MESSAGES,
-        serverMaxMessages: OFFLINE_QUEUE_SERVER_MAX_MESSAGES,
-        recipientMaxBytes: OFFLINE_QUEUE_RECIPIENT_MAX_BYTES,
-        serverMaxBytes: OFFLINE_QUEUE_SERVER_MAX_BYTES,
-        recipientAttachmentMaxBytes: OFFLINE_QUEUE_RECIPIENT_ATTACHMENT_MAX_BYTES,
-        serverAttachmentMaxBytes: OFFLINE_QUEUE_SERVER_ATTACHMENT_MAX_BYTES,
-        recipientAttachmentMaxFiles: OFFLINE_QUEUE_RECIPIENT_ATTACHMENT_MAX_FILES,
-        serverAttachmentMaxFiles: OFFLINE_QUEUE_SERVER_ATTACHMENT_MAX_FILES,
-      },
-      callMedia: CALL_MEDIA_CONFIG,
-      attachmentPolicy: publicAttachmentPolicy(),
-    });
+  if (req.method === 'GET' &&
+      (url.pathname === '/api/config' || url.pathname === '/config')) {
+    jsonResponse(res, 200, backendConfigPayload());
     return;
   }
 
@@ -2702,11 +2832,27 @@ server.on('request', async (req, res) => {
     return jsonResponse(res, 200, { ok: true });
   }
 
+  if (serveLandingStatic(req, res, url)) {
+    return;
+  }
+
   jsonResponse(res, 404, { error: 'Not found' });
 });
 const wss = new WebSocket.Server({
-  server,
+  noServer: true,
   maxPayload: Math.max(MAX_WS_MESSAGE_BYTES, Math.ceil(HARD_ATTACHMENT_MAX_BYTES * 3.5)),
+});
+
+server.on('upgrade', (req, socket, head) => {
+  const url = requestUrl(req);
+  if (url.pathname !== '/ws') {
+    socket.destroy();
+    return;
+  }
+
+  wss.handleUpgrade(req, socket, head, (ws) => {
+    wss.emit('connection', ws, req);
+  });
 });
 
 wss.on('connection', (ws) => {
