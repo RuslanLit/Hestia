@@ -1168,8 +1168,25 @@
   }
 
   function renderHeader() {
+    const header = document.querySelector(".site-header");
     const nav = document.querySelector(".site-nav");
     if (!nav) return;
+    let menuButton = header?.querySelector(".menu-toggle");
+    if (header && !menuButton) {
+      menuButton = document.createElement("button");
+      menuButton.type = "button";
+      menuButton.className = "menu-toggle";
+      menuButton.setAttribute("aria-controls", "site-navigation");
+      menuButton.setAttribute("aria-expanded", "false");
+      menuButton.innerHTML = '<span class="menu-toggle-bars" aria-hidden="true"></span><span class="sr-only">Menu</span>';
+      menuButton.addEventListener("click", () => {
+        const expanded = menuButton.getAttribute("aria-expanded") === "true";
+        menuButton.setAttribute("aria-expanded", String(!expanded));
+        header.classList.toggle("nav-open", !expanded);
+      });
+      header.insertBefore(menuButton, nav);
+    }
+    nav.id = "site-navigation";
     const d = langData();
     const links = [
       ["index.html#features", d.nav[0]],
@@ -1183,6 +1200,12 @@
       .map(([href, text]) => `<a class="nav-link" href="${href}">${escapeHtml(text)}</a>`)
       .join("");
     nav.appendChild(languageSwitcher());
+    nav.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => {
+        header?.classList.remove("nav-open");
+        menuButton?.setAttribute("aria-expanded", "false");
+      });
+    });
   }
 
   function languageSwitcher() {
