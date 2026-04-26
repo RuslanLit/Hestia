@@ -129,8 +129,13 @@ class FirebasePushService implements PushService {
   static const _pendingPushActionsKey = 'hestia_pending_push_actions';
   static const _notificationChannelId = 'hestia_push_sync';
   static const _notificationChannelName = 'Hestia updates';
-  static const _callChannelId = 'hestia_incoming_calls';
+  static const _callChannelId = 'hestia_incoming_calls_v2';
   static const _callChannelName = 'Hestia calls';
+  static const _callSound = RawResourceAndroidNotificationSound('ringtone');
+  static final _callVibrationPattern = Int64List.fromList(
+    <int>[0, 900, 450, 900, 450, 900],
+  );
+  static final _insistentFlag = Int32List.fromList(<int>[4]);
   static const actionAcceptCall = 'accept_call';
   static const actionRejectCall = 'reject_call';
   static final FlutterLocalNotificationsPlugin _notifications =
@@ -323,7 +328,10 @@ class FirebasePushService implements PushService {
       description: l10n.pushCallChannelDescription,
       importance: Importance.max,
       playSound: true,
+      sound: _callSound,
       enableVibration: true,
+      vibrationPattern: _callVibrationPattern,
+      audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
     );
     await _notifications
         .resolvePlatformSpecificImplementation<
@@ -388,7 +396,10 @@ class FirebasePushService implements PushService {
       description: l10n.pushCallChannelDescription,
       importance: Importance.max,
       playSound: true,
+      sound: _callSound,
       enableVibration: true,
+      vibrationPattern: _callVibrationPattern,
+      audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
     );
     await _notifications
         .resolvePlatformSpecificImplementation<
@@ -436,6 +447,11 @@ class FirebasePushService implements PushService {
         priority: Priority.max,
         category: AndroidNotificationCategory.call,
         fullScreenIntent: true,
+        sound: _callSound,
+        playSound: true,
+        audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
+        vibrationPattern: _callVibrationPattern,
+        additionalFlags: _insistentFlag,
         timeoutAfter: 45000,
         ongoing: true,
         autoCancel: false,
