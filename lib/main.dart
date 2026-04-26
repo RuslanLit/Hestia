@@ -51,6 +51,7 @@ class _HestiaAppState extends State<HestiaApp> with WidgetsBindingObserver {
   bool _showOnboarding = false;
   bool _initialRegisterMode = false;
   String? _error;
+  Timer? _errorTimer;
 
   @override
   void initState() {
@@ -86,9 +87,7 @@ class _HestiaAppState extends State<HestiaApp> with WidgetsBindingObserver {
       if (!mounted) {
         return;
       }
-      setState(() {
-        _error = message;
-      });
+      _showTransientError(message);
     };
     setState(() {
       _ready = true;
@@ -108,10 +107,23 @@ class _HestiaAppState extends State<HestiaApp> with WidgetsBindingObserver {
       if (!mounted) {
         return;
       }
-      setState(() {
-        _error = message;
-      });
+      _showTransientError(message);
     };
+  }
+
+  void _showTransientError(String message) {
+    _errorTimer?.cancel();
+    setState(() {
+      _error = message;
+    });
+    _errorTimer = Timer(const Duration(seconds: 4), () {
+      if (!mounted || _error != message) {
+        return;
+      }
+      setState(() {
+        _error = null;
+      });
+    });
   }
 
   Future<void> _finishOnboarding({required bool registerMode}) async {
@@ -134,6 +146,7 @@ class _HestiaAppState extends State<HestiaApp> with WidgetsBindingObserver {
       _background.removeListener(_refresh);
     }
     WidgetsBinding.instance.removeObserver(this);
+    _errorTimer?.cancel();
     _chat.onError = null;
     FirebasePushService.instance.onPushAction = null;
     CallService.instance.onIncomingCall = null;

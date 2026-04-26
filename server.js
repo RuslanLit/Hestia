@@ -1581,6 +1581,7 @@ function pushPayloadForCall(signal) {
     type: 'incoming_call',
     callId: String(signal?.callId || ''),
     fromUserId: String(signal?.fromUserId || ''),
+    fromUsername: String(signal?.fromNickname || signal?.fromUsername || ''),
     callType: signal?.video ? 'video' : 'audio',
   };
 }
@@ -1673,6 +1674,36 @@ async function sendFcmDataMessage(token, payload) {
   if (!bearer) {
     return false;
   }
+  const isIncomingCall = payload?.type === 'incoming_call';
+  const caller = String(payload?.fromUsername || 'Hestia').trim() || 'Hestia';
+  const callBody = payload?.callType === 'video'
+    ? 'Incoming video call'
+    : 'Incoming voice call';
+  const message = {
+    token,
+    data: pushDataPayload(payload),
+    android: {
+      priority: 'HIGH',
+      ...(isIncomingCall ? { ttl: '45s' } : {}),
+      ...(isIncomingCall ? {
+        notification: {
+          title: caller,
+          body: callBody,
+          channel_id: 'hestia_incoming_calls_v2',
+          sound: 'ringtone',
+          notification_priority: 'PRIORITY_MAX',
+          visibility: 'PUBLIC',
+          tag: `call-${String(payload?.callId || Date.now())}`,
+        },
+      } : {}),
+    },
+    ...(isIncomingCall ? {
+      notification: {
+        title: caller,
+        body: callBody,
+      },
+    } : {}),
+  };
   const response = await fetch(
     `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
     {
@@ -1682,13 +1713,7 @@ async function sendFcmDataMessage(token, payload) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        message: {
-          token,
-          data: pushDataPayload(payload),
-          android: {
-            priority: 'HIGH',
-          },
-        },
+        message,
       }),
     },
   );
