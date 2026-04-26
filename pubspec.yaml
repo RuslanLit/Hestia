@@ -1,7 +1,7 @@
 name: hestia
 description: Stable messenger with WebRTC voice calls
 publish_to: none
-version: 4.0.0+1
+version: 4.0.1+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
