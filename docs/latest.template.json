@@ -1,78 +1,78 @@
 {
-  "version": "4.0.1",
-  "build": "2",
+  "version": "4.0.2",
+  "build": "3",
   "releasedAt": "2026-04-26T00:00:00Z",
-  "releaseNotesUrl": "https://github.com/RuslanLit/Hestia/releases/tag/v4.0.1_2",
-  "checksumsUrl": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.1_2/4.0.1-checksums.txt",
-  "notes": "Hestia 4.0.1_2 fixes production server defaults, Android call ringtone behavior, and account name visibility.",
-  "release_notes_url": "https://github.com/RuslanLit/Hestia/releases/tag/v4.0.1_2",
-  "downloads_url": "https://github.com/RuslanLit/Hestia/releases/tag/v4.0.1_2",
-  "apk_url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.1_2/hestia-4.0.1_2-android.apk",
-  "windows_url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.1_2/hestia-4.0.1_2-windows-setup.exe",
-  "windows_portable_url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.1_2/hestia-4.0.1_2-windows-portable.zip",
+  "releaseNotesUrl": "https://github.com/RuslanLit/Hestia/releases/tag/v4.0.2_3",
+  "checksumsUrl": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.2_3/4.0.2-checksums.txt",
+  "notes": "Hestia 4.0.2_3 improves incoming call push delivery when the app is closed and auto-hides transient call errors.",
+  "release_notes_url": "https://github.com/RuslanLit/Hestia/releases/tag/v4.0.2_3",
+  "downloads_url": "https://github.com/RuslanLit/Hestia/releases/tag/v4.0.2_3",
+  "apk_url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.2_3/hestia-4.0.2_3-android.apk",
+  "windows_url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.2_3/hestia-4.0.2_3-windows-setup.exe",
+  "windows_portable_url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.2_3/hestia-4.0.2_3-windows-portable.zip",
   "web_url": "https://hestiachat.site",
   "platforms": {
     "android": {
       "available": true,
-      "file": "hestia-4.0.1_2-android.apk",
-      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.1_2/hestia-4.0.1_2-android.apk",
-      "sha256": "afb870d51676be13160b4858bc8b3becf4dc04d059e12a8a23a584d8ecfc3473",
-      "sizeBytes": 97552994
+      "file": "hestia-4.0.2_3-android.apk",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.2_3/hestia-4.0.2_3-android.apk",
+      "sha256": "16068f0fd5be75d64f5b2528488e9e2f3ba0c8b046d914d82a6fb5cb767aa05c",
+      "sizeBytes": 97553070
     },
     "windows": {
       "available": true,
-      "file": "hestia-4.0.1_2-windows-setup.exe",
-      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.1_2/hestia-4.0.1_2-windows-setup.exe",
-      "sha256": "b6b5da49fb0977a2a94021297ba91f7f175d3c008326dffebfa538d7cc1a15f5",
-      "sizeBytes": 47642112
+      "file": "hestia-4.0.2_3-windows-setup.exe",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.2_3/hestia-4.0.2_3-windows-setup.exe",
+      "sha256": "77214fa24339a369671f82cfce89cb147a9904d0909f80f60020717765f4d536",
+      "sizeBytes": 47642624
     },
     "windowsPortable": {
       "available": true,
-      "file": "hestia-4.0.1_2-windows-portable.zip",
-      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.1_2/hestia-4.0.1_2-windows-portable.zip",
-      "sha256": "2ba38765a919deb3544602a3eccf6644e0baaf7e97bba82cc74bdb8fea0c7ff8",
-      "sizeBytes": 47634292
+      "file": "hestia-4.0.2_3-windows-portable.zip",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.2_3/hestia-4.0.2_3-windows-portable.zip",
+      "sha256": "07c7e9425eee0c41a8345deaec0932b44bc16796837165d41426b19e80a5c809",
+      "sizeBytes": 47634858
     },
     "webStatic": {
       "available": true,
-      "file": "hestia-4.0.1_2-web-static.zip",
-      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.1_2/hestia-4.0.1_2-web-static.zip",
-      "sha256": "34389cfe8271fe39f6b0c2fa78914ec6d7d43bd193af482b8d79249e9006b02c",
-      "sizeBytes": 14151852
+      "file": "hestia-4.0.2_3-web-static.zip",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.2_3/hestia-4.0.2_3-web-static.zip",
+      "sha256": "27362036f83135014d75cd4f56c87c1956f99e7337a57ba1d3b2ee9dfbde5187",
+      "sizeBytes": 14151849
     },
     "backend": {
       "available": true,
-      "file": "hestia-4.0.1_2-backend.zip",
-      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.1_2/hestia-4.0.1_2-backend.zip",
-      "sha256": "aa6dcdf5a6c82483a2a77d926185acf99acd70e105692feb92ecbfc2af20a658",
-      "sizeBytes": 33178
+      "file": "hestia-4.0.2_3-backend.zip",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.2_3/hestia-4.0.2_3-backend.zip",
+      "sha256": "242af38bffd6ad584d994483431a7d3da84f2f3e975381a050a1ba1b58054215",
+      "sizeBytes": 33413
     },
     "landing": {
       "available": true,
-      "file": "hestia-4.0.1_2-landing.zip",
-      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.1_2/hestia-4.0.1_2-landing.zip",
-      "sha256": "6176aa5ee72a1225490102a54917f4a48a083ce5f9cc390710309e2c6aecadbb",
-      "sizeBytes": 2462808
+      "file": "hestia-4.0.2_3-landing.zip",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.2_3/hestia-4.0.2_3-landing.zip",
+      "sha256": "63ac1bff102235e97f0ffd71d2cef2ca493701e2902c756dd87018af80c3ba2d",
+      "sizeBytes": 2462819
     },
     "linuxAppImage": {
       "available": false,
-      "reason": "Linux AppImage is not included in v4.0.1_2 yet."
+      "reason": "Linux AppImage is not included in v4.0.2_3 yet."
     },
     "linuxDeb": {
       "available": false,
-      "reason": "Linux DEB is not included in v4.0.1_2 yet."
+      "reason": "Linux DEB is not included in v4.0.2_3 yet."
     },
     "linuxTarGz": {
       "available": false,
-      "reason": "Linux tar.gz is not included in v4.0.1_2 yet."
+      "reason": "Linux tar.gz is not included in v4.0.2_3 yet."
     },
     "macos": {
       "available": false,
-      "reason": "macOS DMG is not included in v4.0.1_2 yet."
+      "reason": "macOS DMG is not included in v4.0.2_3 yet."
     },
     "ios": {
       "available": false,
-      "reason": "iOS build is not included in v4.0.1_2 yet."
+      "reason": "iOS build is not included in v4.0.2_3 yet."
     }
   }
 }
