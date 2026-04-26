@@ -314,7 +314,7 @@ class _ChatListScreenState extends State<ChatListScreen>
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(profile?.nickname ?? l10n.appName),
+            Text(l10n.appName),
             Text(
               _chat.isConnected
                   ? l10n.serverConnected(AppConfig.host)
@@ -384,6 +384,7 @@ class _ChatListScreenState extends State<ChatListScreen>
       body: AppBackground(
         child: Column(
           children: [
+            _AccountSummary(profile: profile),
             _RetentionBanner(
               text: _retentionHintText(context),
               onDismiss: () => setState(() {
@@ -453,7 +454,7 @@ class _ChatListScreenState extends State<ChatListScreen>
                       child: Column(
                         children: [
                           _DesktopLeftHeader(
-                            title: profile?.nickname ?? l10n.appName,
+                            title: l10n.appName,
                             subtitle: _chat.isConnected
                                 ? l10n.serverConnected(AppConfig.host)
                                 : l10n.serverDisconnected,
@@ -466,6 +467,7 @@ class _ChatListScreenState extends State<ChatListScreen>
                             onTheme: _editTheme,
                             onServer: _editServer,
                           ),
+                          _AccountSummary(profile: profile, compact: true),
                           _DesktopListSearch(
                             controller: _listSearchCtrl,
                             onChanged: (_) => setState(() {}),
@@ -541,6 +543,69 @@ class _ChatListScreenState extends State<ChatListScreen>
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AccountSummary extends StatelessWidget {
+  final UserProfile? profile;
+  final bool compact;
+
+  const _AccountSummary({
+    required this.profile,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final current = profile;
+    if (current == null) {
+      return const SizedBox.shrink();
+    }
+
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        compact ? 12 : 16,
+        compact ? 8 : 12,
+        compact ? 12 : 16,
+        compact ? 6 : 8,
+      ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: scheme.primaryContainer.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: scheme.outlineVariant),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 10 : 12,
+            vertical: compact ? 8 : 10,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.account_circle_outlined,
+                color: scheme.onPrimaryContainer,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '${context.l10n.yourNickname}: ${current.nickname}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: (compact ? textTheme.bodyMedium : textTheme.titleSmall)
+                      ?.copyWith(
+                    color: scheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
