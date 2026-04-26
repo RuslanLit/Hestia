@@ -8,8 +8,8 @@ class AppConfig {
   static const defaultHost = 'hestiachat.site';
   static const defaultHttpBase = 'https://hestiachat.site';
   static const defaultServerInput = 'wss://hestiachat.site/ws';
-  static const fallbackHost = 'localhost:3000';
-  static const fallbackServerInput = 'ws://localhost:3000/ws';
+  static const fallbackHost = defaultHost;
+  static const fallbackServerInput = defaultServerInput;
 
   static String host = defaultHost;
   static bool secure = true;
@@ -22,7 +22,12 @@ class AppConfig {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString(_serverKey);
     if (saved != null && saved.trim().isNotEmpty) {
-      _applyServerInput(saved, custom: true);
+      if (_shouldResetSavedServer(saved)) {
+        _applyServerInput(defaultServerInput, custom: false);
+        await prefs.setString(_serverKey, serverInput);
+      } else {
+        _applyServerInput(saved, custom: true);
+      }
     } else {
       _applyServerInput(defaultServerInput, custom: false);
     }
@@ -48,6 +53,9 @@ class AppConfig {
 
   static bool switchToFallbackServer() {
     if (!isUsingDefaultServer) {
+      return false;
+    }
+    if (fallbackServerInput == defaultServerInput) {
       return false;
     }
     _applyServerInput(fallbackServerInput, custom: false);
@@ -118,5 +126,23 @@ class AppConfig {
 
   static String _withoutTrailingSlash(String value) {
     return value.endsWith('/') ? value.substring(0, value.length - 1) : value;
+  }
+
+  static bool _shouldResetSavedServer(String input) {
+    final trimmed = input.trim();
+    if (trimmed.isEmpty) {
+      return true;
+    }
+    try {
+      final withScheme = trimmed.contains('://') ? trimmed : 'https://$trimmed';
+      final uri = Uri.parse(withScheme);
+      final host = uri.host.toLowerCase();
+      return host == 'localhost' ||
+          host == '127.0.0.1' ||
+          host == '0.0.0.0' ||
+          host == '::1';
+    } catch (_) {
+      return true;
+    }
   }
 }
