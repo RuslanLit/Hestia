@@ -61,6 +61,9 @@ If a Flutter build hangs before printing build output, stop stale `dart`/`flutte
 Requirement:
 
 - Android SDK and a working Flutter Android toolchain.
+- For FCM-capable Android builds, a local `android/app/google-services.json`
+  matching the app id. Use `android/app/google-services.example.json` only as a
+  shape reference and keep real Firebase config out of public commits.
 
 Command:
 
@@ -73,6 +76,15 @@ Release output:
 - `releases/hestia-<version>-android.apk`
 
 The APK can be distributed directly. For store distribution, use app signing and store-specific release requirements outside this repository.
+
+Android release notes:
+
+- Incoming call notifications use an Android call notification channel with high
+  importance and full-screen intent fallback behavior.
+- The app does not declare foreground service permissions because no foreground
+  service is implemented.
+- If FCM is not configured on both client and backend, Android background and
+  screen-off incoming calls are not reliable.
 
 ## Windows
 
@@ -97,6 +109,14 @@ Release output:
 Packaging dependency justification:
 
 - Flutter only produces the Windows runner directory. A real installer requires a packaging tool. The script supports Inno Setup because it is a standard Windows installer builder and does not require adding signing material or new Flutter dependencies to the project.
+
+Windows runtime notes:
+
+- WebRTC microphone/camera access depends on Windows privacy settings and the
+  `flutter_webrtc` runtime.
+- Android FCM/background-call notification code paths are disabled outside
+  Android.
+- The diagnostics panel is available from the desktop chat-list menu.
 
 ## Linux
 
@@ -142,6 +162,12 @@ Release output:
 
 Deploy the contents of `dist/web/` or the extracted archive to any static host.
 
+Web runtime notes:
+
+- Browser WebRTC permission prompts control camera/microphone access.
+- Android-only FCM incoming-call logic is not active on web.
+- Browser storage and background execution limits still apply.
+
 If `build/web/` already exists and you only need to recreate the release zip, use:
 
 ```powershell
@@ -165,6 +191,9 @@ Release output:
 - `releases/hestia-<version>-backend.zip`
 
 The archive includes `server.js`, `package.json`, `package-lock.json`, and `.env.example`. It intentionally excludes local runtime data, uploads, blob queues, `.env`, and secrets.
+
+For backend runtime variables, TURN, FCM, custom server URL, and diagnostic mode
+checks, see `docs/platform-install-config.md`.
 
 ## Landing Archive
 

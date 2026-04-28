@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../config.dart';
 import '../l10n/l10n.dart';
 import '../models/models.dart';
 import '../services/chat_service.dart';
+import '../services/diagnostic_service.dart';
 import '../services/locale_service.dart';
 import '../services/micro_onboarding_service.dart';
 import '../services/retention_service.dart';
@@ -233,6 +235,77 @@ class _ChatListScreenState extends State<ChatListScreen>
     );
   }
 
+  Future<void> _showDiagnostics() async {
+    var enabled = DiagnosticService.instance.enabled;
+    var report = await _chat.diagnosticReport();
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Diagnostics'),
+          content: SizedBox(
+            width: 720,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SwitchListTile(
+                  value: enabled,
+                  onChanged: (value) async {
+                    await DiagnosticService.instance.setEnabled(value);
+                    report = await _chat.diagnosticReport();
+                    setDialogState(() => enabled = value);
+                  },
+                  title: const Text('Diagnostic mode'),
+                  subtitle: const Text('Off by default. No passwords, tokens, or message plaintext.'),
+                ),
+                const SizedBox(height: 8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 420),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Theme.of(context).colorScheme.outline),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(12),
+                      child: SelectableText(
+                        report,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontFamily: 'monospace',
+                            ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                report = await _chat.diagnosticReport();
+                setDialogState(() {});
+              },
+              child: const Text('Refresh'),
+            ),
+            FilledButton.icon(
+              onPressed: () async {
+                final latest = await _chat.diagnosticReport();
+                await Clipboard.setData(ClipboardData(text: latest));
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+              icon: const Icon(Icons.copy),
+              label: const Text('Copy diagnostics'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _editLanguage() async {
     await showDialog<void>(
       context: context,
@@ -343,6 +416,11 @@ class _ChatListScreenState extends State<ChatListScreen>
             onPressed: _showDevices,
             tooltip: l10n.devices,
             icon: Icons.devices_other,
+          ),
+          _MotionIconButton(
+            onPressed: _showDiagnostics,
+            tooltip: 'Diagnostics',
+            icon: Icons.bug_report_outlined,
           ),
           _MotionIconButton(
             onPressed: _editLanguage,
@@ -463,6 +541,7 @@ class _ChatListScreenState extends State<ChatListScreen>
                             onPrivacy: _editPrivacy,
                             onBackup: _showBackup,
                             onDevices: _showDevices,
+                            onDiagnostics: _showDiagnostics,
                             onLanguage: _editLanguage,
                             onTheme: _editTheme,
                             onServer: _editServer,
@@ -722,6 +801,7 @@ class _DesktopLeftHeader extends StatelessWidget {
   final VoidCallback onPrivacy;
   final VoidCallback onBackup;
   final VoidCallback onDevices;
+  final VoidCallback onDiagnostics;
   final VoidCallback onLanguage;
   final VoidCallback onTheme;
   final VoidCallback onServer;
@@ -734,6 +814,7 @@ class _DesktopLeftHeader extends StatelessWidget {
     required this.onPrivacy,
     required this.onBackup,
     required this.onDevices,
+    required this.onDiagnostics,
     required this.onLanguage,
     required this.onTheme,
     required this.onServer,
@@ -798,6 +879,8 @@ class _DesktopLeftHeader extends StatelessWidget {
                         onBackup();
                       case 'devices':
                         onDevices();
+                      case 'diagnostics':
+                        onDiagnostics();
                       case 'language':
                         onLanguage();
                       case 'theme':
@@ -818,6 +901,10 @@ class _DesktopLeftHeader extends StatelessWidget {
                     PopupMenuItem(
                       value: 'devices',
                       child: Text(context.l10n.devices),
+                    ),
+                    const PopupMenuItem(
+                      value: 'diagnostics',
+                      child: Text('Diagnostics'),
                     ),
                     PopupMenuItem(
                       value: 'language',

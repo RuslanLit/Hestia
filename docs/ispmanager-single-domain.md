@@ -20,7 +20,7 @@ Place the backend app files in the Node.js application directory:
 hestia-app/
   server.js
   package.json
-  data.json
+  hestia.sqlite
   public/
     index.html
     downloads.html
@@ -39,13 +39,13 @@ hestia-app/
       latest.json
 ```
 
-If `data.json` does not exist yet, create it with an empty object:
+The app creates `hestia.sqlite` automatically on first start. You can move it by
+setting `DB_FILE=/absolute/path/to/hestia.sqlite`. Legacy `data.json` files are
+not migrated automatically and are no longer used by the current backend.
 
-```json
-{}
-```
-
-The app also creates runtime storage directories for queued/file blobs near `server.js`. Make sure the Node.js user can write to the application directory.
+The app also creates runtime storage directories for queued/file blobs near
+`server.js`. Make sure the Node.js user can write to the application directory
+or to the directory configured by `DB_FILE`.
 
 ## Prepare Files
 
@@ -64,7 +64,8 @@ Run from the Node.js application directory:
 npm install
 ```
 
-The required runtime packages are installed from `package.json`, including `ws` and `uuid`.
+The required runtime packages are installed from `package.json`, including `ws`
+and `better-sqlite3`.
 
 ## Start in ispmanager
 
@@ -78,12 +79,25 @@ The required runtime packages are installed from `package.json`, including `ws` 
 ```text
 PORT=3000
 SERVER_NAME=Hestia
+DB_FILE=./hestia.sqlite
 REGISTRATION_ENABLED=true
 INVITE_ONLY=false
 ADMIN_TOKEN=<GENERATE_A_LONG_RANDOM_TOKEN>
+TURN_SERVERS=turn:turn.example.com:3478|turn-user|turn-password
+GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/firebase-service-account.json
 ```
 
 If ispmanager provides its own port variable, keep it and let the panel route traffic to the Node.js app.
+
+For Android incoming calls while the screen is off or the app is in the
+background, configure Firebase Cloud Messaging on the backend. Hestia uses FCM
+data messages plus a local Android call notification; WebSocket alone is not a
+reliable Android wake mechanism. Keep Firebase service account JSON outside the
+web root and outside git.
+
+For restrictive networks, configure `TURN_SERVERS`. Without TURN, direct WebRTC
+may work on simple networks but fail or connect media one-way on carrier NAT,
+enterprise Wi-Fi, and some routers.
 
 ## Verify
 

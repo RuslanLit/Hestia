@@ -66,9 +66,16 @@ pnpm-debug.log*
 *.crt
 service-account*.json
 firebase-service-account*.json
+android/app/google-services.json
+android/app/src/*/google-services.json
 
 # Local backend data
 data.json
+hestia.sqlite
+hestia.sqlite-*
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
 uploads/
 attachment_blobs/
 queue_blobs/

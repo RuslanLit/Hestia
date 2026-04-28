@@ -5,11 +5,13 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const crypto = require('crypto');
-const { v4: uuidv4 } = require('uuid');
+const { createSQLiteStore } = require('./storage/sqlite_store');
+
+const uuidv4 = () => crypto.randomUUID();
 
 const LISTEN_TARGET = process.env.PORT || process.env.SOCKET || process.env.LISTEN_SOCKET || '3000';
 const PORT = /^\d+$/.test(LISTEN_TARGET) ? Number(LISTEN_TARGET) : LISTEN_TARGET;
-const DATA_FILE = path.join(__dirname, 'data.json');
+const DB_FILE = path.resolve(process.env.DB_FILE || path.join(__dirname, 'hestia.sqlite'));
 const PUBLIC_DIR = resolvePublicDir();
 const QUEUE_BLOB_DIR = path.join(__dirname, 'queue_blobs');
 const ATTACHMENT_BLOB_DIR = path.join(__dirname, 'attachment_blobs');
@@ -106,9 +108,12 @@ const INVITE_CODES = new Set(
     .filter(Boolean),
 );
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || '';
-const ICE_SERVERS = [
+const PUBLIC_STUN_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
+];
+const ICE_SERVERS = [
+  ...PUBLIC_STUN_SERVERS,
   ...parseTurnServers(process.env.TURN_SERVERS || ''),
 ];
 const PUSH_PROVIDERS = new Set(['fcm']);
@@ -141,7 +146,7 @@ let fcmServiceAccount = null;
 let fcmAccessToken = null;
 let fcmAccessTokenExpiresAt = 0;
 
-const clients = new Map(); // userId -> ws
+const clients = new Map(); // userId -> Set<ws>
 const rateBuckets = new Map();
 const failedLoginBuckets = new Map();
 const repeatedContactRequests = new Map();
@@ -151,7 +156,6 @@ const pendingDeliveries = new Map(); // messageId -> sender userId
 const pushDedup = new Map();
 const presenceTimers = new Map();
 let saveTimer = null;
-let saveInFlight = false;
 let saveQueued = false;
 
 function logInfo(message) {
@@ -166,56 +170,73 @@ function logWarn(message) {
   }
 }
 
+function logDebug(message) {
+  if (LOG_LEVEL !== 'silent') {
+    console.log(message);
+  }
+}
+
 function parseTurnServers(value) {
-  return value
+  return String(value || '')
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean)
-    .map((item) => {
-      const [urls, username, credential] = item.split('|');
-      return {
-        urls,
-        ...(username ? { username } : {}),
-        ...(credential ? { credential } : {}),
-      };
-    });
+    .map((item, index) => parseIceServerEntry(item, index))
+    .filter(Boolean);
+}
+
+function parseIceServerEntry(item, index) {
+  const parts = item.split('|').map((part) => part.trim());
+  if (parts.length !== 1 && parts.length !== 3) {
+    logWarn(`[config] ignored TURN_SERVERS entry ${index + 1}: expected url or url|username|credential`);
+    return null;
+  }
+
+  const [urls, username, credential] = parts;
+  const validation = validateIceServerUrl(urls);
+  if (!validation.ok) {
+    logWarn(`[config] ignored TURN_SERVERS entry ${index + 1}: ${validation.reason}`);
+    return null;
+  }
+
+  if ((validation.scheme === 'turn' || validation.scheme === 'turns') &&
+      (!username || !credential)) {
+    logWarn(`[config] ignored TURN_SERVERS entry ${index + 1}: TURN credentials are required`);
+    return null;
+  }
+  if (validation.scheme === 'stun' && (username || credential)) {
+    logWarn(`[config] ignored TURN_SERVERS entry ${index + 1}: STUN credentials are not supported`);
+    return null;
+  }
+
+  return {
+    urls,
+    ...(username ? { username } : {}),
+    ...(credential ? { credential } : {}),
+  };
+}
+
+function validateIceServerUrl(urls) {
+  if (!urls || typeof urls !== 'string') {
+    return { ok: false, reason: 'missing url' };
+  }
+  const match = urls.match(/^(stun|turn|turns):(\[[0-9a-f:.]+\]|[^:/?#\s|]+)(?::(\d{1,5}))?(\?transport=(udp|tcp))?$/i);
+  if (!match) {
+    return { ok: false, reason: 'invalid url format' };
+  }
+  const scheme = match[1].toLowerCase();
+  const port = match[3] ? Number(match[3]) : null;
+  if (port !== null && (port < 1 || port > 65535)) {
+    return { ok: false, reason: 'invalid port' };
+  }
+  if (scheme === 'stun' && match[4]) {
+    return { ok: false, reason: 'STUN transport query is not supported' };
+  }
+  return { ok: true, scheme };
 }
 
 function loadData() {
-  if (!fs.existsSync(DATA_FILE)) {
-    return {
-      users: [],
-      queuedMessages: [],
-      contacts: [],
-      contactRequests: [],
-      blocks: [],
-      blobs: [],
-      retentionEvents: [],
-    };
-  }
-
-  try {
-    const parsed = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-    return {
-      users: Array.isArray(parsed.users) ? parsed.users : [],
-      queuedMessages: Array.isArray(parsed.queuedMessages) ? parsed.queuedMessages : [],
-      contacts: Array.isArray(parsed.contacts) ? parsed.contacts : [],
-      contactRequests: Array.isArray(parsed.contactRequests) ? parsed.contactRequests : [],
-      blocks: Array.isArray(parsed.blocks) ? parsed.blocks : [],
-      blobs: Array.isArray(parsed.blobs) ? parsed.blobs : [],
-      retentionEvents: Array.isArray(parsed.retentionEvents) ? parsed.retentionEvents : [],
-    };
-  } catch {
-    return {
-      users: [],
-      queuedMessages: [],
-      contacts: [],
-      contactRequests: [],
-      blocks: [],
-      blobs: [],
-      retentionEvents: [],
-    };
-  }
+  return store.loadData();
 }
 
 function ensureQueueBlobDir() {
@@ -469,12 +490,12 @@ function cleanupStoredAttachmentBlobs() {
 }
 
 function saveDataNow() {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+  store.saveData(data);
 }
 
 function saveData() {
   saveQueued = true;
-  if (saveTimer || saveInFlight) {
+  if (saveTimer) {
     return;
   }
   saveTimer = setTimeout(flushData, SAVE_DEBOUNCE_MS);
@@ -485,27 +506,23 @@ function flushData() {
     clearTimeout(saveTimer);
     saveTimer = null;
   }
-  if (!saveQueued || saveInFlight) {
+  if (!saveQueued) {
     return;
   }
   saveQueued = false;
-  saveInFlight = true;
-  const tmpFile = `${DATA_FILE}.tmp`;
-  fs.promises
-    .writeFile(tmpFile, JSON.stringify(data, null, 2))
-    .then(() => fs.promises.rename(tmpFile, DATA_FILE))
-    .catch((error) => {
-      logWarn(`[storage] save failed: ${error.message}`);
-      saveQueued = true;
-    })
-    .finally(() => {
-      saveInFlight = false;
-      if (saveQueued) {
-        saveTimer = setTimeout(flushData, SAVE_DEBOUNCE_MS);
-      }
-    });
+  try {
+    saveDataNow();
+  } catch (error) {
+    logWarn(`[storage] save failed: ${error.message}`);
+    saveQueued = true;
+  }
+  if (saveQueued) {
+    saveTimer = setTimeout(flushData, SAVE_DEBOUNCE_MS);
+  }
 }
 
+const store = createSQLiteStore(DB_FILE);
+logInfo(`[storage] SQLite database: ${DB_FILE}`);
 const data = loadData();
 let users = data.users;
 data.contacts = data.contacts || [];
@@ -541,6 +558,53 @@ function send(ws, payload) {
   if (ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(payload));
   }
+}
+
+function addClient(userId, ws) {
+  const sockets = clients.get(userId) || new Set();
+  sockets.add(ws);
+  clients.set(userId, sockets);
+}
+
+function removeClient(userId, ws) {
+  const sockets = clients.get(userId);
+  if (!sockets) {
+    return false;
+  }
+  const removed = sockets.delete(ws);
+  if (sockets.size === 0) {
+    clients.delete(userId);
+  }
+  return removed;
+}
+
+function userSockets(userId) {
+  return Array.from(clients.get(userId) || [])
+    .filter((socket) => socket.readyState === WebSocket.OPEN);
+}
+
+function isUserOnline(userId) {
+  return userSockets(userId).length > 0;
+}
+
+function sendToUser(userId, payload, options = {}) {
+  let delivered = 0;
+  for (const socket of userSockets(userId)) {
+    if (options.excludeSessionId && socket.sessionId === options.excludeSessionId) {
+      continue;
+    }
+    send(socket, payload);
+    delivered += 1;
+  }
+  return delivered;
+}
+
+function connectedClientCount(userId) {
+  return userSockets(userId).length;
+}
+
+function allClientSockets() {
+  return Array.from(clients.values()).flatMap((sockets) => Array.from(sockets));
 }
 
 function readRequestBody(req, maxBytes = 1024 * 1024) {
@@ -1321,21 +1385,20 @@ function ackDelivery(messageId, userId) {
   }
   pendingDeliveries.delete(messageId);
   if (senderUserId) {
-    const senderSocket = clients.get(senderUserId);
-    if (senderSocket) {
-      send(senderSocket, { type: 'delivery_ack', id: messageId });
-    }
+    sendToUser(senderUserId, { type: 'delivery_ack', id: messageId });
   }
 }
 
 function finishAuth(ws, user, session) {
   ws.userId = user.id;
   ws.sessionId = session?.id || null;
-  const previousSocket = clients.get(user.id);
-  if (previousSocket && previousSocket !== ws) {
-    previousSocket.close();
-  }
-  clients.set(user.id, ws);
+  addClient(user.id, ws);
+  logDebug(
+    `[debug] auth ok userId=${user.id} sessionId=${ws.sessionId || 'none'} activeSockets=${connectedClientCount(user.id)}`,
+  );
+  logDebug(
+    `[debug] user connected userId=${user.id} sessionId=${ws.sessionId || 'none'} activeSockets=${connectedClientCount(user.id)}`,
+  );
 
   send(ws, {
     type: 'auth_ok',
@@ -1357,7 +1420,7 @@ function publicUser(user) {
   return {
     userId: user.id,
     nickname: user.nickname,
-    online: clients.has(user.id),
+    online: isUserOnline(user.id),
     publicKey: user.publicKey || null,
   };
 }
@@ -1371,7 +1434,7 @@ function contactDto(contact, currentUserId) {
     username: peer?.nickname || contact.username || 'Unknown',
     status: contact.status || 'active',
     publicKey: peer?.publicKey || null,
-    online: clients.has(peerUserId),
+    online: isUserOnline(peerUserId),
   };
 }
 
@@ -1439,9 +1502,11 @@ function broadcastPresence(userId) {
     user: publicUser(user),
   };
 
-  for (const [viewerUserId, socket] of clients.entries()) {
+  for (const [viewerUserId, sockets] of clients.entries()) {
     if (viewerUserId === userId || hasActiveContact(viewerUserId, userId)) {
-      send(socket, payload);
+      for (const socket of sockets) {
+        send(socket, payload);
+      }
     }
   }
 }
@@ -1675,34 +1740,13 @@ async function sendFcmDataMessage(token, payload) {
     return false;
   }
   const isIncomingCall = payload?.type === 'incoming_call';
-  const caller = String(payload?.fromUsername || 'Hestia').trim() || 'Hestia';
-  const callBody = payload?.callType === 'video'
-    ? 'Incoming video call'
-    : 'Incoming voice call';
   const message = {
     token,
     data: pushDataPayload(payload),
     android: {
       priority: 'HIGH',
       ...(isIncomingCall ? { ttl: '45s' } : {}),
-      ...(isIncomingCall ? {
-        notification: {
-          title: caller,
-          body: callBody,
-          channel_id: 'hestia_incoming_calls_v2',
-          sound: 'ringtone',
-          notification_priority: 'PRIORITY_MAX',
-          visibility: 'PUBLIC',
-          tag: `call-${String(payload?.callId || Date.now())}`,
-        },
-      } : {}),
     },
-    ...(isIncomingCall ? {
-      notification: {
-        title: caller,
-        body: callBody,
-      },
-    } : {}),
   };
   const response = await fetch(
     `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
@@ -1775,20 +1819,36 @@ function sendUsers(ws, currentUserId) {
 
 function findUserByUsernameExact(ws, msg) {
   if (!rateLimit(ws, 'username_lookup', 20, 60 * 1000)) {
+    logDebug(`[debug] username lookup rate_limited requester=${ws.userId || 'unknown'}`);
     return tooManyRequests(ws);
   }
 
   const query = String(msg.username || '').trim();
+  logDebug(`[debug] username lookup request requester=${ws.userId} queryLength=${query.length}`);
   if (!query) {
+    logDebug(`[debug] username lookup result requester=${ws.userId} reason=empty_query`);
     return send(ws, { type: 'user_search_result', user: null });
   }
   const user = findUserByNickname(query);
-  if (!user || user.id === ws.userId || user.allowUserDiscovery === false) {
+  if (!user) {
+    logDebug(`[debug] username lookup result requester=${ws.userId} reason=not_found`);
+    return send(ws, { type: 'user_search_result', user: null });
+  }
+  if (user.id === ws.userId) {
+    logDebug(`[debug] username lookup result requester=${ws.userId} target=${user.id} reason=self`);
+    return send(ws, { type: 'user_search_result', user: null });
+  }
+  if (user.allowUserDiscovery === false) {
+    logDebug(
+      `[debug] username lookup result requester=${ws.userId} target=${user.id} reason=discovery_disabled`,
+    );
     return send(ws, { type: 'user_search_result', user: null });
   }
   if (isBlockedBy(user.id, ws.userId) || isBlockedBy(ws.userId, user.id)) {
+    logDebug(`[debug] username lookup result requester=${ws.userId} target=${user.id} reason=blocked`);
     return send(ws, { type: 'user_search_result', user: null });
   }
+  logDebug(`[debug] username lookup result requester=${ws.userId} target=${user.id} reason=found`);
   send(ws, { type: 'user_search_result', user: publicUser(user) });
 }
 
@@ -1828,12 +1888,16 @@ function sendContactRequest(ws, msg) {
   data.contactRequests.push(request);
   saveData();
 
-  const targetSocket = clients.get(recipient.id);
-  if (targetSocket) {
-    send(targetSocket, { type: 'contact_request', request: requestDto(request) });
-  } else {
+  const delivered = sendToUser(recipient.id, {
+    type: 'contact_request',
+    request: requestDto(request),
+  });
+  if (delivered === 0) {
     sendPushToUser(recipient.id, pushPayloadForContactRequest(request));
   }
+  logDebug(
+    `[debug] contact request ${delivered > 0 ? 'forwarded' : 'recipient offline'} from=${sender.id} to=${recipient.id} sockets=${delivered}`,
+  );
   send(ws, { type: 'contact_request_sent', request: requestDto(request) });
 }
 
@@ -1872,12 +1936,12 @@ function acceptContactRequest(ws, msg) {
   });
   saveData();
 
-  const fromSocket = clients.get(request.fromUserId);
-  const toSocket = clients.get(request.toUserId);
-  if (fromSocket) sendContacts(fromSocket, request.fromUserId);
-  if (toSocket) {
-    sendContacts(toSocket, request.toUserId);
-    sendContactRequests(toSocket, request.toUserId);
+  for (const socket of userSockets(request.fromUserId)) {
+    sendContacts(socket, request.fromUserId);
+  }
+  for (const socket of userSockets(request.toUserId)) {
+    sendContacts(socket, request.toUserId);
+    sendContactRequests(socket, request.toUserId);
   }
 }
 
@@ -1938,7 +2002,7 @@ function revokeSession(ws, msg) {
   const before = ensureSessions(user).length;
   user.sessions = user.sessions.filter((session) => session.id !== sessionId);
   if (user.sessions.length !== before) {
-    for (const client of clients.values()) {
+    for (const client of allClientSockets()) {
       if (client.userId === user.id && client.sessionId === sessionId) {
         send(client, { type: 'session_revoked' });
         client.close();
@@ -2150,14 +2214,17 @@ function register(ws, msg) {
 
 function relayMessage(ws, msg) {
   if (!ws.userId) {
+    logDebug('[debug] message rejected reason=unauthenticated');
     return;
   }
   if (!rateLimit(ws, 'message_relay', 120, 60 * 1000)) {
+    logDebug(`[debug] message rejected sender=${ws.userId} reason=rate_limited`);
     return tooManyRequests(ws);
   }
 
   const sender = findUserById(ws.userId);
   if (!sender) {
+    logDebug(`[debug] message rejected sender=${ws.userId} reason=sender_not_found`);
     return send(ws, {
       type: 'error',
       message: 'Sender not found',
@@ -2167,6 +2234,7 @@ function relayMessage(ws, msg) {
   const toUserId = String(msg.toUserId || '').trim();
   const recipient = findUserById(toUserId);
   if (!recipient) {
+    logDebug(`[debug] message rejected sender=${sender.id} to=${toUserId || 'empty'} reason=recipient_not_found`);
     return send(ws, {
       type: 'error',
       message: 'Recipient not found',
@@ -2175,6 +2243,7 @@ function relayMessage(ws, msg) {
   if (!hasActiveContact(sender.id, recipient.id) ||
       isBlockedBy(sender.id, recipient.id) ||
       isBlockedBy(recipient.id, sender.id)) {
+    logDebug(`[debug] message rejected sender=${sender.id} to=${recipient.id} reason=privacy_or_contact`);
     return send(ws, {
       type: 'error',
       message: 'User is unavailable.',
@@ -2183,6 +2252,7 @@ function relayMessage(ws, msg) {
 
   const messageId = String(msg.id || uuidv4()).trim();
   if (!messageId || messageId.length > 80) {
+    logDebug(`[debug] message rejected sender=${sender.id} to=${recipient.id} reason=invalid_message_id`);
     return send(ws, {
       type: 'error',
       message: 'Message validation failed.',
@@ -2190,12 +2260,14 @@ function relayMessage(ws, msg) {
   }
   const text = boundedString(msg.text, MAX_TEXT_BYTES);
   if (text === null) {
+    logDebug(`[debug] message rejected sender=${sender.id} to=${recipient.id} reason=text_too_large`);
     return send(ws, {
       type: 'error',
       message: 'Message is too large.',
     });
   }
   if (text && !text.startsWith('HESTIA_TEXT_V1:')) {
+    logDebug(`[debug] message rejected sender=${sender.id} to=${recipient.id} reason=plaintext_or_invalid_envelope`);
     return send(ws, {
       type: 'error',
       message: 'Message encryption is required.',
@@ -2203,6 +2275,7 @@ function relayMessage(ws, msg) {
   }
   const recipientPublicKey = normalizePublicKey(msg.recipientPublicKey);
   if (recipient.publicKey && recipientPublicKey && recipientPublicKey !== recipient.publicKey) {
+    logDebug(`[debug] message rejected sender=${sender.id} to=${recipient.id} reason=recipient_key_mismatch`);
     return send(ws, {
       type: 'error',
       message: 'Recipient encryption key is outdated.',
@@ -2215,6 +2288,7 @@ function relayMessage(ws, msg) {
     messageId,
   });
   if (!attachmentResult.ok) {
+    logDebug(`[debug] message rejected sender=${sender.id} to=${recipient.id} reason=attachment_unavailable`);
     return send(ws, {
       type: 'error',
       message: attachmentResult.message,
@@ -2232,7 +2306,7 @@ function relayMessage(ws, msg) {
     attachment: attachmentResult.attachment,
   };
 
-  const targetSocket = clients.get(recipient.id);
+  logDebug(`[debug] message relay accepted sender=${sender.id} to=${recipient.id}`);
   recordRetentionEvent(sender.id, 'first_message_sent', { source: 'message' });
   recordRetentionEvent(recipient.id, 'first_message_received', { source: 'message' });
   pendingDeliveries.set(payload.id, {
@@ -2240,15 +2314,15 @@ function relayMessage(ws, msg) {
     blobId: payload.attachment?.blobId || null,
     createdAt: Date.now(),
   });
-  if (targetSocket) {
-    send(targetSocket, {
-      type: 'new_message',
-      message: payload,
-    });
-  } else {
+  const deliveredCount = sendToUser(recipient.id, {
+    type: 'new_message',
+    message: payload,
+  });
+  if (deliveredCount === 0) {
     const queueResult = queueOfflineMessage(recipient.id, payload);
     if (!queueResult.ok) {
       pendingDeliveries.delete(payload.id);
+      logDebug(`[debug] message rejected sender=${sender.id} to=${recipient.id} reason=queue_failed`);
       return send(ws, {
         type: 'error',
         message: queueResult.message || 'Message cannot be queued.',
@@ -2256,19 +2330,24 @@ function relayMessage(ws, msg) {
     }
     sendPushToUser(recipient.id, pushPayloadForMessage(payload));
   }
+  logDebug(
+    `[debug] message relay ${deliveredCount > 0 ? 'forwarded' : 'queued'} sender=${sender.id} to=${recipient.id} sockets=${deliveredCount}`,
+  );
 
   send(ws, {
     type: 'message_sent',
     message: payload,
-    delivered: Boolean(targetSocket),
+    delivered: deliveredCount > 0,
   });
 }
 
 function relayCallSignal(ws, msg) {
   if (!ws.userId) {
+    logDebug('[debug] call signal rejected reason=unauthenticated');
     return;
   }
-  if (!rateLimit(ws, 'call_signal', 240, 60 * 1000)) {
+  if (!rateLimit(ws, 'call_signal', 600, 60 * 1000)) {
+    logDebug(`[debug] call unavailable sender=${ws.userId} type=${msg.type || 'unknown'} reason=rate_limited`);
     return tooManyRequests(ws);
   }
 
@@ -2282,31 +2361,33 @@ function relayCallSignal(ws, msg) {
     'call_ice',
   ]);
   if (!allowedTypes.has(msg.type)) {
+    logDebug(`[debug] call signal rejected sender=${ws.userId} type=${msg.type || 'unknown'} reason=invalid_type`);
     return;
   }
   const callId = String(msg.callId || '').trim();
-  if (!callId || callId.length > 80) {
+  const callUnavailable = (reason, message = 'Call unavailable.') => {
+    logDebug(
+      `[debug] call unavailable sender=${ws.userId} to=${String(msg.toUserId || '').trim() || 'empty'} type=${msg.type} callId=${callId || 'empty'} reason=${reason}`,
+    );
     return send(ws, {
       type: 'call_unavailable',
       callId,
-      message: 'Call unavailable.',
+      message,
     });
+  };
+  logDebug(
+    `[debug] call signal received sender=${ws.userId} to=${String(msg.toUserId || '').trim() || 'empty'} type=${msg.type} callId=${callId || 'empty'}`,
+  );
+  if (!callId || callId.length > 80) {
+    return callUnavailable('invalid_call_id');
   }
   if ((msg.type === 'call_sdp_offer' || msg.type === 'call_sdp_answer') &&
       boundedString(msg.sdp, MAX_CALL_SDP_BYTES) === null) {
-    return send(ws, {
-      type: 'call_unavailable',
-      callId,
-      message: 'Call unavailable.',
-    });
+    return callUnavailable('sdp_too_large');
   }
   if (msg.type === 'call_ice' &&
       boundedString(msg.candidate, MAX_CALL_ICE_BYTES) === null) {
-    return send(ws, {
-      type: 'call_unavailable',
-      callId,
-      message: 'Call unavailable.',
-    });
+    return callUnavailable('ice_too_large');
   }
 
   const sender = findUserById(ws.userId);
@@ -2314,45 +2395,25 @@ function relayCallSignal(ws, msg) {
   const recipient = findUserById(toUserId);
   if (msg.type === 'call_offer_init') {
     if (!rateLimit(ws, 'call_offer', 8, 60 * 1000)) {
-      return send(ws, {
-        type: 'call_unavailable',
-        callId,
-        message: 'Call unavailable.',
-      });
+      return callUnavailable('offer_rate_limited');
     }
     if (!pairCooldown(callCooldowns, `${ws.userId}:${toUserId}`, 30 * 1000)) {
-      return send(ws, {
-        type: 'call_unavailable',
-        callId,
-        message: 'Call unavailable.',
-      });
+      return callUnavailable('offer_cooldown');
     }
   }
 
   if (!sender || !recipient) {
-    return send(ws, {
-      type: 'call_unavailable',
-      callId,
-      message: 'User not found.',
-    });
+    return callUnavailable('user_not_found', 'User not found.');
   }
   if (!hasActiveContact(sender.id, recipient.id) ||
       isBlockedBy(sender.id, recipient.id) ||
       isBlockedBy(recipient.id, sender.id)) {
-    return send(ws, {
-      type: 'call_unavailable',
-      callId,
-      message: 'User is unavailable.',
-    });
+    return callUnavailable('privacy_or_contact', 'User is unavailable.');
   }
 
-  const targetSocket = clients.get(recipient.id);
-  if (!targetSocket && msg.type !== 'call_offer_init') {
-    return send(ws, {
-      type: 'call_unavailable',
-      callId,
-      message: 'User is offline.',
-    });
+  const targetOnline = isUserOnline(recipient.id);
+  if (!targetOnline && msg.type !== 'call_offer_init') {
+    return callUnavailable('offline', 'User is offline.');
   }
 
   const signal = {
@@ -2374,8 +2435,16 @@ function relayCallSignal(ws, msg) {
       payload: signal,
       expiresAt: Date.now() + 45 * 1000,
     });
-    if (!targetSocket) {
-      sendPushToUser(recipient.id, pushPayloadForCall(signal));
+    sendPushToUser(recipient.id, pushPayloadForCall(signal), {
+      cooldownMs: 45 * 1000,
+    });
+    logDebug(
+      `[debug] call push sent sender=${sender.id} to=${recipient.id} callId=${callId} targetOnline=${targetOnline}`,
+    );
+    if (!targetOnline) {
+      logDebug(
+        `[debug] call signal queued_for_push sender=${sender.id} to=${recipient.id} type=${msg.type} callId=${callId}`,
+      );
       return;
     }
   } else if (
@@ -2386,7 +2455,13 @@ function relayCallSignal(ws, msg) {
     pendingCallOffers.delete(callId);
   }
 
-  send(targetSocket, signal);
+  const forwarded = sendToUser(recipient.id, signal);
+  if (forwarded === 0) {
+    return callUnavailable('offline', 'User is offline.');
+  }
+  logDebug(
+    `[debug] call signal forwarded sender=${sender.id} to=${recipient.id} type=${msg.type} callId=${callId} sockets=${forwarded}`,
+  );
 }
 
 function normalizeAttachment(attachment, context = {}) {
@@ -2822,7 +2897,7 @@ server.on('request', async (req, res) => {
     if (!user) return jsonResponse(res, 404, { error: 'Not found' });
     user.disabled = true;
     user.sessions = [];
-    for (const client of clients.values()) {
+    for (const client of allClientSockets()) {
       if (client.userId === user.id) {
         send(client, { type: 'session_revoked' });
         client.close();
@@ -2848,7 +2923,7 @@ server.on('request', async (req, res) => {
     const user = body && findUserById(String(body.userId || ''));
     if (!user) return jsonResponse(res, 404, { error: 'Not found' });
     user.sessions = [];
-    for (const client of clients.values()) {
+    for (const client of allClientSockets()) {
       if (client.userId === user.id) {
         send(client, { type: 'session_revoked' });
         client.close();
@@ -2995,8 +3070,10 @@ wss.on('connection', (ws) => {
     if (!ws.userId) {
       return;
     }
-    if (clients.get(ws.userId) === ws) {
-      clients.delete(ws.userId);
+    if (removeClient(ws.userId, ws)) {
+      logDebug(
+        `[debug] user disconnected userId=${ws.userId} sessionId=${ws.sessionId || 'none'} activeSockets=${connectedClientCount(ws.userId)}`,
+      );
       schedulePresence(ws.userId);
     }
   });

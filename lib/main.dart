@@ -15,6 +15,7 @@ import 'services/background_service.dart';
 import 'services/call_service.dart';
 import 'screens/login_screen.dart';
 import 'services/chat_service.dart';
+import 'services/diagnostic_service.dart';
 import 'services/locale_service.dart';
 import 'services/micro_onboarding_service.dart';
 import 'services/push_service.dart';
@@ -68,6 +69,7 @@ class _HestiaAppState extends State<HestiaApp> with WidgetsBindingObserver {
     await BackgroundService.instance.init();
     await MicroOnboardingService.instance.init();
     await RetentionService.instance.init();
+    await DiagnosticService.instance.init();
     await FirebasePushService.instance.init();
     await ChatService.instance.init();
     if (!mounted) {

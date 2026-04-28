@@ -2,6 +2,7 @@
 // CallScreen — shown during an active call
 // ─────────────────────────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:hestia/l10n/l10n.dart';
 import 'package:hestia/services/call_service.dart';
@@ -154,6 +155,40 @@ class _CallScreenState extends State<CallScreen> {
                       objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
                     ),
                   ),
+                ),
+              ),
+            if (kDebugMode)
+              Positioned(
+                left: 12,
+                right: 12,
+                top: 12,
+                child: ValueListenableBuilder<List<String>>(
+                  valueListenable: _call.debugEvents,
+                  builder: (context, events, _) {
+                    if (events.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.58),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(
+                          events.join('\n'),
+                          maxLines: 12,
+                          overflow: TextOverflow.fade,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            height: 1.2,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             Positioned(

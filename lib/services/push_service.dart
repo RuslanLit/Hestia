@@ -86,6 +86,14 @@ Future<void> hestiaFirebaseMessagingBackgroundHandler(
   await FirebasePushService.showNotificationForRemoteMessage(message);
 }
 
+@pragma('vm:entry-point')
+void hestiaNotificationBackgroundHandler(NotificationResponse response) {
+  final action = FirebasePushService.actionFromNotificationResponse(response);
+  if (action != null) {
+    unawaited(FirebasePushService.storePendingAction(action));
+  }
+}
+
 class PushRegistration {
   final String deviceId;
   final String platform;
@@ -294,22 +302,13 @@ class FirebasePushService implements PushService {
     await _notifications.initialize(
       settings: const InitializationSettings(android: android),
       onDidReceiveNotificationResponse: (response) {
-        final action = _actionFromPayload(response.payload);
+        final action = actionFromNotificationResponse(response);
         if (action != null) {
-          if (response.actionId == actionRejectCall &&
-              action.type == PushActionType.incomingCall) {
-            onPushAction?.call(PushAction(
-              type: PushActionType.rejectCall,
-              requestId: action.requestId,
-              fromUserId: action.fromUserId,
-              fromUsername: action.fromUsername,
-              video: action.video,
-            ));
-          } else {
-            onPushAction?.call(action);
-          }
+          onPushAction?.call(action);
         }
       },
+      onDidReceiveBackgroundNotificationResponse:
+          hestiaNotificationBackgroundHandler,
     );
     final l10n = _notificationLocalizations();
     final channel = AndroidNotificationChannel(
@@ -337,6 +336,11 @@ class FirebasePushService implements PushService {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(callChannel);
+    final androidNotifications = _notifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    await androidNotifications?.requestNotificationsPermission();
+    await androidNotifications?.requestFullScreenIntentPermission();
     _notificationsInitialized = true;
   }
 
@@ -349,13 +353,13 @@ class FirebasePushService implements PushService {
 
   static Future<void> storePendingRemoteMessage(RemoteMessage message) async {
     final action = _actionFromRemoteMessage(message);
-    if (action == null) {
+    if (action == null || action.type == PushActionType.incomingCall) {
       return;
     }
     await _storePendingAction(action);
   }
 
-  static Future<void> _storePendingAction(PushAction action) async {
+  static Future<void> storePendingAction(PushAction action) async {
     final prefs = await SharedPreferences.getInstance();
     final rawItems = prefs.getStringList(_pendingPushActionsKey) ?? <String>[];
     final encoded = jsonEncode(action.toJson());
@@ -368,6 +372,9 @@ class FirebasePushService implements PushService {
     await prefs.setStringList(_pendingPushActionsKey, rawItems);
   }
 
+  static Future<void> _storePendingAction(PushAction action) =>
+      storePendingAction(action);
+
   static Future<void> showNotificationForRemoteMessage(
     RemoteMessage message,
   ) async {
@@ -378,6 +385,8 @@ class FirebasePushService implements PushService {
     const android = AndroidInitializationSettings('@mipmap/launcher_icon');
     await _notifications.initialize(
       settings: const InitializationSettings(android: android),
+      onDidReceiveBackgroundNotificationResponse:
+          hestiaNotificationBackgroundHandler,
     );
     final l10n = _notificationLocalizations();
     final channel = AndroidNotificationChannel(
@@ -433,7 +442,6 @@ class FirebasePushService implements PushService {
 
   static Future<void> _showIncomingCallNotification(PushAction action) async {
     final l10n = _notificationLocalizations();
-    final caller = action.fromUsername ?? l10n.unknownCaller;
     final body = action.video
         ? l10n.incomingVideoCallNotification
         : l10n.incomingVoiceCallNotification;
@@ -475,11 +483,31 @@ class FirebasePushService implements PushService {
     );
     await _notifications.show(
       id: _notificationIdFor(action),
-      title: caller,
+      title: 'Hestia',
       body: body,
       notificationDetails: details,
       payload: payload,
     );
+  }
+
+  static PushAction? actionFromNotificationResponse(
+    NotificationResponse response,
+  ) {
+    final action = _actionFromPayload(response.payload);
+    if (action == null) {
+      return null;
+    }
+    if (response.actionId == actionRejectCall &&
+        action.type == PushActionType.incomingCall) {
+      return PushAction(
+        type: PushActionType.rejectCall,
+        requestId: action.requestId,
+        fromUserId: action.fromUserId,
+        fromUsername: action.fromUsername,
+        video: action.video,
+      );
+    }
+    return action;
   }
 
   static AppLocalizations _notificationLocalizations() {

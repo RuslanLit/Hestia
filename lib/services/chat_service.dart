@@ -13,6 +13,7 @@ import 'attachment_policy.dart';
 import 'backup_service.dart';
 import 'call_service.dart';
 import 'crypto_service.dart';
+import 'diagnostic_service.dart';
 import 'local_data_service.dart';
 import 'push_service.dart';
 import 'retention_service.dart';
@@ -36,6 +37,9 @@ class ChatService extends ChangeNotifier {
   final Set<String> _unreadContactRequestIds = {};
   PrivacySettings _privacySettings = const PrivacySettings();
   UserContact? _lastSearchResult;
+  String _lastUsernameSearchRequest = 'none';
+  String _lastUsernameSearchResult = 'none';
+  String _lastError = 'none';
 
   List<Conversation> get conversations {
     final list = _conversations.values
@@ -86,6 +90,9 @@ class ChatService extends ChangeNotifier {
   PrivacySettings get privacySettings => _privacySettings;
   List<SessionInfo> get sessions => List.unmodifiable(_sessions);
   UserContact? get lastSearchResult => _lastSearchResult;
+  String get lastUsernameSearchRequest => _lastUsernameSearchRequest;
+  String get lastUsernameSearchResult => _lastUsernameSearchResult;
+  String get lastError => _lastError;
   int get unreadChatCount =>
       _unreadCounts.values.fold(0, (sum, count) => sum + count);
   int get newContactRequestCount => _unreadContactRequestIds.length;
@@ -304,6 +311,7 @@ class ChatService extends ChangeNotifier {
       await StorageService.instance.clearProfile();
       profile = null;
       notifyListeners();
+      _recordError(error.toString());
       onError?.call(error.toString());
     }
   }
@@ -327,6 +335,23 @@ class ChatService extends ChangeNotifier {
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final iceServers = json['iceServers'];
       if (iceServers is List) {
+        final hasTurn = iceServers.whereType<Map>().any((item) {
+          final urls = item['urls'];
+          if (urls is String) {
+            final lower = urls.toLowerCase();
+            return lower.startsWith('turn:') || lower.startsWith('turns:');
+          }
+          if (urls is List) {
+            return urls.whereType<String>().any((url) {
+              final lower = url.toLowerCase();
+              return lower.startsWith('turn:') || lower.startsWith('turns:');
+            });
+          }
+          return false;
+        });
+        DiagnosticService.instance.log(
+          'backend config iceServers=${iceServers.length} hasTurn=$hasTurn',
+        );
         CallService.instance.setIceServers(
           iceServers
               .whereType<Map>()
@@ -341,6 +366,9 @@ class ChatService extends ChangeNotifier {
         );
       }
     } catch (error) {
+      DiagnosticService.instance.log(
+        'backend config unavailable; using default STUN fallback',
+      );
       if (kDebugMode) {
         debugPrint('[ChatService] Backend config unavailable: $error');
       }
@@ -484,9 +512,17 @@ class ChatService extends ChangeNotifier {
   }
 
   Future<void> searchUsername(String username) async {
+    final query = username.trim();
     _lastSearchResult = null;
+    _lastUsernameSearchRequest = query.isEmpty
+        ? 'empty'
+        : 'length=${query.length} hash=${query.hashCode & 0x7fffffff}';
+    _lastUsernameSearchResult = 'pending';
+    DiagnosticService.instance.log(
+      'username search request $_lastUsernameSearchRequest',
+    );
     notifyListeners();
-    _send({'type': 'find_user_by_username_exact', 'username': username.trim()});
+    _send({'type': 'find_user_by_username_exact', 'username': query});
   }
 
   Future<void> sendContactRequest(String peerUserId) async {
@@ -979,6 +1015,7 @@ class ChatService extends ChangeNotifier {
     }
     _socketFailureReported = true;
     final message = 'Could not connect to ${AppConfig.host}';
+    _recordError(message);
     if (_authCompleter != null && !_authCompleter!.isCompleted) {
       _authCompleter!.completeError(message);
       _authCompleter = null;
@@ -990,6 +1027,7 @@ class ChatService extends ChangeNotifier {
   }
 
   void _handleQueuedSignalError(Object error, StackTrace stackTrace) {
+    _recordError(error.toString());
     if (kDebugMode) {
       debugPrint('[ChatService] WebSocket message handling failed: $error');
       debugPrintStack(stackTrace: stackTrace);
@@ -1028,6 +1066,9 @@ class ChatService extends ChangeNotifier {
             keyInfo.state == PeerKeyTrustState.changed ||
             (keyInfo.state == PeerKeyTrustState.verified &&
                 advertisedKey != keyInfo.publicKey)) {
+          DiagnosticService.instance.log(
+            'call rejected locally reason=privacy_or_key from=${_shortId(fromUserId)}',
+          );
           _send({
             'type': 'call_rejected',
             'callId': json['callId'],
@@ -1154,6 +1195,7 @@ class ChatService extends ChangeNotifier {
         await StorageService.instance.clearProfile();
         profile = null;
         disconnect();
+        _recordError('This session was revoked.');
         onError?.call('This session was revoked.');
         notifyListeners();
         break;
@@ -1176,6 +1218,12 @@ class ChatService extends ChangeNotifier {
         _lastSearchResult = userJson is Map
             ? UserContact.fromJson(Map<String, dynamic>.from(userJson))
             : null;
+        _lastUsernameSearchResult = _lastSearchResult == null
+            ? 'not_found_or_hidden'
+            : 'found userId=${_shortId(_lastSearchResult!.userId)} online=${_lastSearchResult!.online}';
+        DiagnosticService.instance.log(
+          'username search result $_lastUsernameSearchResult',
+        );
         notifyListeners();
         break;
       case 'user_presence':
@@ -1220,6 +1268,7 @@ class ChatService extends ChangeNotifier {
           _authCompleter!.completeError(message);
           _authCompleter = null;
         } else {
+          _recordError(message);
           onError?.call(message);
         }
         break;
@@ -1754,11 +1803,79 @@ class ChatService extends ChangeNotifier {
 
   void _setConnected(bool value) {
     _isConnected = value;
+    DiagnosticService.instance.log(
+      'websocket ${value ? 'connected' : 'disconnected'} ${AppConfig.wsUrl}',
+    );
     notifyListeners();
   }
 
   void _send(Map<String, dynamic> obj) {
+    final type = obj['type']?.toString() ?? 'unknown';
+    if (type.startsWith('call_') || type == 'get_call_offer') {
+      DiagnosticService.instance.log(
+        'websocket sent $type callId=${_shortId(obj['callId']?.toString() ?? '')}',
+      );
+    }
     _channel?.sink.add(jsonEncode(obj));
+  }
+
+  Future<String> diagnosticReport() async {
+    SessionInfo? currentSession;
+    for (final session in _sessions) {
+      if (session.current) {
+        currentSession = session;
+        break;
+      }
+    }
+    final deviceId = await StorageService.instance.loadOrCreateDeviceId();
+    final call = CallService.instance;
+    final lines = <String>[
+      'Hestia diagnostics',
+      'generatedAt: ${DateTime.now().toIso8601String()}',
+      'diagnosticMode: ${DiagnosticService.instance.enabled}',
+      'serverInput: ${AppConfig.serverInput}',
+      'serverUrl: ${AppConfig.wsUrl}',
+      'httpUrl: ${AppConfig.httpUrl}',
+      'websocket: ${_isConnected ? 'connected' : 'disconnected'}',
+      'authenticatedUserId: ${_shortId(profile?.userId ?? '')}',
+      'sessionId: ${_shortId(currentSession?.id ?? '')}',
+      'deviceId: ${_shortId(currentSession?.deviceId ?? deviceId)}',
+      'pushEnabled: ${currentSession?.pushEnabled ?? false}',
+      'pushProvider: ${currentSession?.pushProvider ?? 'none'}',
+      'contactsCount: ${contacts.length}',
+      'pendingRequestsCount: ${pendingRequests.length}',
+      'allowUserDiscovery: ${_privacySettings.allowUserDiscovery}',
+      'allowMessagesFrom: ${_privacySettings.allowMessagesFrom.name}',
+      'allowCallsFrom: ${_privacySettings.allowCallsFrom.name}',
+      'lastUsernameSearchRequest: $_lastUsernameSearchRequest',
+      'lastUsernameSearchResult: $_lastUsernameSearchResult',
+      'lastCallEventSent: ${call.lastCallEventSent}',
+      'lastCallEventReceived: ${call.lastCallEventReceived}',
+      'callState: ${call.state.name}',
+      'webrtcConnectionState: ${call.connectionState}',
+      'iceConnectionState: ${call.iceConnectionState}',
+      'localAudioTracks: ${call.localAudioTrackCount}',
+      'localVideoTracks: ${call.localVideoTrackCount}',
+      'remoteAudioTracks: ${call.remoteAudioTrackCount}',
+      'remoteVideoTracks: ${call.remoteVideoTrackCount}',
+      'chatLastError: $_lastError',
+      'callLastError: ${call.lastError}',
+      'logs:',
+      ...DiagnosticService.instance.entries,
+    ];
+    return lines.join('\n');
+  }
+
+  void _recordError(String message) {
+    _lastError = message;
+    DiagnosticService.instance.log('error $message');
+  }
+
+  String _shortId(String value) {
+    if (value.isEmpty) {
+      return 'none';
+    }
+    return value.length <= 8 ? value : '${value.substring(0, 8)}...';
   }
 
   Future<Map<String, String>> _devicePayload() async {
