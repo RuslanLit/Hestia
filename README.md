@@ -197,6 +197,15 @@ The result should contain the built-in Google STUN servers plus your configured
 `turn:`/`turns:` entries. Invalid or incomplete `TURN_SERVERS` entries are
 ignored with a server warning instead of breaking `/config`.
 
+The backend loads `.env` automatically through `dotenv`. With PM2, start the
+server from the app root with:
+
+```bash
+pm2 delete hestia || true
+pm2 start ecosystem.config.js
+pm2 save --force
+```
+
 ## Custom Server URL
 
 The client supports changing the backend URL from inside the app.

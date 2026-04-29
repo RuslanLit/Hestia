@@ -57,8 +57,22 @@ enterprise Wi-Fi, carrier NAT, and strict firewalls.
 Format:
 
 ```text
-TURN_SERVERS=turn:turn.example.com:3478|turn-user|turn-password,turns:turn.example.com:5349|turn-user|turn-password
+TURN_SERVERS=turn:turn.example.com:3478?transport=udp|turn-user|turn-password,turn:turn.example.com:3478?transport=tcp|turn-user|turn-password,turns:turn.example.com:5349?transport=tcp|turn-user|turn-password
 ```
+
+`TURN_SERVERS` entries are comma-separated. The backend accepts `stun:`,
+`turn:`, and `turns:` URLs. TURN entries must include
+`url|username|credential`; invalid entries are ignored with a warning so the
+built-in STUN fallback remains available.
+
+Minimal coturn checklist:
+
+- Open `3478/udp` and `3478/tcp` for TURN.
+- Open `5349/tcp` for `turns:`.
+- Open the coturn relay range, commonly `49152-65535/udp`, or the smaller
+  `min-port`/`max-port` range configured in coturn.
+- Restart the Hestia backend after changing `.env`.
+- Verify `GET /api/config` contains both STUN and TURN entries.
 
 ### Android FCM
 

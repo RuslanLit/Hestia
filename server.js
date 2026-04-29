@@ -1,5 +1,6 @@
 'use strict';
 
+const dotenvResult = require('dotenv').config();
 const WebSocket = require('ws');
 const fs = require('fs');
 const path = require('path');
@@ -174,6 +175,23 @@ function logDebug(message) {
   if (LOG_LEVEL !== 'silent') {
     console.log(message);
   }
+}
+
+function sanitizedIceServers(iceServers) {
+  return iceServers.map((server) => ({
+    ...server,
+    ...(server.credential ? { credential: '<redacted>' } : {}),
+  }));
+}
+
+function logStartupConfig() {
+  logInfo(`[config] .env loaded: ${dotenvResult.error ? 'no' : 'yes'}`);
+  if (dotenvResult.error && dotenvResult.error.code !== 'ENOENT') {
+    logWarn(`[config] .env load warning: ${dotenvResult.error.message}`);
+  }
+  logInfo(`[config] TURN_SERVERS configured: ${process.env.TURN_SERVERS ? 'yes' : 'no'}`);
+  logInfo(`[config] ICE servers parsed: ${ICE_SERVERS.length}`);
+  logInfo(`[config] ICE servers: ${JSON.stringify(sanitizedIceServers(ICE_SERVERS))}`);
 }
 
 function parseTurnServers(value) {
@@ -523,6 +541,7 @@ function flushData() {
 
 const store = createSQLiteStore(DB_FILE);
 logInfo(`[storage] SQLite database: ${DB_FILE}`);
+logStartupConfig();
 const data = loadData();
 let users = data.users;
 data.contacts = data.contacts || [];

@@ -83,11 +83,22 @@ DB_FILE=./hestia.sqlite
 REGISTRATION_ENABLED=true
 INVITE_ONLY=false
 ADMIN_TOKEN=<GENERATE_A_LONG_RANDOM_TOKEN>
-TURN_SERVERS=turn:turn.example.com:3478|turn-user|turn-password
+TURN_SERVERS=turn:turn.example.com:3478?transport=udp|turn-user|turn-password,turn:turn.example.com:3478?transport=tcp|turn-user|turn-password,turns:turn.example.com:5349?transport=tcp|turn-user|turn-password
 GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/firebase-service-account.json
 ```
 
-If ispmanager provides its own port variable, keep it and let the panel route traffic to the Node.js app.
+`server.js` loads `.env` automatically through `dotenv`, so values such as
+`TURN_SERVERS`, `DB_FILE`, and `ADMIN_TOKEN` can live in the app-root `.env`
+file. If ispmanager provides its own port variable, keep it and let the panel
+route traffic to the Node.js app.
+
+For PM2 deploys, use the checked-in ecosystem file from the app root:
+
+```bash
+pm2 delete hestia || true
+pm2 start ecosystem.config.js
+pm2 save --force
+```
 
 For Android incoming calls while the screen is off or the app is in the
 background, configure Firebase Cloud Messaging on the backend. Hestia uses FCM
@@ -98,6 +109,11 @@ web root and outside git.
 For restrictive networks, configure `TURN_SERVERS`. Without TURN, direct WebRTC
 may work on simple networks but fail or connect media one-way on carrier NAT,
 enterprise Wi-Fi, and some routers.
+
+TURN requires a relay such as coturn reachable from both clients. Open
+`3478/udp`, `3478/tcp`, `5349/tcp` for TLS TURN, and the coturn relay UDP range
+configured by `min-port`/`max-port`. After updating `.env`, restart PM2 and
+check that `/api/config` returns `turn:` or `turns:` entries in `iceServers`.
 
 ## Verify
 

@@ -51,6 +51,20 @@ class AppConfig {
   static String downloadBlobUrl(String blobId) =>
       '$httpUrl/api/download_blob/${Uri.encodeComponent(blobId)}';
 
+  static void applyWebSocketPath(String path) {
+    final normalizedPath = path.trim().isEmpty
+        ? '/ws'
+        : path.trim().startsWith('/')
+            ? path.trim()
+            : '/${path.trim()}';
+    _wsUri = _httpBaseUri.replace(
+      scheme: _httpBaseUri.scheme == 'https' ? 'wss' : 'ws',
+      path: normalizedPath,
+      query: '',
+      fragment: '',
+    );
+  }
+
   static bool switchToFallbackServer() {
     if (!isUsingDefaultServer) {
       return false;

@@ -257,14 +257,16 @@ class _ChatListScreenState extends State<ChatListScreen>
                     setDialogState(() => enabled = value);
                   },
                   title: const Text('Diagnostic mode'),
-                  subtitle: const Text('Off by default. No passwords, tokens, or message plaintext.'),
+                  subtitle: const Text(
+                      'Off by default. No passwords, tokens, or message plaintext.'),
                 ),
                 const SizedBox(height: 8),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxHeight: 420),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      border: Border.all(color: Theme.of(context).colorScheme.outline),
+                      border: Border.all(
+                          color: Theme.of(context).colorScheme.outline),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: SingleChildScrollView(
@@ -367,6 +369,38 @@ class _ChatListScreenState extends State<ChatListScreen>
     };
   }
 
+  String _connectionSubtitle(BuildContext context) {
+    final l10n = context.l10n;
+    return switch (_chat.connectionStatus) {
+      ServerConnectionStatus.connecting => _localizedConnectionText(
+          context,
+          ru: 'Подключение...',
+          en: 'Connecting...',
+        ),
+      ServerConnectionStatus.connected => l10n.serverConnected(AppConfig.host),
+      ServerConnectionStatus.authError => _localizedConnectionText(
+          context,
+          ru: 'Ошибка авторизации',
+          en: 'Authorization error',
+        ),
+      ServerConnectionStatus.serverError => _localizedConnectionText(
+          context,
+          ru: 'Ошибка сервера',
+          en: 'Server error',
+        ),
+      ServerConnectionStatus.disconnected => l10n.serverDisconnected,
+    };
+  }
+
+  String _localizedConnectionText(
+    BuildContext context, {
+    required String ru,
+    required String en,
+  }) {
+    final code = Localizations.localeOf(context).languageCode;
+    return code == 'ru' || code == 'uk' ? ru : en;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_usesDesktopLayout(context)) {
@@ -389,9 +423,7 @@ class _ChatListScreenState extends State<ChatListScreen>
           children: [
             Text(l10n.appName),
             Text(
-              _chat.isConnected
-                  ? l10n.serverConnected(AppConfig.host)
-                  : l10n.serverDisconnected,
+              _connectionSubtitle(context),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -533,9 +565,7 @@ class _ChatListScreenState extends State<ChatListScreen>
                         children: [
                           _DesktopLeftHeader(
                             title: l10n.appName,
-                            subtitle: _chat.isConnected
-                                ? l10n.serverConnected(AppConfig.host)
-                                : l10n.serverDisconnected,
+                            subtitle: _connectionSubtitle(context),
                             onAddContact: _showFindUser,
                             onReload: _reload,
                             onPrivacy: _editPrivacy,
@@ -1561,7 +1591,7 @@ class _FindUserDialogState extends State<_FindUserDialog> {
     if (mounted) setState(() {});
   }
 
-  void _search() {
+  Future<void> _search() async {
     final username = _ctrl.text.trim();
     if (username.isEmpty) {
       setState(() {
@@ -1573,7 +1603,25 @@ class _FindUserDialogState extends State<_FindUserDialog> {
       _searched = true;
       _error = null;
     });
-    _chat.searchUsername(username);
+    try {
+      await _chat.searchUsername(username);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _error = _searchErrorText(context, error);
+      });
+    }
+  }
+
+  String _searchErrorText(BuildContext context, Object error) {
+    final text = error.toString();
+    if (text.contains('No server connection')) {
+      final code = Localizations.localeOf(context).languageCode;
+      return code == 'ru' || code == 'uk'
+          ? 'Нет подключения к серверу'
+          : 'No server connection';
+    }
+    return context.localizedError(error);
   }
 
   Future<void> _request(UserContact user) async {
@@ -1635,9 +1683,16 @@ class _FindUserDialogState extends State<_FindUserDialog> {
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
-            if (_searched && result == null) ...[
+            if (_searched && result == null && _error == null) ...[
               const SizedBox(height: 12),
-              Text(l10n.userNotFound),
+              Text(
+                _chat.isConnected
+                    ? l10n.userNotFound
+                    : _searchErrorText(
+                        context,
+                        Exception('No server connection.'),
+                      ),
+              ),
             ],
             if (result != null) ...[
               const SizedBox(height: 12),
@@ -1852,6 +1907,23 @@ class _ContactsTab extends StatelessWidget {
         searchResult != null && chat.shouldShowSearchResult(searchResult)
             ? searchResult
             : null;
+    Future<void> runSearch(String value) async {
+      try {
+        await chat.searchUsername(value);
+      } catch (error) {
+        if (!context.mounted) return;
+        final code = Localizations.localeOf(context).languageCode;
+        showHestiaSnackBar(
+          context,
+          error.toString().contains('No server connection')
+              ? (code == 'ru' || code == 'uk'
+                  ? 'Нет подключения к серверу'
+                  : 'No server connection')
+              : context.localizedError(error),
+          tone: HestiaStatusTone.error,
+        );
+      }
+    }
 
     return RefreshIndicator(
       onRefresh: chat.requestUsers,
@@ -1868,12 +1940,12 @@ class _ContactsTab extends StatelessWidget {
                     border: const OutlineInputBorder(),
                   ),
                   textInputAction: TextInputAction.search,
-                  onSubmitted: chat.searchUsername,
+                  onSubmitted: runSearch,
                 ),
               ),
               const SizedBox(width: 8),
               IconButton.filled(
-                onPressed: () => chat.searchUsername(searchCtrl.text),
+                onPressed: () => runSearch(searchCtrl.text),
                 tooltip: context.l10n.search,
                 icon: const Icon(Icons.search),
               ),

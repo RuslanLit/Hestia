@@ -19,12 +19,21 @@ import 'push_service.dart';
 import 'retention_service.dart';
 import 'storage_service.dart';
 
+enum ServerConnectionStatus {
+  disconnected,
+  connecting,
+  connected,
+  authError,
+  serverError,
+}
+
 class ChatService extends ChangeNotifier {
   ChatService._();
   static final ChatService instance = ChatService._();
 
   UserProfile? profile;
   bool get isConnected => _isConnected;
+  ServerConnectionStatus get connectionStatus => _connectionStatus;
 
   final Map<String, Conversation> _conversations = {};
   final List<UserContact> _users = [];
@@ -196,6 +205,8 @@ class ChatService extends ChangeNotifier {
 
   WebSocketChannel? _channel;
   bool _isConnected = false;
+  ServerConnectionStatus _connectionStatus =
+      ServerConnectionStatus.disconnected;
   Completer<UserProfile>? _authCompleter;
   Future<void> _incomingSignalQueue = Future<void>.value();
   bool _socketFailureReported = false;
@@ -231,8 +242,10 @@ class ChatService extends ChangeNotifier {
     _authCompleter = Completer<UserProfile>();
     final publicKey = await CryptoService.instance.publicKeyBase64();
     final device = await _devicePayload();
+    await loadBackendConfig();
     _openSocket(
       onReady: () {
+        _logConnection('auth sent nicknameLength=${trimmed.length}');
         _send({
           'type': 'auth',
           'nickname': trimmed,
@@ -262,8 +275,10 @@ class ChatService extends ChangeNotifier {
     _authCompleter = Completer<UserProfile>();
     final publicKey = await CryptoService.instance.publicKeyBase64();
     final device = await _devicePayload();
+    await loadBackendConfig();
     _openSocket(
       onReady: () {
+        _logConnection('register sent nicknameLength=${trimmed.length}');
         _send({
           'type': 'register',
           'nickname': trimmed,
@@ -291,8 +306,10 @@ class ChatService extends ChangeNotifier {
     _authCompleter = Completer<UserProfile>();
     final publicKey = await CryptoService.instance.publicKeyBase64();
     final device = await _devicePayload();
+    await loadBackendConfig();
     _openSocket(
       onReady: () {
+        _logConnection('auth sent userId=${_shortId(savedProfile.userId)}');
         _send({
           'type': 'auth',
           'userId': savedProfile.userId,
@@ -333,6 +350,13 @@ class ChatService extends ChangeNotifier {
         return;
       }
       final json = jsonDecode(response.body) as Map<String, dynamic>;
+      final websocketPath = json['websocketPath'];
+      if (websocketPath is String && websocketPath.trim().isNotEmpty) {
+        AppConfig.applyWebSocketPath(websocketPath);
+        DiagnosticService.instance.log(
+          'backend config websocketPath=$websocketPath wsUrl=${AppConfig.wsUrl}',
+        );
+      }
       final iceServers = json['iceServers'];
       if (iceServers is List) {
         final hasTurn = iceServers.whereType<Map>().any((item) {
@@ -522,6 +546,14 @@ class ChatService extends ChangeNotifier {
       'username search request $_lastUsernameSearchRequest',
     );
     notifyListeners();
+    if (!_isConnected) {
+      _lastUsernameSearchResult = 'not_sent_disconnected';
+      const message = 'No server connection.';
+      _recordError(message);
+      DiagnosticService.instance.log('username search rejected disconnected');
+      notifyListeners();
+      throw Exception(message);
+    }
     _send({'type': 'find_user_by_username_exact', 'username': query});
   }
 
@@ -960,7 +992,7 @@ class ChatService extends ChangeNotifier {
   }
 
   void disconnect() {
-    _setConnected(false);
+    _setConnectionStatus(ServerConnectionStatus.disconnected);
     _channel?.sink.close();
     _channel = null;
     _socketFailureReported = false;
@@ -968,6 +1000,8 @@ class ChatService extends ChangeNotifier {
 
   void _openSocket({required void Function() onReady}) {
     disconnect();
+    _setConnectionStatus(ServerConnectionStatus.connecting);
+    _logConnection('connecting target=${AppConfig.wsUrl}');
 
     try {
       _channel = WebSocketChannel.connect(Uri.parse(AppConfig.wsUrl));
@@ -999,17 +1033,22 @@ class ChatService extends ChangeNotifier {
             .then((_) => _handleRaw(raw))
             .catchError(_handleQueuedSignalError);
       },
-      onDone: () => _setConnected(false),
+      onDone: () {
+        _logConnection('disconnected');
+        if (_connectionStatus != ServerConnectionStatus.authError &&
+            _connectionStatus != ServerConnectionStatus.serverError) {
+          _setConnectionStatus(ServerConnectionStatus.disconnected);
+        }
+      },
       onError: _handleSocketError,
     );
 
-    _setConnected(true);
-    loadBackendConfig();
+    _logConnection('websocket opened');
     onReady();
   }
 
   void _handleSocketError(Object error) {
-    _setConnected(false);
+    _setConnectionStatus(ServerConnectionStatus.serverError);
     if (_socketFailureReported) {
       return;
     }
@@ -1095,6 +1134,8 @@ class ChatService extends ChangeNotifier {
           publicKey: json['publicKey'] as String?,
         );
         await _activateProfile(user);
+        _setConnectionStatus(ServerConnectionStatus.connected);
+        _logConnection('auth_ok received userId=${_shortId(user.userId)}');
         if (_authCompleter != null && !_authCompleter!.isCompleted) {
           _authCompleter!.complete(user);
           _authCompleter = null;
@@ -1265,6 +1306,7 @@ class ChatService extends ChangeNotifier {
       case 'error':
         final message = json['message'] as String? ?? 'Unknown server error';
         if (_authCompleter != null && !_authCompleter!.isCompleted) {
+          _setConnectionStatus(ServerConnectionStatus.authError);
           _authCompleter!.completeError(message);
           _authCompleter = null;
         } else {
@@ -1801,16 +1843,29 @@ class ChatService extends ChangeNotifier {
     }
   }
 
-  void _setConnected(bool value) {
-    _isConnected = value;
+  void _setConnectionStatus(ServerConnectionStatus status) {
+    _connectionStatus = status;
+    _isConnected = status == ServerConnectionStatus.connected;
     DiagnosticService.instance.log(
-      'websocket ${value ? 'connected' : 'disconnected'} ${AppConfig.wsUrl}',
+      'websocket status=${status.name} ${AppConfig.wsUrl}',
     );
     notifyListeners();
   }
 
+  void _logConnection(String message) {
+    DiagnosticService.instance.log('websocket $message');
+    if (kDebugMode) {
+      debugPrint('[ChatService] websocket $message');
+    }
+  }
+
   void _send(Map<String, dynamic> obj) {
     final type = obj['type']?.toString() ?? 'unknown';
+    if (type == 'find_user_by_username_exact') {
+      DiagnosticService.instance.log(
+        'websocket sent $type usernameLength=${obj['username']?.toString().length ?? 0}',
+      );
+    }
     if (type.startsWith('call_') || type == 'get_call_offer') {
       DiagnosticService.instance.log(
         'websocket sent $type callId=${_shortId(obj['callId']?.toString() ?? '')}',
@@ -1836,7 +1891,7 @@ class ChatService extends ChangeNotifier {
       'serverInput: ${AppConfig.serverInput}',
       'serverUrl: ${AppConfig.wsUrl}',
       'httpUrl: ${AppConfig.httpUrl}',
-      'websocket: ${_isConnected ? 'connected' : 'disconnected'}',
+      'websocket: ${_connectionStatus.name}',
       'authenticatedUserId: ${_shortId(profile?.userId ?? '')}',
       'sessionId: ${_shortId(currentSession?.id ?? '')}',
       'deviceId: ${_shortId(currentSession?.deviceId ?? deviceId)}',
