@@ -153,6 +153,33 @@ extension HestiaErrorLocalizations on AppLocalizations {
         de: 'Anhang konnte nicht hochgeladen werden.',
         en: 'Attachment upload failed.',
       );
+  String get noServerConnection => _extra(
+        uk: 'Немає підключення до сервера.',
+        ru: 'Нет подключения к серверу.',
+        pl: 'Brak połączenia z serwerem.',
+        es: 'No hay conexión con el servidor.',
+        cs: 'Není připojení k serveru.',
+        de: 'Keine Verbindung zum Server.',
+        en: 'No server connection.',
+      );
+  String get serverFileUploadUnsupported => _extra(
+        uk: 'Сервер не підтримує завантаження файлів.',
+        ru: 'Сервер не поддерживает загрузку файлов.',
+        pl: 'Serwer nie obsługuje przesyłania plików.',
+        es: 'El servidor no admite la carga de archivos.',
+        cs: 'Server nepodporuje nahrávání souborů.',
+        de: 'Der Server unterstützt keine Datei-Uploads.',
+        en: 'Server does not support file uploads.',
+      );
+  String get attachmentNotFoundOnServer => _extra(
+        uk: 'Файл не знайдено на сервері.',
+        ru: 'Файл не найден на сервере.',
+        pl: 'Nie znaleziono pliku na serwerze.',
+        es: 'No se encontró el archivo en el servidor.',
+        cs: 'Soubor nebyl na serveru nalezen.',
+        de: 'Datei wurde auf dem Server nicht gefunden.',
+        en: 'File was not found on the server.',
+      );
   String peerKeyChangedCall(String name) => _extra(
         uk: 'Ключ шифрування $name змінився. Перевірте відбиток перед дзвінком.',
         ru: 'Ключ шифрования $name изменился. Проверьте отпечаток перед звонком.',
@@ -356,7 +383,8 @@ extension HestiaErrorLocalizations on AppLocalizations {
     if (message == 'Unknown server error') return unknownServerError;
     if (message == 'Authentication required.') return authenticationRequired;
     if (message.startsWith('Could not connect to ')) {
-      return couldNotConnectTo(message.substring('Could not connect to '.length));
+      return couldNotConnectTo(
+          message.substring('Could not connect to '.length));
     }
     if (message.startsWith('Local file not found:')) {
       return localFileNotFound;
@@ -388,6 +416,13 @@ extension HestiaErrorLocalizations on AppLocalizations {
     }
     if (message == 'Forward failed: local file is unavailable.') {
       return forwardLocalFileUnavailable;
+    }
+    if (message == 'No server connection.') return noServerConnection;
+    if (message == 'Server does not support file uploads.') {
+      return serverFileUploadUnsupported;
+    }
+    if (message == 'Not found' || message == 'Attachment is unavailable.') {
+      return attachmentNotFoundOnServer;
     }
     if (message == 'Attachment upload failed.' ||
         message.startsWith('Attachment upload failed (')) {

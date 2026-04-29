@@ -17,6 +17,11 @@ class AppConfig {
   static Uri _httpBaseUri = Uri.parse(defaultHttpBase);
   static Uri _wsUri = Uri.parse(defaultServerInput);
   static String _serverInput = defaultServerInput;
+  static bool _blobTransferEnabled = true;
+  static String _blobUploadPath = '/api/upload_blob';
+  static String _blobDownloadPath = '/api/download_blob/{blobId}';
+  static String _legacyBlobUploadPath = '/upload_blob';
+  static String _legacyBlobDownloadPath = '/download_blob/{blobId}';
 
   static Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
@@ -47,9 +52,19 @@ class AppConfig {
   static String get httpUrl => _withoutTrailingSlash(_httpBaseUri.toString());
   static String get configUrl => '$httpUrl/api/config';
   static String get uploadUrl => '$httpUrl/upload';
-  static String get uploadBlobUrl => '$httpUrl/api/upload_blob';
+  static bool get blobTransferEnabled => _blobTransferEnabled;
+  static String get uploadBlobUrl => _resolveHttpUrl(_blobUploadPath);
+  static List<String> get uploadBlobUrls =>
+      _uniqueUrls([_blobUploadPath, _legacyBlobUploadPath]);
   static String downloadBlobUrl(String blobId) =>
-      '$httpUrl/api/download_blob/${Uri.encodeComponent(blobId)}';
+      downloadBlobUrls(blobId).first;
+  static List<String> downloadBlobUrls(String blobId) => _uniqueUrls([
+        _blobDownloadPath.replaceAll('{blobId}', Uri.encodeComponent(blobId)),
+        _legacyBlobDownloadPath.replaceAll(
+          '{blobId}',
+          Uri.encodeComponent(blobId),
+        ),
+      ]);
 
   static void applyWebSocketPath(String path) {
     final normalizedPath = path.trim().isEmpty
@@ -62,6 +77,29 @@ class AppConfig {
       path: normalizedPath,
       query: '',
       fragment: '',
+    );
+  }
+
+  static void applyBlobTransferConfig(Map<String, dynamic> config) {
+    final enabled = config['enabled'];
+    if (enabled is bool) {
+      _blobTransferEnabled = enabled;
+    }
+    _blobUploadPath = _configuredPath(
+      config['uploadPath'],
+      fallback: _blobUploadPath,
+    );
+    _blobDownloadPath = _configuredPath(
+      config['downloadPath'],
+      fallback: _blobDownloadPath,
+    );
+    _legacyBlobUploadPath = _configuredPath(
+      config['legacyUploadPath'],
+      fallback: _legacyBlobUploadPath,
+    );
+    _legacyBlobDownloadPath = _configuredPath(
+      config['legacyDownloadPath'],
+      fallback: _legacyBlobDownloadPath,
     );
   }
 
@@ -136,6 +174,38 @@ class AppConfig {
         : _httpBaseUri.host;
     secure = _httpBaseUri.scheme == 'https';
     _customServer = custom && host != defaultHost;
+  }
+
+  static String _configuredPath(dynamic value, {required String fallback}) {
+    if (value is! String || value.trim().isEmpty) {
+      return fallback;
+    }
+    final trimmed = value.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    return trimmed.startsWith('/') ? trimmed : '/$trimmed';
+  }
+
+  static List<String> _uniqueUrls(List<String> paths) {
+    final seen = <String>{};
+    final urls = <String>[];
+    for (final path in paths) {
+      final url = _resolveHttpUrl(path);
+      if (seen.add(url)) {
+        urls.add(url);
+      }
+    }
+    return urls;
+  }
+
+  static String _resolveHttpUrl(String pathOrUrl) {
+    final value = pathOrUrl.trim();
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      return value;
+    }
+    final path = value.startsWith('/') ? value : '/$value';
+    return _httpBaseUri.replace(path: path, query: '', fragment: '').toString();
   }
 
   static String _withoutTrailingSlash(String value) {

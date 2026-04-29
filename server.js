@@ -1392,16 +1392,6 @@ function ackDelivery(messageId, userId) {
   }
   const senderUserId =
     pendingDeliveries.get(messageId)?.senderUserId || queued?.payload?.fromUserId || null;
-  const deliveredBlobId =
-    pendingDeliveries.get(messageId)?.blobId || queued?.payload?.attachment?.blobId || null;
-  if (deliveredBlobId) {
-    const blob = findBlobById(deliveredBlobId);
-    if (blob) {
-      deleteStoredBlob(blob);
-      data.blobs = data.blobs.filter((item) => item.blobId !== deliveredBlobId);
-      saveData();
-    }
-  }
   pendingDeliveries.delete(messageId);
   if (senderUserId) {
     sendToUser(senderUserId, { type: 'delivery_ack', id: messageId });
@@ -2495,6 +2485,9 @@ function normalizeAttachment(attachment, context = {}) {
         blob.senderUserId !== context.senderId ||
         blob.recipientUserId !== context.recipientId ||
         (blob.messageId && context.messageId && blob.messageId !== context.messageId)) {
+      logDebug(
+        `[debug] attachment blob unavailable blobId=${blobId} sender=${context.senderId || ''} recipient=${context.recipientId || ''} messageId=${context.messageId || ''}`,
+      );
       return { ok: false, message: 'Attachment is unavailable.' };
     }
     if (Number(blob.expiresAt || 0) <= Date.now()) {
@@ -2507,8 +2500,12 @@ function normalizeAttachment(attachment, context = {}) {
     if (!filePath || !fs.existsSync(filePath)) {
       data.blobs = data.blobs.filter((item) => item.blobId !== blob.blobId);
       saveData();
+      logWarn(`[blob] missing file for blobId=${blob.blobId}`);
       return { ok: false, message: 'Attachment is unavailable.' };
     }
+    blob.state = 'attached';
+    blob.attachedAt = Date.now();
+    saveData();
     return {
       ok: true,
       attachment: {
@@ -2705,6 +2702,9 @@ function handleUploadBlob(req, res) {
       !hasActiveContact(sender.id, recipient.id) ||
       isBlockedBy(sender.id, recipient.id) ||
       isBlockedBy(recipient.id, sender.id)) {
+    logDebug(
+      `[debug] blob upload rejected unavailable sender=${sender.id} recipient=${recipientUserId}`,
+    );
     return jsonResponse(res, 403, { error: 'User is unavailable.' });
   }
 
@@ -2715,6 +2715,9 @@ function handleUploadBlob(req, res) {
     originalSizeBytes: url.searchParams.get('originalSizeBytes') || url.searchParams.get('sizeBytes') || '',
   });
   if (!metadata.ok) {
+    logDebug(
+      `[debug] blob upload metadata rejected sender=${sender.id} recipient=${recipientUserId} name=${sanitizeFileName(url.searchParams.get('originalName') || '')} extension=${normalizeExtension(url.searchParams.get('extension') || '')} kind=${normalizeKind(url.searchParams.get('originalKind') || url.searchParams.get('kind') || '')} message=${metadata.message}`,
+    );
     return jsonResponse(res, 400, { error: metadata.message });
   }
 
@@ -2796,6 +2799,9 @@ function handleUploadBlob(req, res) {
       };
       data.blobs.push(blob);
       saveData();
+      logDebug(
+        `[debug] blob upload stored blobId=${blobId} sender=${sender.id} recipient=${recipient.id} name=${blob.originalName} extension=${blob.extension} kind=${blob.originalKind} sizeBytes=${blob.sizeBytes}`,
+      );
       return jsonResponse(res, 200, {
         ok: true,
         blobId,
@@ -2827,18 +2833,23 @@ function handleDownloadBlob(req, res) {
   const blob = findBlobById(blobId);
   if (!blob ||
       (blob.senderUserId !== auth.user.id && blob.recipientUserId !== auth.user.id)) {
+    logDebug(
+      `[debug] blob download not found blobId=${blobId} user=${auth.user.id} route=${url.pathname}`,
+    );
     return jsonResponse(res, 404, { error: 'Not found' });
   }
   if (Number(blob.expiresAt || 0) <= Date.now()) {
     deleteStoredBlob(blob);
     data.blobs = data.blobs.filter((item) => item.blobId !== blob.blobId);
     saveData();
+    logDebug(`[debug] blob download expired blobId=${blobId} user=${auth.user.id}`);
     return jsonResponse(res, 404, { error: 'Not found' });
   }
   const filePath = safeAttachmentBlobPath(blob.fileName || blob.filePath);
   if (!filePath || !fs.existsSync(filePath)) {
     data.blobs = data.blobs.filter((item) => item.blobId !== blob.blobId);
     saveData();
+    logWarn(`[blob] download missing file blobId=${blobId} user=${auth.user.id}`);
     return jsonResponse(res, 404, { error: 'Not found' });
   }
   res.writeHead(200, {

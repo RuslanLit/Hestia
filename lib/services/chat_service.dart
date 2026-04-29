@@ -357,6 +357,17 @@ class ChatService extends ChangeNotifier {
           'backend config websocketPath=$websocketPath wsUrl=${AppConfig.wsUrl}',
         );
       }
+      final blobTransfer = json['blobTransfer'];
+      if (blobTransfer is Map) {
+        AppConfig.applyBlobTransferConfig(
+          Map<String, dynamic>.from(blobTransfer),
+        );
+        DiagnosticService.instance.log(
+          'backend config blobTransfer enabled=${AppConfig.blobTransferEnabled} '
+          'upload=${_redactQuery(AppConfig.uploadBlobUrl)} '
+          'download=${_redactQuery(AppConfig.downloadBlobUrl('{blobId}'))}',
+        );
+      }
       final iceServers = json['iceServers'];
       if (iceServers is List) {
         final hasTurn = iceServers.whereType<Map>().any((item) {
@@ -822,13 +833,15 @@ class ChatService extends ChangeNotifier {
       recipientPublicKeyBase64: peerPublicKey,
       messageMetadata: metadata,
     );
-    final blobId = await _uploadEncryptedAttachmentBlob(
-      messageId: messageId,
-      peerUserId: peerUserId,
-      fileName: fileName,
-      validation: validation,
-      encryptedAttachment: encryptedAttachment,
-    );
+    final blobId = AppConfig.blobTransferEnabled
+        ? await _uploadEncryptedAttachmentBlob(
+            messageId: messageId,
+            peerUserId: peerUserId,
+            fileName: fileName,
+            validation: validation,
+            encryptedAttachment: encryptedAttachment,
+          )
+        : null;
     final savedAttachment =
         await LocalDataService.instance.saveBytesAsAttachment(
       messageId: messageId,
@@ -862,24 +875,26 @@ class ChatService extends ChangeNotifier {
     );
 
     await _persistMessage(message, peerNickname: peerNickname);
+    final attachmentPayload = <String, dynamic>{
+      'name': 'encrypted.hestia',
+      'originalName': fileName,
+      'extension': validation.extension,
+      'kind': 'document',
+      'originalKind': attachmentKind,
+      'sizeBytes': encryptedAttachment.length,
+      'originalSizeBytes': validation.sizeBytes,
+      'encodedSizeBytes': encryptedAttachment.length,
+      'encrypted': true,
+      if (blobId != null) 'blobId': blobId else 'base64': encryptedAttachment,
+    };
+
     _send({
       'type': 'message',
       'id': message.id,
       'toUserId': peerUserId,
       'recipientPublicKey': peerPublicKey,
       'text': '',
-      'attachment': {
-        'name': 'encrypted.hestia',
-        'originalName': fileName,
-        'extension': validation.extension,
-        'kind': 'document',
-        'originalKind': attachmentKind,
-        'sizeBytes': encryptedAttachment.length,
-        'originalSizeBytes': validation.sizeBytes,
-        'encodedSizeBytes': encryptedAttachment.length,
-        'blobId': blobId,
-        'encrypted': true,
-      },
+      'attachment': attachmentPayload,
     });
     _scheduleSendTimeout(message.id);
   }
@@ -897,35 +912,67 @@ class ChatService extends ChangeNotifier {
       throw Exception('Authentication required.');
     }
 
-    final uri = Uri.parse(AppConfig.uploadBlobUrl).replace(
-      queryParameters: {
-        'toUserId': peerUserId,
-        'messageId': messageId,
-        'originalName': fileName,
-        'extension': validation.extension,
-        'originalKind': validation.kind,
-        'originalSizeBytes': validation.sizeBytes.toString(),
-        'sizeBytes': validation.sizeBytes.toString(),
-      },
+    DiagnosticService.instance.log(
+      'attachment upload start name=$fileName ext=${validation.extension} '
+      'kind=${validation.kind} sizeBytes=${validation.sizeBytes}',
     );
-    final request = http.Request('POST', uri)
-      ..headers.addAll(_blobAuthHeaders())
-      ..headers['Content-Type'] = 'text/plain; charset=utf-8'
-      ..body = encryptedAttachment;
 
-    final response = await http.Response.fromStream(await request.send())
-        .timeout(const Duration(minutes: 10));
-    if (response.statusCode != 200) {
-      final message = _serverErrorMessage(response.body) ??
-          'Attachment upload failed (${response.statusCode}).';
-      throw Exception(message);
+    http.Response? lastResponse;
+    for (final uploadUrl in AppConfig.uploadBlobUrls) {
+      final uri = Uri.parse(uploadUrl).replace(
+        queryParameters: {
+          'toUserId': peerUserId,
+          'messageId': messageId,
+          'originalName': fileName,
+          'extension': validation.extension,
+          'originalKind': validation.kind,
+          'originalSizeBytes': validation.sizeBytes.toString(),
+          'sizeBytes': validation.sizeBytes.toString(),
+        },
+      );
+      DiagnosticService.instance.log(
+        'attachment upload url=${_redactQuery(uri.toString())}',
+      );
+      final request = http.Request('POST', uri)
+        ..headers.addAll(_blobAuthHeaders())
+        ..headers['Content-Type'] = 'text/plain; charset=utf-8'
+        ..body = encryptedAttachment;
+
+      late final http.Response response;
+      try {
+        response = await http.Response.fromStream(await request.send())
+            .timeout(const Duration(minutes: 10));
+      } on TimeoutException {
+        throw Exception('No server connection.');
+      } catch (error) {
+        DiagnosticService.instance
+            .log('attachment upload network error=$error');
+        throw Exception('No server connection.');
+      }
+      lastResponse = response;
+      DiagnosticService.instance.log(
+        'attachment upload status=${response.statusCode} '
+        'message=${_serverErrorMessage(response.body) ?? ''}',
+      );
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        final blobId = json['blobId'] as String? ?? '';
+        if (blobId.isEmpty) {
+          throw Exception('Attachment upload failed.');
+        }
+        DiagnosticService.instance.log('attachment upload blobId=$blobId');
+        return blobId;
+      }
+      if (response.statusCode != 404 && response.statusCode != 405) {
+        break;
+      }
     }
-    final json = jsonDecode(response.body) as Map<String, dynamic>;
-    final blobId = json['blobId'] as String? ?? '';
-    if (blobId.isEmpty) {
-      throw Exception('Attachment upload failed.');
+
+    final response = lastResponse;
+    if (response == null) {
+      throw Exception('No server connection.');
     }
-    return blobId;
+    throw Exception(_attachmentUploadError(response));
   }
 
   Future<String> exportAttachment(ChatAttachment attachment) {
@@ -1474,21 +1521,46 @@ class ChatService extends ChangeNotifier {
         authToken.isEmpty) {
       return null;
     }
-    final response = await http
-        .get(
-          Uri.parse(AppConfig.downloadBlobUrl(blobId)),
-          headers: _blobAuthHeaders(),
-        )
-        .timeout(const Duration(minutes: 10));
-    if (response.statusCode != 200) {
-      if (kDebugMode) {
-        debugPrint(
-          '[ChatService] Attachment download failed: ${response.statusCode}',
+    for (final downloadUrl in AppConfig.downloadBlobUrls(blobId)) {
+      DiagnosticService.instance.log(
+        'attachment download url=${_redactQuery(downloadUrl)} blobId=$blobId',
+      );
+      late final http.Response response;
+      try {
+        response = await http
+            .get(
+              Uri.parse(downloadUrl),
+              headers: _blobAuthHeaders(),
+            )
+            .timeout(const Duration(minutes: 10));
+      } on TimeoutException {
+        DiagnosticService.instance.log(
+          'attachment download timeout blobId=$blobId',
         );
+        return null;
+      } catch (error) {
+        DiagnosticService.instance.log(
+          'attachment download network error=$error blobId=$blobId',
+        );
+        return null;
       }
-      return null;
+      DiagnosticService.instance.log(
+        'attachment download status=${response.statusCode} blobId=$blobId '
+        'message=${_serverErrorMessage(response.body) ?? ''}',
+      );
+      if (response.statusCode == 200) {
+        return response.body;
+      }
+      if (response.statusCode != 404 && response.statusCode != 405) {
+        if (kDebugMode) {
+          debugPrint(
+            '[ChatService] Attachment download failed: ${response.statusCode}',
+          );
+        }
+        return null;
+      }
     }
-    return response.body;
+    return null;
   }
 
   Map<String, String> _blobAuthHeaders() {
@@ -1505,6 +1577,40 @@ class ChatService extends ChangeNotifier {
       return json['error'] as String?;
     } catch (_) {
       return null;
+    }
+  }
+
+  String _attachmentUploadError(http.Response response) {
+    final message = _serverErrorMessage(response.body);
+    if (response.statusCode == 0) return 'No server connection.';
+    if (response.statusCode == 404 || response.statusCode == 405) {
+      return 'Server does not support file uploads.';
+    }
+    if (response.statusCode == 400 &&
+        message == 'Attachment type is not allowed.') {
+      return 'Attachment type is not allowed.';
+    }
+    if (response.statusCode == 400 &&
+        message == 'Attachment validation failed.') {
+      return 'Attachment validation failed.';
+    }
+    if (response.statusCode == 413 ||
+        message == 'Attachment is too large.' ||
+        (message != null && message.contains('storage is full'))) {
+      return message ?? 'Attachment is too large.';
+    }
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      return message ?? 'Attachment upload failed.';
+    }
+    return message ?? 'Attachment upload failed.';
+  }
+
+  String _redactQuery(String value) {
+    try {
+      final uri = Uri.parse(value);
+      return uri.replace(query: '').toString();
+    } catch (_) {
+      return value.split('?').first;
     }
   }
 
