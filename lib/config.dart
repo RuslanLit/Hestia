@@ -48,8 +48,9 @@ class AppConfig {
   static bool get isUsingDefaultServer =>
       !_customServer && host == defaultHost && wsUrl == defaultServerInput;
 
-  static String get wsUrl => _wsUri.toString();
-  static String get httpUrl => _withoutTrailingSlash(_httpBaseUri.toString());
+  static String get wsUrl => _withoutTrailingHash(_wsUri.toString());
+  static String get httpUrl =>
+      _withoutTrailingSlash(_withoutTrailingHash(_httpBaseUri.toString()));
   static String get configUrl => '$httpUrl/api/config';
   static String get uploadUrl => '$httpUrl/upload';
   static bool get blobTransferEnabled => _blobTransferEnabled;
@@ -148,7 +149,7 @@ class AppConfig {
         custom: custom,
       );
       _wsUri = normalizedWs;
-      _serverInput = normalizedWs.toString();
+      _serverInput = _withoutTrailingHash(normalizedWs.toString());
       return;
     }
 
@@ -164,7 +165,8 @@ class AppConfig {
       query: '',
       fragment: '',
     );
-    _serverInput = _withoutTrailingSlash(httpBase.toString());
+    _serverInput =
+        _withoutTrailingSlash(_withoutTrailingHash(httpBase.toString()));
   }
 
   static void _setHttpBase(Uri uri, {required bool custom}) {
@@ -205,11 +207,17 @@ class AppConfig {
       return value;
     }
     final path = value.startsWith('/') ? value : '/$value';
-    return _httpBaseUri.replace(path: path, query: '', fragment: '').toString();
+    return _withoutTrailingHash(
+      _httpBaseUri.replace(path: path, query: '', fragment: '').toString(),
+    );
   }
 
   static String _withoutTrailingSlash(String value) {
     return value.endsWith('/') ? value.substring(0, value.length - 1) : value;
+  }
+
+  static String _withoutTrailingHash(String value) {
+    return value.endsWith('#') ? value.substring(0, value.length - 1) : value;
   }
 
   static bool _shouldResetSavedServer(String input) {
