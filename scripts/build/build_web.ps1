@@ -1,6 +1,7 @@
 param(
   [switch]$SkipPubGet,
-  [switch]$PackageExistingBuild
+  [switch]$PackageExistingBuild,
+  [string]$BaseHref = "/app/"
 )
 
 $ErrorActionPreference = "Stop"
@@ -25,7 +26,7 @@ if (-not $PackageExistingBuild) {
     Invoke-FlutterChecked @("pub", "get")
   }
 
-  Invoke-FlutterChecked @("build", "web", "--release", "--no-pub")
+  Invoke-FlutterChecked @("build", "web", "--release", "--no-pub", "--base-href", $BaseHref)
 }
 
 if (-not (Test-Path (Join-Path $Root "build\web\index.html"))) {

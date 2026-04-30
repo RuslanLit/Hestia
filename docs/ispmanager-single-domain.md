@@ -5,6 +5,7 @@ This guide is for hosting plans where ispmanager allows only one website and no 
 ## Public URLs
 
 - Landing: `https://hestiachat.site/`
+- Hosted web app: `https://hestiachat.site/app/`
 - Downloads page: `https://hestiachat.site/downloads.html`
 - Update manifest: `https://hestiachat.site/releases/latest.json`
 - Backend config: `https://hestiachat.site/api/config`
@@ -37,6 +38,17 @@ hestia-app/
     og/
     releases/
       latest.json
+    app/
+      index.html
+      main.dart.js
+      flutter_bootstrap.js
+      flutter.js
+      flutter_service_worker.js
+      manifest.json
+      version.json
+      assets/
+      canvaskit/
+      icons/
 ```
 
 The app creates `hestia.sqlite` automatically on first start. You can move it by
@@ -50,9 +62,20 @@ or to the directory configured by `DB_FILE`.
 ## Prepare Files
 
 1. Upload `server.js` and `package.json` from the backend package.
-2. Copy the landing files into `public/`.
-3. Copy `latest.json` into `public/releases/latest.json`.
-4. Keep release binaries in GitHub Releases. Do not upload APK, EXE, ZIP, DMG, AppImage, DEB, or tar.gz files into git.
+2. Copy the landing files from `Landing_Hestia/` into `public/`.
+3. Build Flutter web for the hosted app path:
+
+```bash
+flutter build web --release --base-href /app/
+```
+
+4. Copy the contents of `build/web/` into `public/app/`.
+5. Copy `latest.json` into `public/releases/latest.json`.
+6. Keep release binaries in GitHub Releases. Do not upload APK, EXE, ZIP, DMG, AppImage, DEB, or tar.gz files into git.
+
+Do not copy Flutter web `index.html` into `public/index.html`; that would replace
+the landing page. The root `public/index.html` belongs to the landing site, and
+the Flutter app lives under `public/app/index.html`.
 
 The Node.js server also supports `PUBLIC_DIR=/absolute/path/to/public` if your ispmanager layout stores the landing files elsewhere.
 

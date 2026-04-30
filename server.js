@@ -127,11 +127,10 @@ const LANDING_PAGES = new Set([
   'server-setup.html',
 ]);
 const STATIC_DIRS = new Set([
+  'app',
   'assets',
-  'canvaskit',
   'content',
   'CSS',
-  'icons',
   'JS',
   'logo',
   'og',
@@ -143,12 +142,7 @@ const STATIC_FILES = new Set([
   'sitemap.xml',
   'favicon.ico',
   'favicon.png',
-  'flutter.js',
-  'flutter_bootstrap.js',
-  'flutter_service_worker.js',
-  'main.dart.js',
   'manifest.json',
-  'version.json',
 ]);
 let fcmServiceAccount = null;
 let fcmAccessToken = null;
@@ -705,6 +699,7 @@ function staticContentType(filePath) {
     '.ico': 'image/x-icon',
     '.txt': 'text/plain; charset=utf-8',
     '.xml': 'application/xml; charset=utf-8',
+    '.wasm': 'application/wasm',
     '.webmanifest': 'application/manifest+json; charset=utf-8',
   };
   return types[ext] || 'application/octet-stream';
@@ -725,8 +720,19 @@ function serveLandingStatic(req, res, url) {
   if (requestPath === '/') {
     requestPath = '/index.html';
   }
+  if (requestPath === '/app') {
+    res.writeHead(308, {
+      Location: '/app/',
+      'Cache-Control': 'no-cache',
+    });
+    res.end();
+    return true;
+  }
 
-  const relativePath = requestPath.replace(/^\/+/, '');
+  let relativePath = requestPath.replace(/^\/+/, '');
+  if (relativePath === 'app/') {
+    relativePath = 'app/index.html';
+  }
   const firstSegment = relativePath.split('/')[0];
   const isAllowed =
     LANDING_PAGES.has(relativePath) ||
@@ -744,6 +750,25 @@ function serveLandingStatic(req, res, url) {
   }
 
   if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+    if (firstSegment === 'app' && !path.extname(relativePath)) {
+      const appIndexPath = path.resolve(PUBLIC_DIR, 'app', 'index.html');
+      if (appIndexPath.startsWith(`${publicRoot}${path.sep}`) &&
+          fs.existsSync(appIndexPath) &&
+          fs.statSync(appIndexPath).isFile()) {
+        const stat = fs.statSync(appIndexPath);
+        res.writeHead(200, {
+          'Content-Type': staticContentType(appIndexPath),
+          'Content-Length': String(stat.size),
+          'Cache-Control': 'no-cache',
+        });
+        if (req.method === 'HEAD') {
+          res.end();
+          return true;
+        }
+        fs.createReadStream(appIndexPath).pipe(res);
+        return true;
+      }
+    }
     return false;
   }
 
@@ -752,6 +777,7 @@ function serveLandingStatic(req, res, url) {
     'Content-Type': staticContentType(filePath),
     'Content-Length': String(stat.size),
     'Cache-Control': relativePath === 'index.html' ||
+      relativePath === 'app/index.html' ||
       relativePath === 'releases/latest.json'
       ? 'no-cache'
       : 'public, max-age=300',
