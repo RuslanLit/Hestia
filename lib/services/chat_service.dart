@@ -1058,20 +1058,6 @@ class ChatService extends ChangeNotifier {
     }
 
     final channel = _channel!;
-    unawaited(
-      channel.ready.timeout(const Duration(seconds: 6)).catchError((error) {
-        if (AppConfig.switchToFallbackServer()) {
-          if (kDebugMode) {
-            debugPrint(
-              '[ChatService] Official server unavailable, trying ${AppConfig.host}',
-            );
-          }
-          _openSocket(onReady: onReady);
-          return;
-        }
-        _handleSocketError(error);
-      }),
-    );
 
     _incomingSignalQueue = Future<void>.value();
     channel.stream.listen(
@@ -1090,6 +1076,34 @@ class ChatService extends ChangeNotifier {
       onError: _handleSocketError,
     );
 
+    unawaited(_completeSocketOpen(channel, onReady));
+  }
+
+  Future<void> _completeSocketOpen(
+    WebSocketChannel channel,
+    void Function() onReady,
+  ) async {
+    try {
+      await channel.ready.timeout(const Duration(seconds: 6));
+    } catch (error) {
+      if (!identical(_channel, channel)) {
+        return;
+      }
+      if (AppConfig.switchToFallbackServer()) {
+        if (kDebugMode) {
+          debugPrint(
+            '[ChatService] Official server unavailable, trying ${AppConfig.host}',
+          );
+        }
+        _openSocket(onReady: onReady);
+        return;
+      }
+      _handleSocketError(error);
+      return;
+    }
+    if (!identical(_channel, channel)) {
+      return;
+    }
     _logConnection('websocket opened');
     onReady();
   }
