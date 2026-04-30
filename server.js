@@ -128,8 +128,10 @@ const LANDING_PAGES = new Set([
 ]);
 const STATIC_DIRS = new Set([
   'assets',
+  'canvaskit',
   'content',
   'CSS',
+  'icons',
   'JS',
   'logo',
   'og',
@@ -141,7 +143,12 @@ const STATIC_FILES = new Set([
   'sitemap.xml',
   'favicon.ico',
   'favicon.png',
+  'flutter.js',
+  'flutter_bootstrap.js',
+  'flutter_service_worker.js',
+  'main.dart.js',
   'manifest.json',
+  'version.json',
 ]);
 let fcmServiceAccount = null;
 let fcmAccessToken = null;
