@@ -135,6 +135,24 @@ extension HestiaErrorLocalizations on AppLocalizations {
         de: 'Die ausgewählte Datei konnte nicht gelesen werden.',
         en: 'Could not read the selected file.',
       );
+  String get selectedFileNotFound => _extra(
+        uk: 'Файл не знайдено на пристрої.',
+        ru: 'Файл не найден на устройстве.',
+        pl: 'Nie znaleziono pliku na urządzeniu.',
+        es: 'No se encontró el archivo en el dispositivo.',
+        cs: 'Soubor nebyl v zařízení nalezen.',
+        de: 'Datei wurde auf dem Gerät nicht gefunden.',
+        en: 'File was not found on device.',
+      );
+  String get selectedFileAccessDenied => _extra(
+        uk: 'Немає доступу до вибраного файлу.',
+        ru: 'Нет доступа к выбранному файлу.',
+        pl: 'Brak dostępu do wybranego pliku.',
+        es: 'No hay acceso al archivo seleccionado.',
+        cs: 'K vybranému souboru není přístup.',
+        de: 'Kein Zugriff auf die ausgewählte Datei.',
+        en: 'Could not access the selected file.',
+      );
   String get forwardLocalFileUnavailable => _extra(
         uk: 'Не вдалося переслати: локальний файл недоступний.',
         ru: 'Не удалось переслать: локальный файл недоступен.',
@@ -413,6 +431,12 @@ extension HestiaErrorLocalizations on AppLocalizations {
     }
     if (message == 'Could not read the selected file') {
       return selectedFileReadFailed;
+    }
+    if (message == 'File was not found on device.') {
+      return selectedFileNotFound;
+    }
+    if (message == 'Could not access the selected file.') {
+      return selectedFileAccessDenied;
     }
     if (message == 'Forward failed: local file is unavailable.') {
       return forwardLocalFileUnavailable;

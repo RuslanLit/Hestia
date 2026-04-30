@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -727,7 +729,8 @@ class ChatService extends ChangeNotifier {
     final peerPublicKey = _requiredPeerPublicKey(peerUserId, peerNickname);
 
     final result = await FilePicker.pickFiles(
-      withData: true,
+      withData: kIsWeb,
+      withReadStream: !kIsWeb && !Platform.isMacOS,
       allowMultiple: false,
       type: FileType.custom,
       allowedExtensions: AttachmentPolicy.allowedExtensions.toList(),
@@ -738,19 +741,26 @@ class ChatService extends ChangeNotifier {
     }
 
     final file = result.files.single;
-    final validation = AttachmentPolicy.validatePlatformFile(file);
+    final preflightValidation = AttachmentPolicy.validatePlatformFile(
+      file,
+      sizeBytes: file.size > 0 ? file.size : 1,
+    );
+    if (!preflightValidation.isValid) {
+      throw Exception(
+        '${preflightValidation.error ?? 'Attachment validation failed.'} ${AttachmentPolicy.describeLimits()}',
+      );
+    }
+
+    final bytes = await _readPickedAttachmentBytes(file);
+    final validation = AttachmentPolicy.validateFileMetadata(
+      name: file.name,
+      extension: AttachmentPolicy.extensionForName(file.name),
+      sizeBytes: bytes.length,
+    );
     if (!validation.isValid) {
       throw Exception(
         '${validation.error ?? 'Attachment validation failed.'} ${AttachmentPolicy.describeLimits()}',
       );
-    }
-
-    final bytes = file.bytes;
-    if (bytes == null || bytes.isEmpty) {
-      throw Exception('Could not read the selected file');
-    }
-    if (bytes.length != validation.sizeBytes) {
-      throw Exception('Attachment validation failed.');
     }
 
     final metadata = _messageMetadata(replyTo: replyTo);
@@ -897,6 +907,71 @@ class ChatService extends ChangeNotifier {
       'attachment': attachmentPayload,
     });
     _scheduleSendTimeout(message.id);
+  }
+
+  Future<Uint8List> _readPickedAttachmentBytes(PlatformFile file) async {
+    DiagnosticService.instance.log(
+      'attachment picked platform=${_platformName()} name=${file.name} '
+      'ext=${AttachmentPolicy.extensionForName(file.name)} sizeBytes=${file.size} '
+      'hasPath=${file.path?.isNotEmpty == true} hasBytes=${file.bytes != null} '
+      'hasReadStream=${file.readStream != null}',
+    );
+
+    final directBytes = file.bytes;
+    if (directBytes != null && directBytes.isNotEmpty) {
+      DiagnosticService.instance
+          .log('attachment read source=bytes sizeBytes=${directBytes.length}');
+      return directBytes;
+    }
+
+    final stream = file.readStream;
+    if (stream != null) {
+      try {
+        final builder = BytesBuilder(copy: false);
+        await for (final chunk in stream) {
+          builder.add(chunk);
+        }
+        final bytes = builder.takeBytes();
+        if (bytes.isEmpty) {
+          throw Exception('Could not read the selected file');
+        }
+        DiagnosticService.instance
+            .log('attachment read source=stream sizeBytes=${bytes.length}');
+        return bytes;
+      } on FileSystemException catch (error) {
+        DiagnosticService.instance
+            .log('attachment read stream filesystem error=${error.message}');
+        throw Exception('Could not access the selected file.');
+      } catch (error) {
+        DiagnosticService.instance.log('attachment read stream error=$error');
+        throw Exception('Could not read the selected file');
+      }
+    }
+
+    final path = file.path;
+    if (kIsWeb || path == null || path.trim().isEmpty) {
+      DiagnosticService.instance.log('attachment read failed missing path');
+      throw Exception('Could not read the selected file');
+    }
+
+    try {
+      final localFile = File(path);
+      if (!await localFile.exists()) {
+        DiagnosticService.instance.log('attachment read path not found');
+        throw Exception('File was not found on device.');
+      }
+      final bytes = await localFile.readAsBytes();
+      if (bytes.isEmpty) {
+        throw Exception('Could not read the selected file');
+      }
+      DiagnosticService.instance
+          .log('attachment read source=path sizeBytes=${bytes.length}');
+      return bytes;
+    } on FileSystemException catch (error) {
+      DiagnosticService.instance
+          .log('attachment read path filesystem error=${error.message}');
+      throw Exception('Could not access the selected file.');
+    }
   }
 
   Future<String> _uploadEncryptedAttachmentBlob({
@@ -1626,6 +1701,11 @@ class ChatService extends ChangeNotifier {
     } catch (_) {
       return value.split('?').first;
     }
+  }
+
+  String _platformName() {
+    if (kIsWeb) return 'web';
+    return Platform.operatingSystem;
   }
 
   Future<void> _persistMessage(

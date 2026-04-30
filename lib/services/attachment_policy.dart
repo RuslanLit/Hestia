@@ -94,13 +94,16 @@ class AttachmentPolicy {
     return 'Allowed files: documents, images, audio and video. Limits: images 25 MB, audio/documents 50 MB, video 200 MB.';
   }
 
-  static AttachmentValidationResult validatePlatformFile(PlatformFile file) {
+  static AttachmentValidationResult validatePlatformFile(
+    PlatformFile file, {
+    int? sizeBytes,
+  }) {
     final extension =
         (file.extension ?? extensionForName(file.name)).toLowerCase();
     return validateFileMetadata(
       name: file.name,
       extension: extension,
-      sizeBytes: file.size,
+      sizeBytes: sizeBytes ?? file.size,
     );
   }
 
