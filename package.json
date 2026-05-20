@@ -1,0 +1,20 @@
+{
+  "name": "ws-chat-server",
+  "version": "0.1.0",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check storage/sqlite_store.js && node --check ecosystem.config.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.34.5",
+    "ws": "^8.18.0"
+  }
+}

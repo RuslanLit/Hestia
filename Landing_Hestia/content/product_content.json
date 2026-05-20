@@ -1,0 +1,745 @@
+{
+  "version": 1,
+  "locales": {
+    "en": {
+      "hero": {
+        "eyebrow": "Private messenger for people you trust",
+        "title": "Hestia",
+        "body": "Your personal space for communication with family, close friends, and small teams: messages, files, and calls with local history and a server you can choose."
+      },
+      "featuresIntro": {
+        "eyebrow": "Made for your circle",
+        "title": "A calm place to talk, share, and stay in control.",
+        "body": "Hestia keeps the focus on the people you choose: family, close friends, and small teams that want privacy without complexity."
+      },
+      "features": [
+        {
+          "id": "messages",
+          "icon": "M",
+          "title": "Chats for trusted people",
+          "body": "Keep everyday conversations in a private space built around explicit contacts and simple controls."
+        },
+        {
+          "id": "files",
+          "icon": "F",
+          "title": "Files for your group",
+          "body": "Share photos, documents, and notes without turning your server into a place for readable content."
+        },
+        {
+          "id": "calls",
+          "icon": "C",
+          "title": "Calls when text is not enough",
+          "body": "Voice and video calls live next to your chats, so family, friends, or teammates can switch context naturally."
+        },
+        {
+          "id": "server",
+          "icon": "S",
+          "title": "A server you can choose",
+          "body": "Use the provided server or connect your own when your family, team, or community wants more ownership."
+        },
+        {
+          "id": "storage",
+          "icon": "L",
+          "title": "History stays close",
+          "body": "Conversation history is kept on your device, helping reduce what needs to live on the server."
+        },
+        {
+          "id": "trust",
+          "icon": "T",
+          "title": "Clear contact trust",
+          "body": "Verification is available for important contacts, but the app keeps the everyday experience simple."
+        }
+      ],
+      "howItWorks": {
+        "eyebrow": "How it works",
+        "title": "Four steps from install to conversation.",
+        "steps": [
+          {
+            "title": "Download the client",
+            "body": "Install Hestia on Android or open the web version."
+          },
+          {
+            "title": "Connect to a server",
+            "body": "Use an existing Hestia server or prepare your own self-hosted backend."
+          },
+          {
+            "title": "Add contacts by request",
+            "body": "Start conversations through explicit contact requests instead of public discovery."
+          },
+          {
+            "title": "Talk in your own space",
+            "body": "Message, share files, and call with controls that stay understandable."
+          }
+        ]
+      },
+      "privacy": {
+        "eyebrow": "Privacy model",
+        "title": "Privacy you can understand.",
+        "body": [
+          "Hestia is designed so the server does not keep readable messages or files. Your conversation history stays on your device.",
+          "Privacy is still honest: the server may handle accounts, delivery state, connection timing, IP addresses, and other metadata needed to run the service.",
+          "For families, friends, and small teams, self-hosting is an option when you want more control over where that server lives and who operates it."
+        ]
+      },
+      "downloads": {
+        "eyebrow": "Choose your client",
+        "title": "Downloads",
+        "body": "Hestia recommends the right client for your device, but download starts only after you choose it.",
+        "releaseDetails": "View release details",
+        "releaseNotes": "Release notes",
+        "openWeb": "Open Hestia Web",
+        "viewDownloads": "View all downloads"
+      },
+      "serverChoice": {
+        "title": "Choose your server",
+        "body": "Use the default server or connect Hestia to your own server.",
+        "default": "Default server",
+        "custom": "Custom server",
+        "customBody": "For self-hosted or private deployments."
+      },
+      "getStarted": {
+        "title": "Ready when you are",
+        "body": "Create a new account or login with an existing one.",
+        "primary": "Get started"
+      },
+      "onboarding": [
+        {
+          "featureId": "messages"
+        },
+        {
+          "featureId": "trust"
+        },
+        {
+          "howStepIds": [
+            "server",
+            "contacts"
+          ]
+        },
+        {
+          "featureIds": [
+            "calls",
+            "files"
+          ]
+        },
+        {
+          "serverChoice": true
+        },
+        {
+          "getStarted": true
+        }
+      ]
+    },
+    "uk": {
+      "hero": {
+        "eyebrow": "Приватний месенджер для людей, яким ви довіряєте",
+        "title": "Hestia",
+        "body": "Ваш особистий простір для спілкування з родиною, близькими друзями й невеликими командами: повідомлення, файли та дзвінки з локальною історією і сервером на вибір."
+      },
+      "featuresIntro": {
+        "eyebrow": "Створено для вашого кола",
+        "title": "Спокійне місце для розмов, обміну й контролю.",
+        "body": "Hestia зосереджується на людях, яких ви обираєте: родині, близьких друзях і невеликих командах, яким потрібна приватність без зайвої складності."
+      },
+      "features": [
+        {
+          "id": "messages",
+          "icon": "M",
+          "title": "Чати для довірених людей",
+          "body": "Зберігайте щоденні розмови у приватному просторі з явними контактами та простим керуванням."
+        },
+        {
+          "id": "files",
+          "icon": "F",
+          "title": "Файли для вашої групи",
+          "body": "Діліться фото, документами й нотатками, не перетворюючи сервер на місце для читабельного вмісту."
+        },
+        {
+          "id": "calls",
+          "icon": "C",
+          "title": "Дзвінки, коли тексту замало",
+          "body": "Голосові та відеодзвінки поруч із чатами, тож родина, друзі або команда можуть природно переходити до розмови."
+        },
+        {
+          "id": "server",
+          "icon": "S",
+          "title": "Сервер на ваш вибір",
+          "body": "Використовуйте наданий сервер або підключіть власний, коли вашій родині, команді чи спільноті потрібен більший контроль."
+        },
+        {
+          "id": "storage",
+          "icon": "L",
+          "title": "Історія залишається поруч",
+          "body": "Історія розмов зберігається на вашому пристрої, допомагаючи зменшити обсяг даних, що мають бути на сервері."
+        },
+        {
+          "id": "trust",
+          "icon": "T",
+          "title": "Зрозуміла довіра до контактів",
+          "body": "Для важливих контактів доступна перевірка, але щоденний досвід залишається простим."
+        }
+      ],
+      "howItWorks": {
+        "eyebrow": "Як це працює",
+        "title": "Чотири кроки від встановлення до розмови.",
+        "steps": [
+          {
+            "title": "Встановіть клієнт",
+            "body": "Встановіть Hestia на Android або відкрийте веб-версію."
+          },
+          {
+            "title": "Підключіться до сервера",
+            "body": "Використайте наявний сервер Hestia або підготуйте власний self-hosted backend."
+          },
+          {
+            "title": "Додайте контакти запитом",
+            "body": "Починайте розмови через явні запити на контакт замість публічного пошуку."
+          },
+          {
+            "title": "Спілкуйтеся у власному просторі",
+            "body": "Пишіть, діліться файлами й телефонуйте зі зрозумілим керуванням."
+          }
+        ]
+      },
+      "privacy": {
+        "eyebrow": "Модель приватності",
+        "title": "Приватність, яку легко зрозуміти.",
+        "body": [
+          "Hestia спроєктована так, щоб сервер не зберігав читабельні повідомлення або файли. Історія розмов залишається на вашому пристрої.",
+          "Приватність чесна: сервер може обробляти акаунти, стан доставки, час з'єднання, IP-адреси та інші metadata, потрібні для роботи сервісу.",
+          "Для родин, друзів і невеликих команд self-hosting є варіантом, коли потрібен більший контроль над тим, де розміщений сервер і хто ним керує."
+        ]
+      },
+      "downloads": {
+        "eyebrow": "Оберіть клієнт",
+        "title": "Завантаження",
+        "body": "Hestia рекомендує клієнт для вашого пристрою, але завантаження починається лише після вашого вибору.",
+        "releaseDetails": "Подивитися деталі релізу",
+        "releaseNotes": "Нотатки релізу",
+        "openWeb": "Відкрити Hestia Web",
+        "viewDownloads": "Усі завантаження"
+      },
+      "serverChoice": {
+        "title": "Оберіть сервер",
+        "body": "Підключіть мобільний клієнт до наданого або власного сервера Hestia.",
+        "default": "Стандартний сервер",
+        "custom": "Власний сервер",
+        "customBody": "Для self-hosted або приватних розгортань."
+      },
+      "getStarted": {
+        "title": "Можна починати",
+        "body": "Створіть новий акаунт або увійдіть у наявний.",
+        "primary": "Почати"
+      }
+    },
+    "ru": {
+      "hero": {
+        "eyebrow": "Приватный мессенджер для людей, которым вы доверяете",
+        "title": "Hestia",
+        "body": "Ваше личное пространство для общения с семьей, близкими друзьями и небольшими командами: сообщения, файлы и звонки с локальной историей и сервером на выбор."
+      },
+      "featuresIntro": {
+        "eyebrow": "Создано для вашего круга",
+        "title": "Спокойное место для разговоров, обмена и контроля.",
+        "body": "Hestia помогает сосредоточиться на людях, которых вы выбираете: семье, близких друзьях и небольших командах, которым нужна приватность без лишней сложности."
+      },
+      "features": [
+        {
+          "id": "messages",
+          "icon": "M",
+          "title": "Чаты для доверенных людей",
+          "body": "Ведите повседневные разговоры в приватном пространстве с явными контактами и простым управлением."
+        },
+        {
+          "id": "files",
+          "icon": "F",
+          "title": "Файлы для вашей группы",
+          "body": "Делитесь фото, документами и заметками, не превращая сервер в место для читаемого содержимого."
+        },
+        {
+          "id": "calls",
+          "icon": "C",
+          "title": "Звонки, когда текста мало",
+          "body": "Голосовые и видеозвонки находятся рядом с чатами, поэтому семья, друзья или команда могут естественно перейти к разговору."
+        },
+        {
+          "id": "server",
+          "icon": "S",
+          "title": "Сервер на ваш выбор",
+          "body": "Используйте предоставленный сервер или подключите собственный, когда вашей семье, команде или сообществу нужен больший контроль."
+        },
+        {
+          "id": "storage",
+          "icon": "L",
+          "title": "История остается рядом",
+          "body": "История разговоров хранится на вашем устройстве, помогая уменьшить объем данных, которые должны находиться на сервере."
+        },
+        {
+          "id": "trust",
+          "icon": "T",
+          "title": "Понятное доверие к контактам",
+          "body": "Для важных контактов доступна проверка, но повседневный опыт остается простым."
+        }
+      ],
+      "howItWorks": {
+        "eyebrow": "Как это работает",
+        "title": "Четыре шага от установки до разговора.",
+        "steps": [
+          {
+            "title": "Установите клиент",
+            "body": "Установите Hestia на Android или откройте веб-версию."
+          },
+          {
+            "title": "Подключитесь к серверу",
+            "body": "Используйте существующий сервер Hestia или подготовьте собственный self-hosted backend."
+          },
+          {
+            "title": "Добавьте контакты запросом",
+            "body": "Начинайте разговоры через явные запросы на контакт вместо публичного поиска."
+          },
+          {
+            "title": "Общайтесь в своем пространстве",
+            "body": "Пишите, делитесь файлами и звоните с понятным управлением."
+          }
+        ]
+      },
+      "privacy": {
+        "eyebrow": "Модель приватности",
+        "title": "Приватность, которую легко понять.",
+        "body": [
+          "Hestia спроектирована так, чтобы сервер не хранил читаемые сообщения или файлы. История разговоров остается на вашем устройстве.",
+          "Приватность честная: сервер может обрабатывать аккаунты, состояние доставки, время соединения, IP-адреса и другие metadata, нужные для работы сервиса.",
+          "Для семей, друзей и небольших команд self-hosting остается вариантом, когда нужен больший контроль над тем, где расположен сервер и кто им управляет."
+        ]
+      },
+      "downloads": {
+        "eyebrow": "Выберите клиент",
+        "title": "Загрузки",
+        "body": "Hestia рекомендует клиент для вашего устройства, но загрузка начинается только после вашего выбора.",
+        "releaseDetails": "Посмотреть детали релиза",
+        "releaseNotes": "Заметки релиза",
+        "openWeb": "Открыть Hestia Web",
+        "viewDownloads": "Все загрузки"
+      },
+      "serverChoice": {
+        "title": "Выберите сервер",
+        "body": "Подключите мобильный клиент к предоставленному или собственному серверу Hestia.",
+        "default": "Стандартный сервер",
+        "custom": "Свой сервер",
+        "customBody": "Для self-hosted или приватных установок."
+      },
+      "getStarted": {
+        "title": "Можно начинать",
+        "body": "Создайте новый аккаунт или войдите в существующий.",
+        "primary": "Начать"
+      }
+    },
+    "pl": {
+      "hero": {
+        "eyebrow": "Prywatny komunikator dla ludzi, którym ufasz",
+        "title": "Hestia",
+        "body": "Twoja osobista przestrzeń do rozmów z rodziną, bliskimi znajomymi i małymi zespołami: wiadomości, pliki i połączenia z lokalną historią oraz wybranym serwerem."
+      },
+      "featuresIntro": {
+        "eyebrow": "Stworzona dla twojego kręgu",
+        "title": "Spokojne miejsce do rozmów, udostępniania i kontroli.",
+        "body": "Hestia skupia się na osobach, które wybierasz: rodzinie, bliskich znajomych i małych zespołach, które chcą prywatności bez złożoności."
+      },
+      "features": [
+        {
+          "id": "messages",
+          "icon": "M",
+          "title": "Czaty dla zaufanych osób",
+          "body": "Prowadź codzienne rozmowy w prywatnej przestrzeni opartej na jawnych kontaktach i prostych ustawieniach."
+        },
+        {
+          "id": "files",
+          "icon": "F",
+          "title": "Pliki dla twojej grupy",
+          "body": "Udostępniaj zdjęcia, dokumenty i notatki bez zmieniania serwera w miejsce z czytelną treścią."
+        },
+        {
+          "id": "calls",
+          "icon": "C",
+          "title": "Połączenia, gdy tekst nie wystarcza",
+          "body": "Połączenia głosowe i wideo są obok czatów, więc rodzina, znajomi lub zespół mogą naturalnie zmienić kontekst."
+        },
+        {
+          "id": "server",
+          "icon": "S",
+          "title": "Serwer, który wybierasz",
+          "body": "Użyj dostarczonego serwera albo podłącz własny, gdy rodzina, zespół lub społeczność chce większej kontroli."
+        },
+        {
+          "id": "storage",
+          "icon": "L",
+          "title": "Historia zostaje blisko",
+          "body": "Historia rozmów pozostaje na twoim urządzeniu, co pomaga ograniczyć dane przechowywane na serwerze."
+        },
+        {
+          "id": "trust",
+          "icon": "T",
+          "title": "Jasne zaufanie do kontaktów",
+          "body": "Weryfikacja jest dostępna dla ważnych kontaktów, ale codzienne użycie pozostaje proste."
+        }
+      ],
+      "howItWorks": {
+        "eyebrow": "Jak to działa",
+        "title": "Cztery kroki od instalacji do rozmowy.",
+        "steps": [
+          {
+            "title": "Zainstaluj klienta",
+            "body": "Zainstaluj Hestia na Androidzie albo otwórz wersję web."
+          },
+          {
+            "title": "Połącz z serwerem",
+            "body": "Użyj istniejącego serwera Hestia albo przygotuj własny self-hosted backend."
+          },
+          {
+            "title": "Dodaj kontakty przez prośbę",
+            "body": "Rozpoczynaj rozmowy przez jawne prośby o kontakt zamiast publicznego wyszukiwania."
+          },
+          {
+            "title": "Rozmawiaj we własnej przestrzeni",
+            "body": "Pisz, udostępniaj pliki i dzwoń z ustawieniami, które pozostają zrozumiałe."
+          }
+        ]
+      },
+      "privacy": {
+        "eyebrow": "Model prywatności",
+        "title": "Prywatność, którą można zrozumieć.",
+        "body": [
+          "Hestia jest zaprojektowana tak, aby serwer nie przechowywał czytelnych wiadomości ani plików. Historia rozmów zostaje na twoim urządzeniu.",
+          "Prywatność pozostaje uczciwa: serwer może obsługiwać konta, stan dostarczenia, czas połączeń, adresy IP i inne metadata potrzebne do działania usługi.",
+          "Dla rodzin, znajomych i małych zespołów self-hosting jest opcją, gdy chcesz większej kontroli nad miejscem działania serwera i jego operatorem."
+        ]
+      },
+      "downloads": {
+        "eyebrow": "Wybierz klienta",
+        "title": "Pobieranie",
+        "body": "Hestia poleca właściwego klienta dla twojego urządzenia, ale pobieranie zaczyna się dopiero po wyborze.",
+        "releaseDetails": "Zobacz szczegóły wydania",
+        "releaseNotes": "Informacje o wydaniu",
+        "openWeb": "Otwórz Hestia Web",
+        "viewDownloads": "Zobacz wszystkie pliki"
+      },
+      "serverChoice": {
+        "title": "Wybierz serwer",
+        "body": "Połącz klienta mobilnego z dostarczonym albo własnym serwerem Hestia.",
+        "default": "Domyślny serwer",
+        "custom": "Własny serwer",
+        "customBody": "Dla self-hosted lub prywatnych wdrożeń."
+      },
+      "getStarted": {
+        "title": "Możesz zaczynać",
+        "body": "Utwórz nowe konto albo zaloguj się na istniejące.",
+        "primary": "Zacznij"
+      }
+    },
+    "es": {
+      "hero": {
+        "eyebrow": "Mensajería privada para personas de confianza",
+        "title": "Hestia",
+        "body": "Tu espacio personal para comunicarte con familia, amistades cercanas y equipos pequeños: mensajes, archivos y llamadas con historial local y un servidor que puedes elegir."
+      },
+      "featuresIntro": {
+        "eyebrow": "Hecha para tu círculo",
+        "title": "Un lugar tranquilo para hablar, compartir y mantener el control.",
+        "body": "Hestia mantiene el foco en las personas que eliges: familia, amistades cercanas y equipos pequeños que quieren privacidad sin complejidad."
+      },
+      "features": [
+        {
+          "id": "messages",
+          "icon": "M",
+          "title": "Chats para personas de confianza",
+          "body": "Mantén conversaciones diarias en un espacio privado basado en contactos explícitos y controles simples."
+        },
+        {
+          "id": "files",
+          "icon": "F",
+          "title": "Archivos para tu grupo",
+          "body": "Comparte fotos, documentos y notas sin convertir tu servidor en un lugar con contenido legible."
+        },
+        {
+          "id": "calls",
+          "icon": "C",
+          "title": "Llamadas cuando el texto no alcanza",
+          "body": "Las llamadas de voz y vídeo viven junto a tus chats para que familia, amistades o equipo cambien de contexto con naturalidad."
+        },
+        {
+          "id": "server",
+          "icon": "S",
+          "title": "Un servidor que puedes elegir",
+          "body": "Usa el servidor proporcionado o conecta el tuyo cuando tu familia, equipo o comunidad quiera más control."
+        },
+        {
+          "id": "storage",
+          "icon": "L",
+          "title": "El historial queda cerca",
+          "body": "El historial de conversaciones se guarda en tu dispositivo, reduciendo lo que debe vivir en el servidor."
+        },
+        {
+          "id": "trust",
+          "icon": "T",
+          "title": "Confianza clara en contactos",
+          "body": "La verificación está disponible para contactos importantes, pero la experiencia diaria sigue siendo simple."
+        }
+      ],
+      "howItWorks": {
+        "eyebrow": "Cómo funciona",
+        "title": "Cuatro pasos desde la instalación hasta la conversación.",
+        "steps": [
+          {
+            "title": "Instala el cliente",
+            "body": "Instala Hestia en Android o abre la versión web."
+          },
+          {
+            "title": "Conéctate a un servidor",
+            "body": "Usa un servidor Hestia existente o prepara tu propio backend self-hosted."
+          },
+          {
+            "title": "Añade contactos por solicitud",
+            "body": "Inicia conversaciones mediante solicitudes explícitas de contacto en lugar de búsqueda pública."
+          },
+          {
+            "title": "Habla en tu propio espacio",
+            "body": "Envía mensajes, comparte archivos y llama con controles fáciles de entender."
+          }
+        ]
+      },
+      "privacy": {
+        "eyebrow": "Modelo de privacidad",
+        "title": "Privacidad que puedes entender.",
+        "body": [
+          "Hestia está diseñada para que el servidor no guarde mensajes ni archivos legibles. Tu historial de conversación permanece en tu dispositivo.",
+          "La privacidad sigue siendo honesta: el servidor puede gestionar cuentas, estado de entrega, tiempos de conexión, direcciones IP y otros metadata necesarios para el servicio.",
+          "Para familias, amistades y equipos pequeños, self-hosting es una opción cuando quieres más control sobre dónde vive ese servidor y quién lo opera."
+        ]
+      },
+      "downloads": {
+        "eyebrow": "Elige tu cliente",
+        "title": "Descargas",
+        "body": "Hestia recomienda el cliente adecuado para tu dispositivo, pero la descarga empieza solo después de elegirlo.",
+        "releaseDetails": "Ver detalles de la versión",
+        "releaseNotes": "Notas de la versión",
+        "openWeb": "Abrir Hestia Web",
+        "viewDownloads": "Ver todas las descargas"
+      },
+      "serverChoice": {
+        "title": "Elige tu servidor",
+        "body": "Conecta el cliente móvil al servidor proporcionado o a tu propio servidor Hestia.",
+        "default": "Servidor predeterminado",
+        "custom": "Servidor propio",
+        "customBody": "Para self-hosted o despliegues privados."
+      },
+      "getStarted": {
+        "title": "Todo listo",
+        "body": "Crea una cuenta nueva o inicia sesión con una existente.",
+        "primary": "Empezar"
+      }
+    },
+    "cs": {
+      "hero": {
+        "eyebrow": "Soukromý messenger pro lidi, kterým důvěřujete",
+        "title": "Hestia",
+        "body": "Váš osobní prostor pro komunikaci s rodinou, blízkými přáteli a malými týmy: zprávy, soubory a hovory s místní historií a serverem podle vašeho výběru."
+      },
+      "featuresIntro": {
+        "eyebrow": "Vytvořeno pro váš okruh",
+        "title": "Klidné místo pro rozhovor, sdílení a kontrolu.",
+        "body": "Hestia se soustředí na lidi, které si vyberete: rodinu, blízké přátele a malé týmy, které chtějí soukromí bez složitosti."
+      },
+      "features": [
+        {
+          "id": "messages",
+          "icon": "M",
+          "title": "Chaty pro důvěryhodné lidi",
+          "body": "Udržujte každodenní konverzace v soukromém prostoru postaveném na výslovných kontaktech a jednoduchém ovládání."
+        },
+        {
+          "id": "files",
+          "icon": "F",
+          "title": "Soubory pro vaši skupinu",
+          "body": "Sdílejte fotky, dokumenty a poznámky bez toho, aby se server stal místem pro čitelný obsah."
+        },
+        {
+          "id": "calls",
+          "icon": "C",
+          "title": "Hovory, když text nestačí",
+          "body": "Hlasové a video hovory jsou vedle chatů, takže rodina, přátelé nebo tým mohou přirozeně změnit způsob komunikace."
+        },
+        {
+          "id": "server",
+          "icon": "S",
+          "title": "Server podle vašeho výběru",
+          "body": "Použijte poskytnutý server nebo připojte vlastní, když vaše rodina, tým či komunita chce větší kontrolu."
+        },
+        {
+          "id": "storage",
+          "icon": "L",
+          "title": "Historie zůstává blízko",
+          "body": "Historie konverzací zůstává ve vašem zařízení a pomáhá snížit množství dat uložených na serveru."
+        },
+        {
+          "id": "trust",
+          "icon": "T",
+          "title": "Jasná důvěra ke kontaktům",
+          "body": "Ověření je dostupné pro důležité kontakty, ale každodenní používání zůstává jednoduché."
+        }
+      ],
+      "howItWorks": {
+        "eyebrow": "Jak to funguje",
+        "title": "Čtyři kroky od instalace ke konverzaci.",
+        "steps": [
+          {
+            "title": "Nainstalujte klienta",
+            "body": "Nainstalujte Hestia na Android nebo otevřete webovou verzi."
+          },
+          {
+            "title": "Připojte se k serveru",
+            "body": "Použijte existující server Hestia nebo připravte vlastní self-hosted backend."
+          },
+          {
+            "title": "Přidejte kontakty žádostí",
+            "body": "Zahajujte konverzace přes výslovné žádosti o kontakt místo veřejného vyhledávání."
+          },
+          {
+            "title": "Mluvte ve vlastním prostoru",
+            "body": "Pište zprávy, sdílejte soubory a volejte s ovládáním, které zůstává srozumitelné."
+          }
+        ]
+      },
+      "privacy": {
+        "eyebrow": "Model soukromí",
+        "title": "Soukromí, kterému rozumíte.",
+        "body": [
+          "Hestia je navržena tak, aby server neukládal čitelné zprávy ani soubory. Historie konverzací zůstává ve vašem zařízení.",
+          "Soukromí je poctivé: server může zpracovávat účty, stav doručení, časování připojení, IP adresy a další metadata potřebná pro provoz služby.",
+          "Pro rodiny, přátele a malé týmy je self-hosting možností, když chcete větší kontrolu nad tím, kde server běží a kdo jej spravuje."
+        ]
+      },
+      "downloads": {
+        "eyebrow": "Vyberte klienta",
+        "title": "Stahování",
+        "body": "Hestia doporučí vhodného klienta pro vaše zařízení, ale stahování začne až po vaší volbě.",
+        "releaseDetails": "Zobrazit detaily vydání",
+        "releaseNotes": "Poznámky k vydání",
+        "openWeb": "Otevřít Hestia Web",
+        "viewDownloads": "Zobrazit všechna stažení"
+      },
+      "serverChoice": {
+        "title": "Vyberte server",
+        "body": "Připojte mobilního klienta k poskytnutému nebo vlastnímu serveru Hestia.",
+        "default": "Výchozí server",
+        "custom": "Vlastní server",
+        "customBody": "Pro self-hosted nebo soukromá nasazení."
+      },
+      "getStarted": {
+        "title": "Můžeme začít",
+        "body": "Vytvořte nový účet nebo se přihlaste k existujícímu.",
+        "primary": "Začít"
+      }
+    },
+    "de": {
+      "hero": {
+        "eyebrow": "Privater Messenger für Menschen, denen du vertraust",
+        "title": "Hestia",
+        "body": "Dein persönlicher Raum für Kommunikation mit Familie, engen Freunden und kleinen Teams: Nachrichten, Dateien und Anrufe mit lokaler Historie und einem Server deiner Wahl."
+      },
+      "featuresIntro": {
+        "eyebrow": "Gemacht für deinen Kreis",
+        "title": "Ein ruhiger Ort zum Reden, Teilen und Kontrollieren.",
+        "body": "Hestia konzentriert sich auf die Menschen, die du auswählst: Familie, enge Freunde und kleine Teams, die Privatsphäre ohne Komplexität wollen."
+      },
+      "features": [
+        {
+          "id": "messages",
+          "icon": "M",
+          "title": "Chats für vertraute Menschen",
+          "body": "Führe alltägliche Gespräche in einem privaten Raum mit ausdrücklichen Kontakten und einfachen Kontrollen."
+        },
+        {
+          "id": "files",
+          "icon": "F",
+          "title": "Dateien für deine Gruppe",
+          "body": "Teile Fotos, Dokumente und Notizen, ohne deinen Server zu einem Ort für lesbare Inhalte zu machen."
+        },
+        {
+          "id": "calls",
+          "icon": "C",
+          "title": "Anrufe, wenn Text nicht reicht",
+          "body": "Sprach- und Videoanrufe liegen neben deinen Chats, damit Familie, Freunde oder Team natürlich den Kontext wechseln können."
+        },
+        {
+          "id": "server",
+          "icon": "S",
+          "title": "Ein Server deiner Wahl",
+          "body": "Nutze den bereitgestellten Server oder verbinde deinen eigenen, wenn Familie, Team oder Community mehr Kontrolle möchte."
+        },
+        {
+          "id": "storage",
+          "icon": "L",
+          "title": "Historie bleibt nah",
+          "body": "Die Gesprächshistorie bleibt auf deinem Gerät und reduziert, was auf dem Server liegen muss."
+        },
+        {
+          "id": "trust",
+          "icon": "T",
+          "title": "Klare Kontaktvertrauenswürdigkeit",
+          "body": "Verifizierung ist für wichtige Kontakte verfügbar, aber die tägliche Nutzung bleibt einfach."
+        }
+      ],
+      "howItWorks": {
+        "eyebrow": "So funktioniert es",
+        "title": "Vier Schritte von der Installation bis zum Gespräch.",
+        "steps": [
+          {
+            "title": "Client installieren",
+            "body": "Installiere Hestia auf Android oder öffne die Webversion."
+          },
+          {
+            "title": "Mit einem Server verbinden",
+            "body": "Nutze einen bestehenden Hestia-Server oder bereite dein eigenes self-hosted Backend vor."
+          },
+          {
+            "title": "Kontakte per Anfrage hinzufügen",
+            "body": "Starte Gespräche über ausdrückliche Kontaktanfragen statt über öffentliche Suche."
+          },
+          {
+            "title": "Im eigenen Raum sprechen",
+            "body": "Schreibe Nachrichten, teile Dateien und telefoniere mit verständlichen Kontrollen."
+          }
+        ]
+      },
+      "privacy": {
+        "eyebrow": "Datenschutzmodell",
+        "title": "Datenschutz, den du verstehen kannst.",
+        "body": [
+          "Hestia ist so gestaltet, dass der Server keine lesbaren Nachrichten oder Dateien speichert. Deine Gesprächshistorie bleibt auf deinem Gerät.",
+          "Datenschutz bleibt ehrlich: Der Server kann Konten, Zustellstatus, Verbindungszeiten, IP-Adressen und andere metadata verarbeiten, die für den Dienst nötig sind.",
+          "Für Familien, Freunde und kleine Teams ist self-hosting eine Option, wenn du mehr Kontrolle darüber möchtest, wo der Server läuft und wer ihn betreibt."
+        ]
+      },
+      "downloads": {
+        "eyebrow": "Wähle deinen Client",
+        "title": "Downloads",
+        "body": "Hestia empfiehlt den passenden Client für dein Gerät, aber der Download startet erst nach deiner Auswahl.",
+        "releaseDetails": "Release-Details anzeigen",
+        "releaseNotes": "Release Notes",
+        "openWeb": "Hestia Web öffnen",
+        "viewDownloads": "Alle Downloads anzeigen"
+      },
+      "serverChoice": {
+        "title": "Server auswählen",
+        "body": "Verbinde den mobilen Client mit dem bereitgestellten oder deinem eigenen Hestia-Server.",
+        "default": "Standardserver",
+        "custom": "Eigener Server",
+        "customBody": "Für self-hosted oder private Bereitstellungen."
+      },
+      "getStarted": {
+        "title": "Bereit zum Start",
+        "body": "Erstelle ein neues Konto oder melde dich mit einem bestehenden an.",
+        "primary": "Loslegen"
+      }
+    }
+  }
+}

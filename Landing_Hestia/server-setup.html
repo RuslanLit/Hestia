@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Practical self-hosted server setup guide for Hestia Messenger."
+    >
+    <title>Server Setup Guide | Hestia Messenger</title>
+    <meta name="keywords" content="Hestia server setup, self-hosted messenger, HTTPS, WSS, TURN">
+    <meta property="og:title" content="Server Setup Guide | Hestia Messenger">
+    <meta property="og:description" content="Practical self-hosted server setup guide for Hestia Messenger.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://hestiachat.site/server-setup.html?lang=en">
+    <meta property="og:image" content="https://hestiachat.site/og/en/server-setup.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Server Setup Guide | Hestia Messenger">
+    <meta name="twitter:description" content="Practical self-hosted server setup guide for Hestia Messenger.">
+    <meta name="twitter:image" content="https://hestiachat.site/og/en/server-setup.png">
+    <link rel="canonical" href="https://hestiachat.site/server-setup.html?lang=en">
+    <link rel="alternate" hreflang="en" href="https://hestiachat.site/server-setup.html?lang=en">
+    <link rel="alternate" hreflang="uk" href="https://hestiachat.site/server-setup.html?lang=uk">
+    <link rel="alternate" hreflang="ru" href="https://hestiachat.site/server-setup.html?lang=ru">
+    <link rel="alternate" hreflang="pl" href="https://hestiachat.site/server-setup.html?lang=pl">
+    <link rel="alternate" hreflang="es" href="https://hestiachat.site/server-setup.html?lang=es">
+    <link rel="alternate" hreflang="cs" href="https://hestiachat.site/server-setup.html?lang=cs">
+    <link rel="alternate" hreflang="de" href="https://hestiachat.site/server-setup.html?lang=de">
+    <link rel="alternate" hreflang="x-default" href="https://hestiachat.site/server-setup.html?lang=en">
+    <link rel="stylesheet" href="CSS/style.css">
+  </head>
+  <body>
+    <header class="site-header" aria-label="Hestia header">
+      <a class="brand" href="index.html" aria-label="Hestia home">
+        <picture class="brand-logo" aria-hidden="true">
+          <source srcset="logo/logo_dark.png" media="(prefers-color-scheme: dark)">
+          <img src="logo/logo.png" alt="">
+        </picture>
+        <span>Hestia</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a class="nav-link" href="index.html#features">Features</a>
+        <a class="nav-link" href="privacy.html">Privacy</a>
+        <a class="nav-link" href="server-setup.html">Server</a>
+        <a class="nav-link" href="comparison.html">Compare</a>
+        <a class="nav-link" href="faq.html">FAQ</a>
+        <a class="nav-link" href="downloads.html">Downloads</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="guide-hero" aria-labelledby="guide-title">
+        <div class="guide-hero-content">
+          <p class="eyebrow">Self-hosting</p>
+          <h1 id="guide-title">Server setup guide</h1>
+          <p class="hero-copy">
+            Run a Hestia server for your own users. The server relays encrypted
+            traffic and call signaling; plaintext messages and files should not
+            be stored on the server.
+          </p>
+          <div class="note-block">
+            <strong>Important:</strong> a self-hosted server still handles
+            metadata such as accounts, connection timing, IP addresses, and
+            delivery state. Treat logs and backups carefully.
+          </div>
+        </div>
+      </section>
+
+      <section class="guide-layout" aria-label="Server setup content">
+        <aside class="guide-toc" aria-label="Guide navigation">
+          <a href="#requirements">Requirements</a>
+          <a href="#before-starting">Before starting</a>
+          <a href="#server-code">Get the code</a>
+          <a href="#environment">Environment</a>
+          <a href="#start-server">Start server</a>
+          <a href="#reverse-proxy">HTTPS / WSS</a>
+          <a href="#turn">TURN for calls</a>
+          <a href="#connect-client">Connect client</a>
+          <a href="#verify">Verify</a>
+          <a href="#security">Security</a>
+          <a href="#troubleshooting">Troubleshooting</a>
+        </aside>
+
+        <div class="guide-content">
+          <section class="guide-section" id="requirements">
+            <p class="eyebrow">01</p>
+            <h2>Requirements</h2>
+            <div class="requirements-grid">
+              <article class="guide-card">
+                <h3>Minimum</h3>
+                <ul class="check-list">
+                  <li>1 vCPU</li>
+                  <li>1 GB RAM</li>
+                  <li>10-20 GB SSD</li>
+                  <li>Linux server recommended</li>
+                </ul>
+              </article>
+              <article class="guide-card">
+                <h3>Recommended</h3>
+                <ul class="check-list">
+                  <li>2 vCPU</li>
+                  <li>2-4 GB RAM</li>
+                  <li>30-50 GB SSD</li>
+                  <li>Domain name with TLS</li>
+                </ul>
+              </article>
+            </div>
+            <p>
+              HTTPS and WSS are strongly recommended for reliable production use.
+              A TURN server is recommended when voice or video calls must work
+              across restrictive NAT environments.
+            </p>
+          </section>
+
+          <section class="guide-section" id="before-starting">
+            <p class="eyebrow">02</p>
+            <h2>What you need before starting</h2>
+            <ul class="check-list two-column-list">
+              <li>VPS or server with shell access</li>
+              <li>One domain, for example <code>hestiachat.site</code></li>
+              <li>Node.js and npm</li>
+              <li>Git</li>
+              <li>Firewall access for HTTP/HTTPS and the internal app port</li>
+              <li>Optional reverse proxy such as Nginx or Caddy</li>
+              <li>Optional Firebase config if Android push is enabled</li>
+              <li>Optional TURN server for call relay fallback</li>
+            </ul>
+          </section>
+
+          <section class="guide-section" id="server-code">
+            <p class="eyebrow">03</p>
+            <h2>Get the server code</h2>
+            <p>
+              Replace the repository placeholder with the real Hestia server
+              repository URL when it is published.
+            </p>
+            <pre><code>git clone https://github.com/RuslanLit/Hestia.git hestia-server
+cd hestia-server
+npm install</code></pre>
+            <div class="note-block">
+              If the backend lives inside a monorepo, enter the actual server
+              package directory before installing dependencies.
+            </div>
+          </section>
+
+          <section class="guide-section" id="environment">
+            <p class="eyebrow">04</p>
+            <h2>Configure environment</h2>
+            <p>
+              Create a <code>.env</code> file in the server directory. Keep it
+              private and never publish tokens or service account files.
+            </p>
+            <pre><code>PORT=3000
+SERVER_NAME=Hestia Self-Hosted
+
+OFFLINE_TTL_MS=604800000
+REGISTRATION_ENABLED=true
+INVITE_ONLY=false
+INVITE_CODES=
+
+ADMIN_TOKEN=&lt;GENERATE_A_LONG_RANDOM_TOKEN&gt;
+TURN_SERVERS=[]
+
+# Optional Android push placeholders
+FIREBASE_PROJECT_ID=
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_PRIVATE_KEY=</code></pre>
+            <div class="warning-block">
+              Use a long random <code>ADMIN_TOKEN</code>. If public registration
+              is not intended, set <code>REGISTRATION_ENABLED=false</code> or use
+              invite-only mode.
+            </div>
+          </section>
+
+          <section class="guide-section" id="start-server">
+            <p class="eyebrow">05</p>
+            <h2>Start the server</h2>
+            <pre><code>npm start</code></pre>
+            <p>
+              The same Node.js app can serve the landing at <code>/</code>,
+              backend config at <code>/api/config</code>, and WebSocket traffic
+              at <code>/ws</code>. It also needs writable persistence storage
+              for its data files or database.
+            </p>
+            <pre><code>curl http://127.0.0.1:3000/api/config</code></pre>
+          </section>
+
+          <section class="guide-section" id="reverse-proxy">
+            <p class="eyebrow">06</p>
+            <h2>Reverse proxy, HTTPS, and WSS</h2>
+            <p>
+              For production, put the single Hestia Node.js app behind a reverse
+              proxy with TLS. One domain is enough: static pages, release files,
+              HTTP API, and WebSocket traffic all pass through the same handler.
+            </p>
+            <pre><code>server {
+    listen 443 ssl http2;
+    server_name hestiachat.site;
+
+    ssl_certificate /path/to/fullchain.pem;
+    ssl_certificate_key /path/to/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}</code></pre>
+            <div class="note-block">
+              Replace <code>hestiachat.site</code> and certificate paths with
+              your real domain and TLS certificate locations. A separate
+              <code>api</code> subdomain is not required.
+            </div>
+          </section>
+
+          <section class="guide-section" id="turn">
+            <p class="eyebrow">07</p>
+            <h2>Optional TURN for calls</h2>
+            <p>
+              Direct WebRTC connections work best when peers can reach each
+              other. Restrictive networks or NAT may require TURN relay fallback.
+              Configure TURN servers through <code>TURN_SERVERS</code>.
+            </p>
+            <pre><code>TURN_SERVERS=[
+  {
+    "urls": "turn:turn.your-domain.test:3478",
+    "username": "&lt;TURN_USERNAME&gt;",
+    "credential": "&lt;TURN_PASSWORD&gt;"
+  }
+]</code></pre>
+            <div class="warning-block">
+              Without TURN, some audio and video calls may be unstable or fail
+              between restrictive networks.
+            </div>
+          </section>
+
+          <section class="guide-section" id="connect-client">
+            <p class="eyebrow">08</p>
+            <h2>Connect the client</h2>
+            <ol class="plain-steps">
+              <li>Open the Hestia client.</li>
+              <li>Enter your server URL, for example <code>https://hestiachat.site</code>, if the build asks for it.</li>
+              <li>Use the default server URL if your app build already includes it.</li>
+              <li>Register or log in.</li>
+              <li>Create two test users and send a message between them.</li>
+            </ol>
+          </section>
+
+          <section class="guide-section" id="verify">
+            <p class="eyebrow">09</p>
+            <h2>Verification checklist</h2>
+            <ul class="check-list two-column-list">
+              <li><code>/</code> serves the landing</li>
+              <li><code>/releases/latest.json</code> is reachable</li>
+              <li><code>/api/config</code> is reachable over HTTPS</li>
+              <li>WebSocket connects over <code>/ws</code></li>
+              <li>Registration or login works</li>
+              <li>Two users can exchange messages</li>
+              <li>Offline delivery works within your configured TTL</li>
+              <li>File transfer works within configured limits</li>
+              <li>Call signaling works</li>
+              <li>Audio and video calls have been tested</li>
+            </ul>
+          </section>
+
+          <section class="guide-section" id="security">
+            <p class="eyebrow">10</p>
+            <h2>Security basics</h2>
+            <ul class="check-list">
+              <li>Use HTTPS and WSS for public deployments.</li>
+              <li>Choose a strong <code>ADMIN_TOKEN</code>.</li>
+              <li>Restrict registration when running a private community server.</li>
+              <li>Keep the server, OS, Node.js, and reverse proxy updated.</li>
+              <li>Avoid exposing debug logs or sensitive environment values.</li>
+              <li>Back up server data carefully and protect backup access.</li>
+              <li>Remember that the server operator may still see metadata.</li>
+            </ul>
+          </section>
+
+          <section class="guide-section" id="troubleshooting">
+            <p class="eyebrow">11</p>
+            <h2>Troubleshooting</h2>
+            <div class="trouble-list">
+              <article>
+                <h3>App cannot connect</h3>
+                <p>Check the server URL, DNS record, firewall, reverse proxy, and TLS certificate.</p>
+              </article>
+              <article>
+                <h3>WebSocket fails</h3>
+                <p>Confirm WSS is enabled and your proxy passes <code>Upgrade</code> and <code>Connection</code> headers.</p>
+              </article>
+              <article>
+                <h3>Push not working</h3>
+                <p>Check Firebase placeholders, service account access, and Android build configuration.</p>
+              </article>
+              <article>
+                <h3>Calls fail behind NAT</h3>
+                <p>Add a TURN server and verify <code>TURN_SERVERS</code> reaches the client config.</p>
+              </article>
+              <article>
+                <h3>File delivery rejected</h3>
+                <p>Review server-side file size limits, storage permissions, and available disk space.</p>
+              </article>
+              <article>
+                <h3>Invalid server URL</h3>
+                <p>Use a full HTTPS origin such as <code>https://hestiachat.site</code>. The client derives <code>wss://hestiachat.site/ws</code> automatically.</p>
+              </article>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="index.html" aria-label="Hestia home">
+          <picture class="brand-logo" aria-hidden="true">
+            <source srcset="logo/logo_dark.png" media="(prefers-color-scheme: dark)">
+            <img src="logo/logo.png" alt="">
+          </picture>
+          <span>Hestia</span>
+        </a>
+        <p>Version <span data-site-version>preview</span></p>
+        <p>&copy; 2026 Hestia Project.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer links">
+        <a href="#" data-site-link="privacy">Privacy</a>
+        <a href="comparison.html">Compare</a>
+        <a href="faq.html">FAQ</a>
+        <a href="#" data-site-link="source">Source code</a>
+        <a href="#" data-site-link="docs">Documentation</a>
+        <a href="#" data-site-link="serverGuide">Server setup guide</a>
+      </nav>
+    </footer>
+
+    <script src="JS/release-config.js"></script>
+    <script src="JS/main.js"></script>
+    <script src="JS/og-data.js"></script>
+    <script src="JS/i18n.js"></script>
+    <script src="JS/analytics.js"></script>
+  </body>
+</html>

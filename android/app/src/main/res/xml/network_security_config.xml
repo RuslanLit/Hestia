@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext (HTTP) only for localhost development -->
+    <!-- Production: All external connections must be HTTPS/WSS -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">::1</domain>
+    </domain-config>
+    
+    <!-- Optional: Certificate pinning for production server -->
+    <!-- Uncomment and configure when deploying to production -->
+    <!-- 
+    <domain-config>
+        <domain includeSubdomains="true">hestiachat.site</domain>
+        <pin-set expiration="2026-12-31">
+            <pin digest="SHA-256">YOUR_CERT_SHA256_HERE</pin>
+        </pin-set>
+    </domain-config>
+    -->
+    
+    <!-- Default: require HTTPS for all other connections. -->
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

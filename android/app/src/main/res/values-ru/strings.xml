@@ -1,0 +1,15 @@
+<resources>
+    <string name="hestia_brand">Hestia</string>
+    <string name="hestia_call_fallback">Звонок Hestia</string>
+    <string name="incoming_call">Входящий звонок</string>
+    <string name="incoming_video_call">Входящий видеозвонок</string>
+    <string name="incoming_voice_call">Входящий голосовой звонок</string>
+    <string name="accept">Принять</string>
+    <string name="decline">Отклонить</string>
+    <string name="open_app">Открыть приложение</string>
+    <string name="new_message">Новое сообщение</string>
+    <string name="background_connection_channel">Фоновое соединение</string>
+    <string name="background_connection_active">Фоновое соединение Hestia активно</string>
+    <string name="messages_channel">Сообщения</string>
+    <string name="calls_channel">Звонки</string>
+</resources>

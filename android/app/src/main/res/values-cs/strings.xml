@@ -1,0 +1,15 @@
+<resources>
+    <string name="hestia_brand">Hestia</string>
+    <string name="hestia_call_fallback">Hovor Hestia</string>
+    <string name="incoming_call">Příchozí hovor</string>
+    <string name="incoming_video_call">Příchozí videohovor</string>
+    <string name="incoming_voice_call">Příchozí hlasový hovor</string>
+    <string name="accept">Přijmout</string>
+    <string name="decline">Odmítnout</string>
+    <string name="open_app">Otevřít aplikaci</string>
+    <string name="new_message">Nová zpráva</string>
+    <string name="background_connection_channel">Připojení na pozadí</string>
+    <string name="background_connection_active">Připojení Hestia na pozadí je aktivní</string>
+    <string name="messages_channel">Zprávy</string>
+    <string name="calls_channel">Hovory</string>
+</resources>

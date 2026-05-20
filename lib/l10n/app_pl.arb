@@ -1,0 +1,318 @@
+{
+  "@@locale": "pl",
+  "systemDefault": "Domyślny systemowy",
+  "language": "Język",
+  "theme": "Motyw",
+  "themeSystem": "Systemowy",
+  "themeLight": "Jasny",
+  "themeDark": "Ciemny",
+  "appearance": "Wygląd",
+  "background": "Tło",
+  "backgroundDefault": "Domyślne",
+  "backgroundChooseColor": "Wybierz kolor",
+  "backgroundChooseImage": "Wybierz obraz",
+  "reset": "Resetuj",
+  "cancel": "Anuluj",
+  "save": "Zapisz",
+  "close": "Zamknij",
+  "search": "Szukaj",
+  "refresh": "Odśwież",
+  "accept": "Akceptuj",
+  "decline": "Odrzuć",
+  "server": "Serwer",
+  "serverUrl": "URL serwera",
+  "serverConnected": "Połączono z {host}",
+  "serverDisconnected": "Rozłączono",
+  "login": "Logowanie",
+  "registration": "Rejestracja",
+  "register": "Zarejestruj",
+  "password": "Hasło",
+  "chats": "Czaty",
+  "contacts": "Kontakty",
+  "requests": "Prośby",
+  "addContact": "Dodaj kontakt",
+  "privacy": "Prywatność",
+  "backup": "Kopia zapasowa",
+  "devices": "Urządzenia",
+  "everyone": "Wszyscy",
+  "message": "Wiadomość",
+  "send": "Wyślij",
+  "reply": "Odpowiedz",
+  "forward": "Przekaż",
+  "forwarded": "Przekazano",
+  "attachment": "Załącznik",
+  "open": "Otwórz",
+  "verify": "Zweryfikuj",
+  "audioCall": "Połączenie audio",
+  "videoCall": "Połączenie wideo",
+  "incomingCall": "Połączenie przychodzące",
+  "voiceCall": "Połączenie głosowe",
+  "calling": "Dzwonienie...",
+  "connected": "Połączono",
+  "endCall": "Zakończ",
+  "languageEnglish": "English",
+  "languageUkrainian": "Українська",
+  "languageRussian": "Русский",
+  "languagePolish": "Polski",
+  "languageSpanish": "Español",
+  "languageCzech": "Čeština",
+  "languageGerman": "Deutsch",
+  "appName": "Hestia",
+  "splashTagline": "Prywatna przestrzeń dla swoich",
+  "settings": "Ustawienia",
+  "continueAction": "Kontynuuj",
+  "request": "Prośba",
+  "error": "Błąd",
+  "@serverConnected": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "nicknameRequired": "Nazwa jest wymagana",
+  "passwordRequired": "Hasło jest wymagane",
+  "nicknameTooShort": "Nazwa musi mieć co najmniej 2 znaki",
+  "passwordTooShort": "Hasło musi mieć co najmniej 6 znaków",
+  "chooseNickname": "Wybierz nową nazwę",
+  "yourNickname": "Twoja nazwa",
+  "choosePassword": "Wybierz hasło",
+  "showPassword": "Pokaż hasło",
+  "hidePassword": "Ukryj hasło",
+  "allowUsernameSearch": "Zezwalaj na wyszukiwanie po nazwie",
+  "messagesFrom": "Wiadomości od",
+  "callsFrom": "Połączenia od",
+  "noChatsYet": "Nie ma jeszcze czatów.",
+  "noContactsYet": "Dodaj kontakt, aby rozpocząć rozmowę",
+  "firstRunNoContactsTitle": "Dodaj kontakt, aby rozpocząć rozmowę",
+  "firstRunNoContactsBody": "Znajdź osobę po nazwie użytkownika i wyślij prośbę.",
+  "hintAddContact": "Znajdź osobę po nazwie użytkownika",
+  "hintRequests": "Tutaj pojawiają się prośby o dodanie",
+  "hintMessageInput": "Napisz wiadomość",
+  "noPendingRequests": "Brak oczekujących próśb.",
+  "findUsername": "Znajdź nazwę użytkownika",
+  "username": "Nazwa użytkownika",
+  "enterUsername": "Wpisz nazwę użytkownika",
+  "userFound": "Znaleziono użytkownika",
+  "userNotFound": "Nie znaleziono użytkownika albo wyszukiwanie jest wyłączone.",
+  "sendContactRequest": "Wyślij prośbę o kontakt",
+  "requestSentTo": "Wysłano prośbę do {name}",
+  "@requestSentTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "retentionContactAdded": "Kontakt dodany. Możesz rozpocząć czat.",
+  "retentionFirstMessageSent": "Wiadomość wysłana. Hestia zadba o spokojną i prywatną rozmowę.",
+  "retentionStartChatHint": "Otwórz czat i wyślij pierwszą wiadomość, gdy będziesz gotowy.",
+  "retentionDayReminder": "Dawno nie rozmawialiście. Prywatne czaty są tutaj, gdy chcesz spokojnie odpisać.",
+  "retentionThreeDayReminder": "Delikatne przypomnienie: rozmowy z zaufanymi osobami czekają tutaj.",
+  "retentionNewMessages": "Masz nowe wiadomości.",
+  "contact": "Kontakt",
+  "contactOnline": "Teraz online",
+  "block": "Zablokuj",
+  "unblockUser": "Odblokuj użytkownika",
+  "blockUser": "Zablokuj użytkownika",
+  "wantsToAddYou": "Chce dodać Cię do kontaktów",
+  "attachmentNamed": "Załącznik: {name}",
+  "@attachmentNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mute": "Wycisz",
+  "unmute": "Wyłącz wyciszenie",
+  "pin": "Przypnij",
+  "unpin": "Odepnij",
+  "archive": "Archiwizuj",
+  "deleteForMe": "Usuń u mnie",
+  "backupWarning": "Kopie zapasowe są szyfrowane lokalnie. Zachowaj hasło: bez niego nie da się przywrócić kopii.",
+  "backupPassword": "Hasło kopii zapasowej",
+  "confirmBackupPassword": "Potwierdź hasło eksportu",
+  "backupPasswordsDoNotMatch": "Hasła kopii zapasowej nie są zgodne.",
+  "backupExportCancelled": "Eksport kopii zapasowej anulowany.",
+  "backupSaved": "Kopia zapasowa zapisana.",
+  "backupImported": "Kopia zapasowa zaimportowana. Dane lokalne zostały przywrócone.",
+  "import": "Importuj",
+  "export": "Eksportuj",
+  "noSessionData": "Brak danych sesji.",
+  "unknownActivity": "Nieznana aktywność",
+  "lastActive": "Ostatnia aktywność {time}",
+  "@lastActive": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "currentDevice": "{name} (bieżące)",
+  "@currentDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "revoke": "Odwołaj",
+  "logoutCurrent": "Wyloguj bieżące",
+  "sendFile": "Wyślij plik",
+  "messageSendFailed": "Nie udało się wysłać wiadomości: {error}",
+  "@messageSendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSendFailed": "Nie udało się wysłać pliku: {error}",
+  "@fileSendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noMessagesYet": "Napisz pierwszą wiadomość",
+  "forwardTo": "Przekaż do",
+  "forwardedFrom": "Przekazano od {name}",
+  "@forwardedFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forwardedTo": "Przekazano do {name}",
+  "@forwardedTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forwardFailed": "Nie udało się przekazać: {error}",
+  "@forwardFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noForwardTargets": "Brak dostępnych kontaktów do przekazania",
+  "cancelReply": "Anuluj odpowiedź",
+  "originalMessage": "Oryginalna wiadomość",
+  "originalMessageUnavailable": "Oryginalna wiadomość jest niedostępna",
+  "savedTo": "Zapisano w {path}",
+  "@savedTo": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "saveFailed": "Nie udało się zapisać: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "userUnavailable": "Użytkownik jest niedostępny.",
+  "callRejected": "Połączenie zostało odrzucone.",
+  "sessionRevoked": "Ta sesja została odwołana.",
+  "couldNotConnectTo": "Nie udało się połączyć z {host}",
+  "unknownServerError": "Nieznany błąd serwera",
+  "authenticationRequired": "Wymagane uwierzytelnienie.",
+  "localFileNotFound": "Nie znaleziono lokalnego pliku.",
+  "webAttachmentAvailable": "Plik jest dostępny w bieżącej sesji przeglądarki.",
+  "webAttachmentUnavailable": "Plik jest niedostępny po ponownym uruchomieniu przeglądarki.",
+  "attachmentTypeNotAllowed": "Ten typ załącznika jest niedozwolony.",
+  "attachmentValidationFailed": "Nie udało się sprawdzić załącznika.",
+  "attachmentTooLarge": "Załącznik jest za duży.",
+  "attachmentLimits": "Dozwolone pliki: dokumenty, obrazy, audio i wideo. Limity: obrazy 25 MB, audio/dokumenty 50 MB, wideo 200 MB.",
+  "selectedFileReadFailed": "Nie udało się odczytać wybranego pliku.",
+  "forwardLocalFileUnavailable": "Nie udało się przekazać: lokalny plik jest niedostępny.",
+  "attachmentUploadFailed": "Nie udało się przesłać załącznika.",
+  "peerKeyChangedCall": "Klucz szyfrowania użytkownika {name} zmienił się. Sprawdź odcisk przed połączeniem.",
+  "peerNoEncryptionKey": "{name} nie ma jeszcze klucza szyfrowania.",
+  "encryptionKey": "Klucz szyfrowania",
+  "trustKey": "Zaufaj kluczowi",
+  "trustNewKey": "Zaufaj nowemu kluczowi",
+  "removeTrust": "Usuń zaufanie",
+  "verifiedEncryptionKey": "Zweryfikowany klucz szyfrowania",
+  "encryptionKeyChanged": "Klucz szyfrowania się zmienił",
+  "noEncryptionKey": "Brak klucza szyfrowania",
+  "verifyEncryptionKey": "Zweryfikuj klucz szyfrowania",
+  "sendingBlockedKeyChanged": "Wysyłanie jest zablokowane, dopóki ponownie nie zweryfikujesz tego kontaktu.",
+  "keyTrusted": "Ten klucz jest zaufany na tym urządzeniu.",
+  "keyChangedWarning": "Uwaga: ten klucz się zmienił. Porównaj odcisk przed ponownym zaufaniem.",
+  "keyMissing": "Ten użytkownik nie opublikował jeszcze klucza szyfrowania.",
+  "keyUntrusted": "Porównaj ten odcisk z drugą osobą, a potem zaufaj kluczowi.",
+  "noFingerprint": "Brak odcisku",
+  "callFailed": "Połączenie nie powiodło się: {error}",
+  "@callFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "anotherCallActive": "Inne połączenie jest już aktywne",
+  "muteCall": "Mikrofon wyłączony",
+  "unmuteCall": "Mikrofon włączony",
+  "pushSyncChannelDescription": "Powiadomienia synchronizacji wiadomości i próśb Hestia.",
+  "pushCallChannelDescription": "Alerty połączeń przychodzących Hestia.",
+  "newContactRequestNotification": "Nowa prośba o kontakt",
+  "newMessageNotification": "Nowa wiadomość",
+  "incomingVideoCallNotification": "Przychodzące połączenie wideo",
+  "incomingVoiceCallNotification": "Przychodzące połączenie głosowe",
+  "unknownCaller": "Nieznany",
+  "rejectCall": "Odrzuć",
+  "updateAvailable": "Dostępna aktualizacja",
+  "versionAvailable": "Dostępna jest wersja {version}.",
+  "startingDownload": "Rozpoczynanie pobierania...",
+  "downloadingProgress": "Pobieranie... {percent}%",
+  "downloadFailedRetry": "Pobieranie nie powiodło się. Spróbuj ponownie.",
+  "later": "Później",
+  "downloading": "Pobieranie...",
+  "updateViaAppStore": "Aktualizuj przez App Store",
+  "downloadAndInstall": "Pobierz i zainstaluj",
+  "openDownloadPage": "Otwórz stronę pobierania",
+  "onboardingSkip": "Pomiń",
+  "onboardingNext": "Dalej",
+  "onboardingGetStarted": "Zacznij",
+  "onboardingWelcomeTitle": "Witamy w Hestia",
+  "onboardingWelcomeBody": "Spokojny komunikator do prywatnych czatów, połączeń i plików.",
+  "onboardingPrivacyTitle": "Prywatność od początku",
+  "onboardingPrivacyBody": "Wiadomości używają kluczy szyfrowania. Czaty i pliki zostają lokalnie.",
+  "onboardingHowItWorksTitle": "Prosty przepływ",
+  "onboardingHowItWorksBody": "Wybierz serwer, dodaj kontakty i akceptuj prośby przed rozmową.",
+  "onboardingCallsFilesTitle": "Połączenia i pliki",
+  "onboardingCallsFilesBody": "Rozmawiaj głosowo i udostępniaj pliki w tej samej chronionej przestrzeni.",
+  "onboardingServerTitle": "Wybierz serwer",
+  "onboardingServerBody": "Użyj domyślnego serwera albo połącz Hestię z własnym serwerem.",
+  "onboardingDefaultServer": "Serwer domyślny",
+  "onboardingCustomServer": "Własny serwer",
+  "onboardingCustomServerBody": "Dla wdrożeń self-hosted lub prywatnych.",
+  "onboardingGetStartedTitle": "Gotowe do startu",
+  "onboardingGetStartedBody": "Utwórz nowe konto albo zaloguj się na istniejące.",
+  "diagnostics": "Diagnostyka",
+  "diagnosticMode": "Tryb diagnostyczny",
+  "diagnosticModeDescription": "Domyślnie wyłączony. Bez haseł, tokenów ani jawnej treści wiadomości.",
+  "testMicrophone": "Przetestuj mikrofon",
+  "copyDiagnostics": "Kopiuj diagnostykę",
+  "videoPreview": "Podgląd wideo",
+  "switchCamera": "Przełącz kamerę",
+  "cameraMicPermissionsRequired": "Wymagane są uprawnienia do kamery i mikrofonu.",
+  "cameraPreviewTimedOut": "Przekroczono czas oczekiwania na podgląd kamery.",
+  "cameraUnavailableCheckPermissions": "Kamera jest niedostępna. Sprawdź uprawnienia kamery i mikrofonu.",
+  "noCameraVideoTrack": "Nie utworzono ścieżki wideo z kamery.",
+  "micPermissionRequiredForCalls": "Do połączeń wymagane jest uprawnienie do mikrofonu.",
+  "cameraPermissionRequiredForVideoCalls": "Do wideorozmów wymagane jest uprawnienie do kamery.",
+  "noCameraFound": "Nie znaleziono kamery."
+}

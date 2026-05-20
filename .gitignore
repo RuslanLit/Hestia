@@ -1,0 +1,114 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.gradle/
+android/.gradle/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+android/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Node / backend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+.gitconfig-codex
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.mobileprovision
+*.cer
+*.crt
+service-account*.json
+firebase-service-account*.json
+android/app/google-services.json
+android/app/src/*/google-services.json
+
+# Local backend data
+data.json
+hestia.sqlite
+hestia.sqlite-*
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+uploads/
+attachment_blobs/
+queue_blobs/
+DevCache/
+temp/
+
+# Flutter local and generated files
+flutter_*.png
+pubspec_overrides.yaml
+
+# Generated installers and release bundles
+/dist/*
+!/dist/.gitkeep
+/releases/*
+!/releases/.gitkeep
+*.apk
+*.aab
+*.apks
+*.ipa
+*.msix
+*.msixbundle
+*.appinstaller
+*.exe
+*.dmg
+*.pkg
+*.deb
+*.rpm
+*.AppImage
+*.zip
+*.tar
+*.tar.gz
+*.tgz

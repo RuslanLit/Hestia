@@ -1,0 +1,318 @@
+{
+  "@@locale": "de",
+  "systemDefault": "Systemstandard",
+  "language": "Sprache",
+  "theme": "Design",
+  "themeSystem": "System",
+  "themeLight": "Hell",
+  "themeDark": "Dunkel",
+  "appearance": "Darstellung",
+  "background": "Hintergrund",
+  "backgroundDefault": "Standard",
+  "backgroundChooseColor": "Farbe wählen",
+  "backgroundChooseImage": "Bild wählen",
+  "reset": "Zurücksetzen",
+  "cancel": "Abbrechen",
+  "save": "Speichern",
+  "close": "Schließen",
+  "search": "Suchen",
+  "refresh": "Aktualisieren",
+  "accept": "Annehmen",
+  "decline": "Ablehnen",
+  "server": "Server",
+  "serverUrl": "Server-URL",
+  "serverConnected": "Verbunden mit {host}",
+  "serverDisconnected": "Getrennt",
+  "login": "Anmelden",
+  "registration": "Registrierung",
+  "register": "Registrieren",
+  "password": "Passwort",
+  "chats": "Chats",
+  "contacts": "Kontakte",
+  "requests": "Anfragen",
+  "addContact": "Kontakt hinzufügen",
+  "privacy": "Datenschutz",
+  "backup": "Backup",
+  "devices": "Geräte",
+  "everyone": "Alle",
+  "message": "Nachricht",
+  "send": "Senden",
+  "reply": "Antworten",
+  "forward": "Weiterleiten",
+  "forwarded": "Weitergeleitet",
+  "attachment": "Anhang",
+  "open": "Öffnen",
+  "verify": "Prüfen",
+  "audioCall": "Audioanruf",
+  "videoCall": "Videoanruf",
+  "incomingCall": "Eingehender Anruf",
+  "voiceCall": "Sprachanruf",
+  "calling": "Anrufen...",
+  "connected": "Verbunden",
+  "endCall": "Beenden",
+  "languageEnglish": "English",
+  "languageUkrainian": "Українська",
+  "languageRussian": "Русский",
+  "languagePolish": "Polski",
+  "languageSpanish": "Español",
+  "languageCzech": "Čeština",
+  "languageGerman": "Deutsch",
+  "appName": "Hestia",
+  "splashTagline": "Privater Raum für vertraute Menschen",
+  "settings": "Einstellungen",
+  "continueAction": "Weiter",
+  "request": "Anfrage",
+  "error": "Fehler",
+  "@serverConnected": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "nicknameRequired": "Benutzername ist erforderlich",
+  "passwordRequired": "Passwort ist erforderlich",
+  "nicknameTooShort": "Benutzername muss mindestens 2 Zeichen haben",
+  "passwordTooShort": "Passwort muss mindestens 6 Zeichen haben",
+  "chooseNickname": "Neuen Benutzernamen wählen",
+  "yourNickname": "Dein Benutzername",
+  "choosePassword": "Passwort wählen",
+  "showPassword": "Passwort anzeigen",
+  "hidePassword": "Passwort ausblenden",
+  "allowUsernameSearch": "Suche nach Benutzername erlauben",
+  "messagesFrom": "Nachrichten von",
+  "callsFrom": "Anrufe von",
+  "noChatsYet": "Noch keine Chats.",
+  "noContactsYet": "Füge einen Kontakt hinzu, um ein Gespräch zu beginnen",
+  "firstRunNoContactsTitle": "Füge einen Kontakt hinzu, um ein Gespräch zu beginnen",
+  "firstRunNoContactsBody": "Suche jemanden per Benutzername und sende eine Anfrage.",
+  "hintAddContact": "Finde jemanden per Benutzername",
+  "hintRequests": "Hier erscheinen Kontaktanfragen",
+  "hintMessageInput": "Schreibe eine Nachricht",
+  "noPendingRequests": "Keine ausstehenden Anfragen.",
+  "findUsername": "Benutzernamen suchen",
+  "username": "Benutzername",
+  "enterUsername": "Benutzernamen eingeben",
+  "userFound": "Benutzer gefunden",
+  "userNotFound": "Benutzer nicht gefunden oder Suche ist deaktiviert.",
+  "sendContactRequest": "Kontaktanfrage senden",
+  "requestSentTo": "Anfrage an {name} gesendet",
+  "@requestSentTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "retentionContactAdded": "Kontakt hinzugefügt. Du kannst einen Chat starten.",
+  "retentionFirstMessageSent": "Nachricht gesendet. Hestia hält das Gespräch ruhig und privat.",
+  "retentionStartChatHint": "Öffne einen Chat und sende deine erste Nachricht, wenn du bereit bist.",
+  "retentionDayReminder": "Ihr habt länger nicht gesprochen. Deine privaten Chats sind hier, wenn du in Ruhe antworten möchtest.",
+  "retentionThreeDayReminder": "Eine sanfte Erinnerung: deine vertrauten Gespräche warten hier.",
+  "retentionNewMessages": "Du hast neue Nachrichten.",
+  "contact": "Kontakt",
+  "contactOnline": "Jetzt online",
+  "block": "Blockieren",
+  "unblockUser": "Benutzer entsperren",
+  "blockUser": "Benutzer blockieren",
+  "wantsToAddYou": "Möchte dich als Kontakt hinzufügen",
+  "attachmentNamed": "Anhang: {name}",
+  "@attachmentNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mute": "Stummschalten",
+  "unmute": "Stummschaltung aufheben",
+  "pin": "Anheften",
+  "unpin": "Lösen",
+  "archive": "Archivieren",
+  "deleteForMe": "Für mich löschen",
+  "backupWarning": "Backups werden lokal verschlüsselt. Bewahre das Passwort gut auf: Ohne es kann das Backup nicht wiederhergestellt werden.",
+  "backupPassword": "Backup-Passwort",
+  "confirmBackupPassword": "Passwort für Export bestätigen",
+  "backupPasswordsDoNotMatch": "Backup-Passwörter stimmen nicht überein.",
+  "backupExportCancelled": "Backup-Export abgebrochen.",
+  "backupSaved": "Backup gespeichert.",
+  "backupImported": "Backup importiert. Lokale Daten wurden wiederhergestellt.",
+  "import": "Importieren",
+  "export": "Exportieren",
+  "noSessionData": "Noch keine Sitzungsdaten.",
+  "unknownActivity": "Unbekannte Aktivität",
+  "lastActive": "Zuletzt aktiv {time}",
+  "@lastActive": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "currentDevice": "{name} (aktuell)",
+  "@currentDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "revoke": "Widerrufen",
+  "logoutCurrent": "Aktuelle Sitzung abmelden",
+  "sendFile": "Datei senden",
+  "messageSendFailed": "Nachricht konnte nicht gesendet werden: {error}",
+  "@messageSendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSendFailed": "Datei konnte nicht gesendet werden: {error}",
+  "@fileSendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noMessagesYet": "Schreibe die erste Nachricht",
+  "forwardTo": "Weiterleiten an",
+  "forwardedFrom": "Weitergeleitet von {name}",
+  "@forwardedFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forwardedTo": "Weitergeleitet an {name}",
+  "@forwardedTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forwardFailed": "Weiterleiten fehlgeschlagen: {error}",
+  "@forwardFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noForwardTargets": "Keine verfügbaren Kontakte zum Weiterleiten",
+  "cancelReply": "Antwort abbrechen",
+  "originalMessage": "Ursprüngliche Nachricht",
+  "originalMessageUnavailable": "Ursprüngliche Nachricht nicht verfügbar",
+  "savedTo": "Gespeichert unter {path}",
+  "@savedTo": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "saveFailed": "Speichern fehlgeschlagen: {error}",
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "userUnavailable": "Benutzer ist nicht verfügbar.",
+  "callRejected": "Anruf wurde abgelehnt.",
+  "sessionRevoked": "Diese Sitzung wurde widerrufen.",
+  "couldNotConnectTo": "Verbindung zu {host} nicht möglich",
+  "unknownServerError": "Unbekannter Serverfehler",
+  "authenticationRequired": "Authentifizierung erforderlich.",
+  "localFileNotFound": "Lokale Datei nicht gefunden.",
+  "webAttachmentAvailable": "Die Datei ist in dieser Browser-Sitzung verfügbar.",
+  "webAttachmentUnavailable": "Die Datei ist nach einem Neustart des Browsers nicht verfügbar.",
+  "attachmentTypeNotAllowed": "Dieser Anhangstyp ist nicht erlaubt.",
+  "attachmentValidationFailed": "Anhang konnte nicht geprüft werden.",
+  "attachmentTooLarge": "Der Anhang ist zu groß.",
+  "attachmentLimits": "Erlaubte Dateien: Dokumente, Bilder, Audio und Video. Limits: Bilder 25 MB, Audio/Dokumente 50 MB, Video 200 MB.",
+  "selectedFileReadFailed": "Die ausgewählte Datei konnte nicht gelesen werden.",
+  "forwardLocalFileUnavailable": "Weiterleiten fehlgeschlagen: Die lokale Datei ist nicht verfügbar.",
+  "attachmentUploadFailed": "Anhang konnte nicht hochgeladen werden.",
+  "peerKeyChangedCall": "Der Verschlüsselungsschlüssel von {name} hat sich geändert. Prüfe den Fingerabdruck vor dem Anruf.",
+  "peerNoEncryptionKey": "{name} hat noch keinen Verschlüsselungsschlüssel.",
+  "encryptionKey": "Verschlüsselungsschlüssel",
+  "trustKey": "Schlüssel vertrauen",
+  "trustNewKey": "Neuem Schlüssel vertrauen",
+  "removeTrust": "Vertrauen entfernen",
+  "verifiedEncryptionKey": "Verifizierter Verschlüsselungsschlüssel",
+  "encryptionKeyChanged": "Verschlüsselungsschlüssel geändert",
+  "noEncryptionKey": "Kein Verschlüsselungsschlüssel",
+  "verifyEncryptionKey": "Verschlüsselungsschlüssel prüfen",
+  "sendingBlockedKeyChanged": "Senden ist blockiert, bis du diesen Kontakt erneut verifizierst.",
+  "keyTrusted": "Diesem Schlüssel wird auf diesem Gerät vertraut.",
+  "keyChangedWarning": "Achtung: Dieser Schlüssel hat sich geändert. Vergleiche den Fingerabdruck, bevor du ihm erneut vertraust.",
+  "keyMissing": "Dieser Benutzer hat noch keinen Verschlüsselungsschlüssel veröffentlicht.",
+  "keyUntrusted": "Vergleiche diesen Fingerabdruck mit der anderen Person und vertraue dann dem Schlüssel.",
+  "noFingerprint": "Kein Fingerabdruck verfügbar",
+  "callFailed": "Anruf fehlgeschlagen: {error}",
+  "@callFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "anotherCallActive": "Ein anderer Anruf ist bereits aktiv",
+  "muteCall": "Mikrofon aus",
+  "unmuteCall": "Mikrofon an",
+  "pushSyncChannelDescription": "Synchronisierungsbenachrichtigungen für Hestia-Nachrichten und -Anfragen.",
+  "pushCallChannelDescription": "Hinweise auf eingehende Hestia-Anrufe.",
+  "newContactRequestNotification": "Neue Kontaktanfrage",
+  "newMessageNotification": "Neue Nachricht",
+  "incomingVideoCallNotification": "Eingehender Videoanruf",
+  "incomingVoiceCallNotification": "Eingehender Sprachanruf",
+  "unknownCaller": "Unbekannt",
+  "rejectCall": "Ablehnen",
+  "updateAvailable": "Update verfügbar",
+  "versionAvailable": "Version {version} ist verfügbar.",
+  "startingDownload": "Download wird gestartet...",
+  "downloadingProgress": "Download läuft... {percent}%",
+  "downloadFailedRetry": "Download fehlgeschlagen. Bitte versuche es erneut.",
+  "later": "Später",
+  "downloading": "Download läuft...",
+  "updateViaAppStore": "Über App Store aktualisieren",
+  "downloadAndInstall": "Herunterladen und installieren",
+  "openDownloadPage": "Download-Seite öffnen",
+  "onboardingSkip": "Überspringen",
+  "onboardingNext": "Weiter",
+  "onboardingGetStarted": "Loslegen",
+  "onboardingWelcomeTitle": "Willkommen bei Hestia",
+  "onboardingWelcomeBody": "Ein ruhiger Messenger für private Chats, Anrufe und Dateien.",
+  "onboardingPrivacyTitle": "Privat von Anfang an",
+  "onboardingPrivacyBody": "Nachrichten nutzen Verschlüsselungsschlüssel. Chats und Dateien bleiben lokal gespeichert.",
+  "onboardingHowItWorksTitle": "Einfacher Ablauf",
+  "onboardingHowItWorksBody": "Server wählen, Kontakte hinzufügen und Anfragen vor dem Chatten bestätigen.",
+  "onboardingCallsFilesTitle": "Anrufe und Dateien",
+  "onboardingCallsFilesBody": "Starte Sprachanrufe und teile Dateien im selben geschützten Bereich.",
+  "onboardingServerTitle": "Server wählen",
+  "onboardingServerBody": "Nutze den Standardserver oder verbinde Hestia mit deinem eigenen Server.",
+  "onboardingDefaultServer": "Standardserver",
+  "onboardingCustomServer": "Eigener Server",
+  "onboardingCustomServerBody": "Für self-hosted oder private Installationen.",
+  "onboardingGetStartedTitle": "Bereit zum Start",
+  "onboardingGetStartedBody": "Erstelle ein neues Konto oder melde dich mit einem bestehenden an.",
+  "diagnostics": "Diagnose",
+  "diagnosticMode": "Diagnosemodus",
+  "diagnosticModeDescription": "Standardmäßig deaktiviert. Keine Passwörter, Tokens oder Klartextnachrichten.",
+  "testMicrophone": "Mikrofon testen",
+  "copyDiagnostics": "Diagnose kopieren",
+  "videoPreview": "Videovorschau",
+  "switchCamera": "Kamera wechseln",
+  "cameraMicPermissionsRequired": "Kamera- und Mikrofonberechtigungen sind erforderlich.",
+  "cameraPreviewTimedOut": "Zeitüberschreitung bei der Kameravorschau.",
+  "cameraUnavailableCheckPermissions": "Kamera nicht verfügbar. Prüfe die Kamera- und Mikrofonberechtigungen.",
+  "noCameraVideoTrack": "Es wurde keine Kameravideospur erstellt.",
+  "micPermissionRequiredForCalls": "Für Anrufe ist die Mikrofonberechtigung erforderlich.",
+  "cameraPermissionRequiredForVideoCalls": "Für Videoanrufe ist die Kameraberechtigung erforderlich.",
+  "noCameraFound": "Keine Kamera gefunden."
+}

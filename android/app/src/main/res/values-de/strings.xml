@@ -1,0 +1,15 @@
+<resources>
+    <string name="hestia_brand">Hestia</string>
+    <string name="hestia_call_fallback">Hestia-Anruf</string>
+    <string name="incoming_call">Eingehender Anruf</string>
+    <string name="incoming_video_call">Eingehender Videoanruf</string>
+    <string name="incoming_voice_call">Eingehender Sprachanruf</string>
+    <string name="accept">Annehmen</string>
+    <string name="decline">Ablehnen</string>
+    <string name="open_app">App öffnen</string>
+    <string name="new_message">Neue Nachricht</string>
+    <string name="background_connection_channel">Hintergrundverbindung</string>
+    <string name="background_connection_active">Hestia-Hintergrundverbindung aktiv</string>
+    <string name="messages_channel">Nachrichten</string>
+    <string name="calls_channel">Anrufe</string>
+</resources>

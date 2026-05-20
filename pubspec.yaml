@@ -1,0 +1,54 @@
+name: hestia
+description: Stable text-only messenger
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  firebase_core: ^4.7.0
+  firebase_messaging: ^16.2.0
+  file_picker: ^11.0.0
+  http: ^1.2.0
+  shared_preferences: ^2.2.3
+  web_socket_channel: ^3.0.0
+  flutter_webrtc: ^1.4.1
+  intl: ^0.20.0
+  audioplayers: ^6.6.0
+  package_info_plus: ^9.0.1
+  path_provider: ^2.1.4
+  open_file: ^3.3.2
+  permission_handler: ^12.0.0
+  url_launcher: ^6.1.7
+  encrypt: ^5.0.0
+  pointycastle: ^3.4.0
+  flutter_secure_storage: ^10.0.0
+  flutter_dotenv: ^6.0.0
+  flutter_cache_manager: ^3.0.0
+  cached_network_image: ^3.2.0
+  connectivity_plus: ^7.1.1
+  flutter_local_notifications: ^21.0.0
+  timezone: ^0.11.0
+  qr_flutter: ^4.1.0
+  web: ^1.1.1
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  generate: true
+  uses-material-design: true
+
+  assets:
+    - assets/audio/ringtone.mp3
+    - assets/audio/ringback.mp3
+    - assets/logo/logo.png
+    - assets/logo/logo_dark.png
+    - Landing_Hestia/content/product_content.json
