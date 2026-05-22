@@ -7,14 +7,14 @@
   "notes": "Hestia 0.6.20 is an Android-first public build. Android split APKs are available by ABI; other platforms are planned.",
   "release_notes_url": "https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup",
   "downloads_url": "https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup",
-  "apk_url": "https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup",
+  "apk_url": "https://github.com/RuslanLit/Hestia/releases/download/v0.6.20-android-localized-wakeup/hestia-0.6.20-android-arm64-v8a.apk",
   "platforms": {
     "androidArm64": {
       "available": true,
       "recommended": true,
       "abi": "arm64-v8a",
       "file": "hestia-0.6.20-android-arm64-v8a.apk",
-      "url": "https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v0.6.20-android-localized-wakeup/hestia-0.6.20-android-arm64-v8a.apk",
       "sha256": "TODO: replace after uploading split APK asset",
       "sizeBytes": 35863889
     },
@@ -23,7 +23,7 @@
       "recommended": false,
       "abi": "armeabi-v7a",
       "file": "hestia-0.6.20-android-armeabi-v7a.apk",
-      "url": "https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v0.6.20-android-localized-wakeup/hestia-0.6.20-android-armeabi-v7a.apk",
       "sha256": "TODO: replace after uploading split APK asset",
       "sizeBytes": 28529159
     },
@@ -32,7 +32,7 @@
       "recommended": false,
       "abi": "x86_64",
       "file": "hestia-0.6.20-android-x86_64.apk",
-      "url": "https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup",
+      "url": "https://github.com/RuslanLit/Hestia/releases/download/v0.6.20-android-localized-wakeup/hestia-0.6.20-android-x86_64.apk",
       "sha256": "TODO: replace after uploading split APK asset",
       "sizeBytes": 41257482
     },

@@ -20,7 +20,6 @@ const platformNames = {
   web: "Hestia Web",
   server: "Backend for self-hosting",
   landing: "Landing/site",
-  checksums: "Checksums",
 };
 
 function getPlatformSignal() {
@@ -140,17 +139,15 @@ function createDownloadRow(key, platform) {
     createMetaItem("Size", platform.fileSize),
   );
 
-  const checksum = document.createElement("code");
-  checksum.className = "checksum";
-  checksum.textContent = platform.checksum;
-
+  const publicNote = document.createElement("p");
+  publicNote.className = "release-status";
+  publicNote.textContent = platform.publicNote || "Direct APK download from the official Hestia release.";
   if (platform.available === false) {
-    checksum.className = "release-status";
-    checksum.textContent = platform.description;
+    publicNote.textContent = platform.description;
     row.classList.add("is-disabled");
   }
 
-  info.append(title, description, meta, checksum);
+  info.append(title, description, meta, publicNote);
 
   const actions = document.createElement("div");
   actions.className = "release-actions";
@@ -198,8 +195,6 @@ function renderDownloadsPage() {
     "linux",
     "macos",
     "ios",
-    "server",
-    "checksums",
   ];
   list.replaceChildren(
     ...platformOrder
@@ -251,7 +246,7 @@ function setRecommendedDownload(platformKey) {
   }
 
   platformNote.textContent = platformKey === "android"
-    ? "ARM64 is recommended for most Android phones. The APK is downloaded from the official GitHub Release."
+    ? "ARM64 is recommended for most Android phones. Android may ask you to allow installation from unknown sources."
     : `Recommended for ${platformNames[platformKey]}. Download starts only after you click.`;
 }
 

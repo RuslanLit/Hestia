@@ -90,15 +90,15 @@
         notes: "Release notes",
         current: "Current release",
         version: "Version",
-        sectionCopy: "Android APKs are hosted on GitHub Releases. Android may ask you to allow installing apps from unknown sources; only use the official Hestia GitHub Release.",
-        releasePage: "GitHub Release page",
+        sectionCopy: "Download the Android APK directly. Android may ask you to allow installing apps from unknown sources; only use the official Hestia release.",
+        releasePage: "Choose another ABI",
         checksums: "Checksums / SHA-256",
         serverGuide: "Server setup guide",
         available: "Available now",
         unavailable: "Coming later",
         status: "Status",
         installTitle: "Install safely",
-        installSteps: ["Choose ARM64 for most modern Android devices.", "Use ARMv7 only for older 32-bit Android devices, or x86_64 for emulators and rare Intel/ChromeOS devices.", "Verify the SHA-256 checksum and allow installation from unknown sources only for the official Hestia APK if Android asks."],
+        installSteps: ["Choose ARM64 for most modern Android devices.", "Use ARMv7 only for older 32-bit Android devices, or x86_64 for emulators and rare Intel/ChromeOS devices.", "Allow installation from unknown sources only for the official Hestia APK if Android asks."],
       },
       server: {
         eyebrow: "Self-hosting",
@@ -1312,7 +1312,7 @@
       </section>
       <section class="downloads" id="downloads" aria-labelledby="downloads-title">
         <div class="section-heading"><div><p class="eyebrow">${escapeHtml(d.downloadsEyebrow)}</p><h2 id="downloads-title">${escapeHtml(d.downloadsTitle)}</h2></div><p class="section-copy">${escapeHtml(d.downloadsCopy)}</p></div>
-        <div class="section-actions"><a class="button button-secondary" href="downloads.html">${escapeHtml(d.releaseDetails)}</a><a class="release-link" href="${release.releaseNotesUrl || "#"}">${escapeHtml(d.releaseNotes)}</a></div>
+        <div class="section-actions"><a class="button button-secondary" href="downloads.html">${escapeHtml(d.releaseDetails)}</a></div>
         <div class="download-grid">${["android", "androidArmv7", "androidX64", "web", "windows", "linux", "macos", "ios"].map(downloadCard).join("")}</div>
       </section>
       <section class="section privacy" id="privacy" aria-labelledby="privacy-title">
@@ -1344,19 +1344,18 @@
 
   function renderDownloads() {
     const d = langData().downloads;
-    const availableKeys = ["android", "androidArmv7", "androidX64", "checksums"];
+    const availableKeys = ["android", "androidArmv7", "androidX64"];
     const unavailableKeys = ["web", "windows", "linux", "macos", "ios"];
     document.querySelector("main").innerHTML = `
       <section class="download-page-hero" aria-labelledby="download-page-title">
         <div class="download-page-heading">
           <p class="eyebrow">${escapeHtml(d.eyebrow)}</p><h1 id="download-page-title">${escapeHtml(d.title)}</h1><p class="hero-copy">${escapeHtml(d.copy)}</p>
-          <div class="cta-row"><a class="button button-primary" id="primary-download" href="#release-list">${escapeHtml(d.recommended)}</a><a class="button button-secondary" href="${release.releasePageUrl || release.releaseNotesUrl || "#"}">${escapeHtml(d.releasePage || "GitHub Release page")}</a></div>
+          <div class="cta-row"><a class="button button-primary" id="primary-download" href="${platforms.android?.url || "#release-list"}">${escapeHtml(d.recommended)}</a><a class="button button-secondary" href="#release-list">${escapeHtml(d.releasePage || "Choose another ABI")}</a></div>
           <p class="platform-note" id="platform-note" aria-live="polite"></p>
         </div>
       </section>
       <section class="section release-section" aria-labelledby="release-title">
         <div class="section-heading"><div><p class="eyebrow">${escapeHtml(d.current)}</p><h2 id="release-title">Hestia <span>${escapeHtml(release.currentVersion || "preview")}</span></h2></div><p class="section-copy">${escapeHtml(d.sectionCopy)}</p></div>
-        <div class="release-toolbar"><a class="release-link" href="${release.releasePageUrl || release.releaseNotesUrl || "#"}">${escapeHtml(d.releasePage || "GitHub Release page")}</a><a class="release-link" href="${release.checksumUrl || "#"}">${escapeHtml(d.checksums)}</a><a class="release-link" href="${release.updateManifestUrl || "#"}">latest.json</a><a class="release-link" href="${linkFor("serverGuide")}">${escapeHtml(d.serverGuide)}</a></div>
         <div class="release-install warning-block"><h3>${escapeHtml(d.installTitle || "Install safely")}</h3><ol>${(d.installSteps || copy.en.downloads.installSteps).map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol></div>
         <h3 class="release-subtitle">${escapeHtml(d.available || "Available downloads")}</h3>
         <div class="release-list" id="release-list">${availableKeys.map(releaseRow).join("")}</div>
@@ -1372,10 +1371,10 @@
     const action = available
       ? `<a class="button button-download" href="${p.url}" rel="noopener">${escapeHtml(platformLabel(key, 2))}</a>`
       : `<span class="button button-disabled" aria-disabled="true">${escapeHtml(d.downloads.unavailable || "Coming later")}</span>`;
-    const checksum = available
-      ? `<code class="checksum">${escapeHtml(p.checksum || "")}</code>`
+    const publicNote = available
+      ? `<p class="release-status">${escapeHtml(p.publicNote || "Direct APK download from the official Hestia release.")}</p>`
       : `<p class="release-status">${escapeHtml(platformDescription(key))}</p>`;
-    return `<article class="release-row${available ? "" : " is-disabled"}" data-platform-card="${key}"><div><h3>${escapeHtml(platformLabel(key, 0))}</h3><p>${escapeHtml(available ? platformDescription(key) : d.downloads.status || "Status")}</p><div class="release-meta"><span class="release-meta-item">${escapeHtml(d.common.type)}: ${escapeHtml(p.fileType || "")}</span><span class="release-meta-item">${escapeHtml(d.downloads.version)}: ${escapeHtml(release.currentVersion || "")}</span><span class="release-meta-item">${escapeHtml(d.common.size)}: ${escapeHtml(p.fileSize || "")}</span></div>${checksum}</div><div class="release-actions"><span class="release-file">${escapeHtml(p.fileName || "")}</span>${action}</div></article>`;
+    return `<article class="release-row${available ? "" : " is-disabled"}" data-platform-card="${key}"><div><h3>${escapeHtml(platformLabel(key, 0))}</h3><p>${escapeHtml(available ? platformDescription(key) : d.downloads.status || "Status")}</p><div class="release-meta"><span class="release-meta-item">${escapeHtml(d.common.type)}: ${escapeHtml(p.fileType || "")}</span><span class="release-meta-item">${escapeHtml(d.downloads.version)}: ${escapeHtml(release.currentVersion || "")}</span><span class="release-meta-item">${escapeHtml(d.common.size)}: ${escapeHtml(p.fileSize || "")}</span></div>${publicNote}</div><div class="release-actions"><span class="release-file">${escapeHtml(p.fileName || "")}</span>${action}</div></article>`;
   }
 
   function renderGuide(kind) {
@@ -1513,4 +1512,3 @@
     loadSharedProductContent().finally(renderAll);
   });
 })();
-

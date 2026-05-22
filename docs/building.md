@@ -82,7 +82,8 @@ Before publishing a release:
 2. Ensure Android ARM64 is the recommended download.
 3. Keep ARMv7 and x86_64 visible as manual choices.
 4. Keep Web, Windows, Linux, macOS, and iOS marked as coming soon.
-5. Use the GitHub Release page if direct APK asset links are not uploaded yet.
+5. Use direct GitHub Release asset URLs for each APK:
+   `https://github.com/RuslanLit/Hestia/releases/download/<tag>/<apk-name>.apk`.
 
 ## App Bundle Option
 

@@ -6,7 +6,7 @@ The current public product focus is Android. Web, Windows, Linux, macOS, and iOS
 
 ## Current Public Status
 
-- Android: available now as APK downloads from GitHub Releases.
+- Android: available now as direct APK downloads from GitHub Release assets.
 - Website / landing / download page: available from `Landing_Hestia/`.
 - Web app: planned / coming soon.
 - Windows, Linux, macOS, iOS: planned / coming soon.
@@ -34,13 +34,13 @@ Removed platform targets:
 
 ## Android Downloads
 
-The landing page recommends Android ARM64 for most users and still shows manual ABI choices:
+The landing page recommends Android ARM64 for most users and starts a direct APK download. It still shows manual ABI choices:
 
 - `arm64-v8a` - recommended for most modern Android phones and tablets.
 - `armeabi-v7a` - older 32-bit Android devices.
 - `x86_64` - emulators and uncommon Intel or ChromeOS-style Android devices.
 
-APK installation is manual. Android may ask users to allow installation from unknown sources. Users should download APKs only from the official Hestia GitHub Release.
+APK installation is manual. Android may ask users to allow installation from unknown sources. Users should download APKs only from the official Hestia GitHub Release assets.
 
 ## Current Capabilities
 
@@ -131,7 +131,7 @@ It states:
 - ARMv7 and x86_64 APKs are available as manual choices.
 - Web, Windows, Linux, macOS, and iOS are coming later.
 
-If split APK assets are not uploaded yet, landing buttons should point to the GitHub Release page and keep TODO notes in `Landing_Hestia/JS/release-config.js` for direct asset URLs.
+Landing buttons should point directly to GitHub Release asset URLs in the form `https://github.com/RuslanLit/Hestia/releases/download/<tag>/<apk-name>.apk`.
 
 ## Documentation
 

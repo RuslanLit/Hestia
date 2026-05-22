@@ -52,6 +52,15 @@ or uncommon Intel/ChromeOS-style Android devices. A universal APK is useful as
 an internal fallback, but it is much larger because it contains native libraries
 for every ABI in one file.
 
+The landing page should link directly to APK assets, not to the GitHub Release
+page:
+
+```text
+https://github.com/RuslanLit/Hestia/releases/download/<tag>/hestia-<version>-android-arm64-v8a.apk
+https://github.com/RuslanLit/Hestia/releases/download/<tag>/hestia-<version>-android-armeabi-v7a.apk
+https://github.com/RuslanLit/Hestia/releases/download/<tag>/hestia-<version>-android-x86_64.apk
+```
+
 An Android App Bundle can be added for store distribution after signing is
 configured, but it should not replace direct APK assets on GitHub.
 
@@ -100,7 +109,7 @@ If release assets change:
 1. update release metadata used by the landing site
 2. verify platform download URLs
 3. verify release notes URL
-4. verify checksums if you publish them
+4. keep developer-only assets such as checksums off the public download UI
 5. verify the update manifest at `https://hestiachat.site/releases/latest.json`
 
 ## 7. Manual Validation

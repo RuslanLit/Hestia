@@ -41,6 +41,8 @@ or:
 ```
 
 The publish scripts upload only Android split APKs, checksums, and `latest.json`.
+The public landing page should use direct APK asset links rather than sending
+users to the technical GitHub Release page.
 
 ## 4. Verify
 
@@ -48,4 +50,10 @@ The publish scripts upload only Android split APKs, checksums, and `latest.json`
 gh release view v0.6.20 --web
 ```
 
-Verify that the landing page points to the correct release and, once direct asset URLs are available, update `Landing_Hestia/JS/release-config.js`.
+Verify that the landing page points directly to these APK URLs:
+
+```text
+https://github.com/RuslanLit/Hestia/releases/download/<tag>/hestia-<version>-android-arm64-v8a.apk
+https://github.com/RuslanLit/Hestia/releases/download/<tag>/hestia-<version>-android-armeabi-v7a.apk
+https://github.com/RuslanLit/Hestia/releases/download/<tag>/hestia-<version>-android-x86_64.apk
+```
