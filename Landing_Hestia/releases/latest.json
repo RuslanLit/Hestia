@@ -15,8 +15,8 @@
       "abi": "arm64-v8a",
       "file": "hestia-0.6.20-android-arm64-v8a.apk",
       "url": "https://github.com/RuslanLit/Hestia/releases/download/v0.6.20-android-localized-wakeup/hestia-0.6.20-android-arm64-v8a.apk",
-      "sha256": "TODO: replace after uploading split APK asset",
-      "sizeBytes": 35863889
+      "sha256": "b462531570eb616346f5ff7057ea08f82be73957c671efc348ae668bce20df03",
+      "sizeBytes": 36047697
     },
     "androidArmv7": {
       "available": true,
@@ -24,8 +24,8 @@
       "abi": "armeabi-v7a",
       "file": "hestia-0.6.20-android-armeabi-v7a.apk",
       "url": "https://github.com/RuslanLit/Hestia/releases/download/v0.6.20-android-localized-wakeup/hestia-0.6.20-android-armeabi-v7a.apk",
-      "sha256": "TODO: replace after uploading split APK asset",
-      "sizeBytes": 28529159
+      "sha256": "b797f13a927679966a550a02afdf0b387555c2b6387027c2dd9c55314cc54e4f",
+      "sizeBytes": 28712967
     },
     "androidX64": {
       "available": true,
@@ -33,8 +33,8 @@
       "abi": "x86_64",
       "file": "hestia-0.6.20-android-x86_64.apk",
       "url": "https://github.com/RuslanLit/Hestia/releases/download/v0.6.20-android-localized-wakeup/hestia-0.6.20-android-x86_64.apk",
-      "sha256": "TODO: replace after uploading split APK asset",
-      "sizeBytes": 41257482
+      "sha256": "03f334637fbf0c4b92c596d714f1ac723222bb98bbe471831fd3845398a2657e",
+      "sizeBytes": 41441290
     },
     "web": {
       "available": false,
