@@ -4,7 +4,7 @@ set -euo pipefail
 TAG="${1:-}"
 if [[ -z "$TAG" ]]; then
   echo "Usage: $0 <tag>"
-  echo "Example: $0 v4.0.0_1"
+  echo "Example: $0 v0.6.20"
   exit 64
 fi
 
@@ -20,15 +20,14 @@ RELEASE_ID="${TAG#v}"
 VERSION="${RELEASE_ID%%_*}"
 
 ASSETS=(
-  "releases/hestia-${RELEASE_ID}-android.apk"
-  "releases/hestia-${RELEASE_ID}-windows-setup.exe"
-  "releases/hestia-${RELEASE_ID}-windows-portable.zip"
-  "releases/hestia-${RELEASE_ID}-web-static.zip"
-  "releases/hestia-${RELEASE_ID}-backend.zip"
-  "releases/hestia-${RELEASE_ID}-landing.zip"
+  "releases/hestia-${RELEASE_ID}-android-arm64-v8a.apk"
+  "releases/hestia-${RELEASE_ID}-android-armeabi-v7a.apk"
+  "releases/hestia-${RELEASE_ID}-android-x86_64.apk"
   "releases/${VERSION}-checksums.txt"
   "releases/latest.json"
 )
+
+echo "Publishing Android-first release assets for ${TAG}"
 
 missing=0
 for asset in "${ASSETS[@]}"; do

@@ -1,17 +1,14 @@
 # Platform Install and Runtime Configuration
 
-This document records the platform configuration needed by the current Hestia
-client and backend. It is intentionally operational: it does not describe the
-chat, encryption, or WebRTC business logic.
+This document records the current Android-first runtime configuration for Hestia.
 
 ## Backend
 
 Requirements:
 
 - Node.js 18 or newer.
-- `npm install` in the repository or backend archive directory.
-- A writable backend directory for `hestia.sqlite`, `uploads/`, `queue_blobs/`,
-  and `attachment_blobs/`.
+- `npm install` in the repository.
+- A writable backend directory for `hestia.sqlite`, `uploads/`, `queue_blobs/`, and `attachment_blobs/`.
 
 Start locally:
 
@@ -26,33 +23,13 @@ The backend serves:
 - HTTP config: `http://127.0.0.1:3000/api/config`
 - WebSocket signaling: `ws://127.0.0.1:3000/ws`
 - file/blob APIs under the same origin
+- the static landing site from `Landing_Hestia/`
 
-Runtime state is stored in SQLite. Set `DB_FILE` to move the database away from
-the app root; otherwise the backend creates `./hestia.sqlite`. Legacy
-`data.json` files are left untouched and are not read by the current backend.
-Back up the SQLite database together with its WAL/shm sidecar files when WAL is
-enabled by SQLite.
+Runtime state is stored in SQLite. Set `DB_FILE` to move the database away from the app root.
 
-Important environment variables are documented in `.env.example`:
+## TURN/STUN
 
-- `PORT`
-- `DB_FILE`
-- `SERVER_NAME`
-- `REGISTRATION_ENABLED`
-- `INVITE_ONLY`
-- `INVITE_CODES`
-- `ADMIN_TOKEN`
-- `OFFLINE_TTL_MS`
-- `TURN_SERVERS`
-- `FIREBASE_PROJECT_ID`
-- `GOOGLE_APPLICATION_CREDENTIALS`
-- `FIREBASE_SERVICE_ACCOUNT_JSON`
-
-### TURN/STUN
-
-Hestia returns built-in public STUN plus optional `TURN_SERVERS` from the
-backend. TURN is strongly recommended for reliable calls across mobile networks,
-enterprise Wi-Fi, carrier NAT, and strict firewalls.
+Hestia returns built-in public STUN plus optional `TURN_SERVERS` from the backend. TURN is strongly recommended for reliable calls across mobile networks, enterprise Wi-Fi, carrier NAT, and strict firewalls.
 
 Format:
 
@@ -60,137 +37,53 @@ Format:
 TURN_SERVERS=turn:turn.example.com:3478?transport=udp|turn-user|turn-password,turn:turn.example.com:3478?transport=tcp|turn-user|turn-password,turns:turn.example.com:5349?transport=tcp|turn-user|turn-password
 ```
 
-`TURN_SERVERS` entries are comma-separated. The backend accepts `stun:`,
-`turn:`, and `turns:` URLs. TURN entries must include
-`url|username|credential`; invalid entries are ignored with a warning so the
-built-in STUN fallback remains available.
+## Android FCM
 
-Minimal coturn checklist:
-
-- Open `3478/udp` and `3478/tcp` for TURN.
-- Open `5349/tcp` for `turns:`.
-- Open the coturn relay range, commonly `49152-65535/udp`, or the smaller
-  `min-port`/`max-port` range configured in coturn.
-- Restart the Hestia backend after changing `.env`.
-- Verify `GET /api/config` contains both STUN and TURN entries.
-
-### Android FCM
-
-Android screen-off/background incoming calls cannot rely on WebSocket alone.
-Configure FCM if Android incoming call alerts must work while the app is in the
-background or the screen is off.
+Android screen-off/background incoming calls cannot rely on WebSocket alone. Configure FCM if Android incoming call alerts must work while the app is backgrounded or the screen is off.
 
 Server-side:
 
 1. Create a Firebase project.
-2. Add an Android app with the same package name as `android/app/build.gradle.kts`.
+2. Add an Android app with the package name from `android/app/build.gradle.kts`.
 3. Create a service account JSON for Firebase Cloud Messaging HTTP v1.
-4. Set either:
-
-```text
-GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/firebase-service-account.json
-```
-
-or:
-
-```text
-FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
-```
-
-Optionally set `FIREBASE_PROJECT_ID` if the project id is not present in the
-service-account JSON.
+4. Set `GOOGLE_APPLICATION_CREDENTIALS`, `FIREBASE_SERVICE_ACCOUNT_JSON`, and optionally `FIREBASE_PROJECT_ID`.
 
 Client-side:
 
 1. Download Firebase `google-services.json` for the Android app.
 2. Put it at `android/app/google-services.json` locally.
-3. Keep the file out of public commits. Use
-   `android/app/google-services.example.json` as a shape reference only.
+3. Keep it out of public commits.
 
 Limitations:
 
-- If the user force-stops the app, Android normally blocks background delivery
-  until the user launches the app again.
-- Battery optimization and vendor task killers can delay push delivery.
-- Full-screen intent may require explicit user/system permission on newer
-  Android versions; Hestia requests it and falls back to a high-priority call
-  notification.
+- If the user force-stops the app, Android normally blocks background delivery until manual launch.
+- Battery optimization and vendor task killers can delay delivery.
+- Full-screen intent may require explicit user/system permission on newer Android versions.
 
-## Android
-
-Build:
+## Android Build
 
 ```bash
 flutter pub get
 flutter build apk --debug
-flutter build apk --release
+flutter build apk --release --split-per-abi
 ```
 
-Runtime permissions and why they exist:
+## Android Runtime Permissions
 
 - `INTERNET`: backend HTTP/WebSocket and FCM.
 - `ACCESS_NETWORK_STATE`: connectivity-aware networking.
 - `RECORD_AUDIO`: WebRTC audio calls.
 - `CAMERA`: WebRTC video calls.
 - `MODIFY_AUDIO_SETTINGS`: speaker/Bluetooth audio routing.
-- `BLUETOOTH`/`BLUETOOTH_CONNECT`: headset routing.
-- `POST_NOTIFICATIONS`: Android 13+ local/FCM notifications.
+- `BLUETOOTH` / `BLUETOOTH_CONNECT`: headset routing.
+- `POST_NOTIFICATIONS`: Android 13+ notifications.
 - `USE_FULL_SCREEN_INTENT`: incoming call UI from call notification.
 - `VIBRATE`: incoming call alert vibration.
 - `WAKE_LOCK`: notification/call wake behavior.
 
-Foreground service permissions are not declared because the app currently does
-not implement an Android foreground service for calls.
+## Planned Platforms
 
-## Windows
-
-Build:
-
-```powershell
-flutter pub get
-flutter build windows --debug
-flutter build windows --release
-```
-
-Packaging:
-
-```powershell
-pwsh -File scripts/build/build_windows.ps1
-```
-
-Notes:
-
-- Windows uses the Flutter desktop runner and plugin registration generated by
-  Flutter.
-- Camera and microphone consent is handled by Windows privacy settings and the
-  `flutter_webrtc` runtime. No Android-only FCM code path is enabled on Windows.
-- The diagnostic panel is available from the desktop chat-list menu.
-
-## Web
-
-Build:
-
-```bash
-flutter build web --release
-```
-
-Notes:
-
-- WebRTC camera/microphone permissions are browser prompts.
-- Android FCM incoming-call logic is not enabled on web.
-- Browser storage and background execution limits still apply.
-
-## iOS, macOS, and Linux
-
-These platform folders exist, but Android and Windows are the actively supported
-install targets in this project state.
-
-- iOS has camera/microphone usage strings. Production distribution still needs
-  Apple signing, bundle id ownership, and provisioning.
-- macOS has camera/microphone usage strings and sandbox entitlements for network,
-  camera, and audio input.
-- Linux uses Flutter desktop packaging; distribution packages require external
-  distro tooling.
+Web, Windows, Linux, macOS, and iOS are planned but are not public release targets in the current repository state. Do not publish download links for those platforms until they are restored, built, and manually verified.
 
 ## Custom Server URL
 
@@ -207,16 +100,3 @@ wss://your-domain.example/ws
 ```
 
 The client derives `/api/config` and `/ws` when given an HTTP(S) base URL.
-
-## Diagnostic Mode
-
-Open `Diagnostics` from the chat list:
-
-- Android: bug icon in the top bar.
-- Windows/Desktop: `...` menu.
-
-Turn diagnostic mode on, reproduce the issue, then use `Copy diagnostics`.
-The report includes server URL, WebSocket/auth/session state, contact/privacy
-state, username-search result, call signaling, WebRTC tracks, ICE state, push
-session status, and recent errors. It does not include passwords, auth tokens,
-or message plaintext.

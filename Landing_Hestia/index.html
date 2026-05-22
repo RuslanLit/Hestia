@@ -56,30 +56,30 @@
               <source srcset="logo/logo_dark.png" media="(prefers-color-scheme: dark)">
               <img src="logo/logo.png" alt="">
             </picture>
-            <p class="eyebrow">Private messenger for people you trust</p>
+            <p class="eyebrow">Android public build available now</p>
             <h1 id="hero-title">Hestia</h1>
             <p class="hero-copy">
-              Your personal space for communication with family, close friends,
-              and small teams: messages, files, and calls with local history and
-              a server you can choose.
+              Hestia is currently available as ABI-specific Android APKs.
+              ARM64 is recommended for most phones; ARMv7 and x86_64 remain
+              available for compatibility.
             </p>
 
             <div class="cta-row" aria-label="Recommended download">
               <a
                 class="button button-primary"
                 id="primary-download"
-                href="#downloads"
+                href="https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup"
                 data-platform-link
               >
-                View Downloads
+                Download Android ARM64
               </a>
-              <a class="button button-secondary" href="#" data-download-key="web">
-                Open Web Version
+              <a class="button button-secondary" href="#downloads">
+                Other platforms planned
               </a>
             </div>
 
             <p class="platform-note" id="platform-note" aria-live="polite">
-              Detecting your platform...
+              Android may ask you to allow installation from unknown sources. Download APKs only from the official GitHub Release.
             </p>
           </div>
           <div class="hero-art" aria-hidden="true">
@@ -161,7 +161,7 @@
             <span class="step-number">01</span>
             <div>
               <h3>Download the client</h3>
-              <p>Install Hestia on Android, desktop, or open the web version.</p>
+              <p>Use ARM64 for most phones, ARMv7 for older 32-bit devices, or x86_64 for emulators and rare Intel/ChromeOS devices.</p>
             </div>
           </li>
           <li>
@@ -195,8 +195,8 @@
             <h2 id="downloads-title">Downloads</h2>
           </div>
           <p class="section-copy">
-            Hestia recommends the right client for your device, but download
-            starts only after you choose it.
+            Choose the Android APK that matches your device. Other platforms
+            are planned and do not have public downloads yet.
           </p>
         </div>
         <div class="section-actions">
@@ -211,52 +211,82 @@
         <div class="download-grid" id="download-grid">
           <article class="download-card" data-platform-card="android">
             <div>
-              <h3>Android</h3>
-              <p>Install the Android APK directly.</p>
+              <h3>Android ARM64</h3>
+              <p>Recommended for most modern Android phones and tablets.</p>
             </div>
-            <a class="button button-download" href="#" data-download-key="android">
-              Download APK
+            <a class="button button-download" href="https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup" data-download-key="android">
+              ARM64 APK
             </a>
           </article>
 
-          <article class="download-card" data-platform-card="windows">
+          <article class="download-card" data-platform-card="androidArmv7">
             <div>
-              <h3>Windows</h3>
-              <p>Desktop build for Windows PCs.</p>
+              <h3>Android ARMv7</h3>
+              <p>Compatibility build for older 32-bit Android devices.</p>
             </div>
-            <a class="button button-download" href="#" data-download-key="windows">
-              Download for Windows
+            <a class="button button-download" href="https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup" data-download-key="androidArmv7">
+              ARMv7 APK
             </a>
           </article>
 
-          <article class="download-card" data-platform-card="macos">
+          <article class="download-card" data-platform-card="androidX64">
             <div>
-              <h3>macOS</h3>
-              <p>Desktop build for Mac devices.</p>
+              <h3>Android x86_64</h3>
+              <p>For Android emulators and uncommon Intel or ChromeOS-style Android devices.</p>
             </div>
-            <a class="button button-download" href="#" data-download-key="macos">
-              Download for macOS
+            <a class="button button-download" href="https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup" data-download-key="androidX64">
+              x86_64 APK
             </a>
           </article>
 
-          <article class="download-card" data-platform-card="linux">
-            <div>
-              <h3>Linux</h3>
-              <p>Desktop package for Linux systems.</p>
-            </div>
-            <a class="button button-download" href="#" data-download-key="linux">
-              Download for Linux
-            </a>
-          </article>
-
-          <article class="download-card" data-platform-card="web">
+          <article class="download-card is-disabled" data-platform-card="web">
             <div>
               <h3>Web</h3>
-              <p>Use Hestia in a modern browser.</p>
+              <p>Planned. The web client is not ready for public use yet.</p>
             </div>
-            <a class="button button-download" href="#" data-download-key="web">
-              Open Web Version
-            </a>
+            <span class="button button-disabled" aria-disabled="true">
+              Coming soon
+            </span>
+          </article>
+
+          <article class="download-card is-disabled" data-platform-card="windows">
+            <div>
+              <h3>Windows</h3>
+              <p>Planned. No public Windows installer is available yet.</p>
+            </div>
+            <span class="button button-disabled" aria-disabled="true">
+              Coming soon
+            </span>
+          </article>
+
+          <article class="download-card is-disabled" data-platform-card="macos">
+            <div>
+              <h3>macOS</h3>
+              <p>Planned. No public macOS build is available yet.</p>
+            </div>
+            <span class="button button-disabled" aria-disabled="true">
+              Coming soon
+            </span>
+          </article>
+
+          <article class="download-card is-disabled" data-platform-card="linux">
+            <div>
+              <h3>Linux</h3>
+              <p>Planned. No public Linux package is available yet.</p>
+            </div>
+            <span class="button button-disabled" aria-disabled="true">
+              Coming soon
+            </span>
+          </article>
+
+          <article class="download-card is-disabled" data-platform-card="ios">
+            <div>
+              <h3>iOS</h3>
+              <p>Planned. No public iOS build is available yet.</p>
+            </div>
+            <span class="button button-disabled" aria-disabled="true">
+              Coming soon
+            </span>
           </article>
 
           <article class="download-card download-card-wide">

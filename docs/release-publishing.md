@@ -1,124 +1,51 @@
 # Publishing Hestia GitHub Releases
 
-This project keeps generated release binaries out of git. Files under `releases/`
-are uploaded as GitHub Release assets.
+Generated release binaries stay out of git. Files under `releases/` are ignored and should be uploaded as GitHub Release assets.
 
-## 1. Install GitHub CLI
-
-Windows:
+## 1. Authenticate GitHub CLI
 
 ```powershell
-winget install --id GitHub.cli
-```
-
-macOS:
-
-```bash
-brew install gh
-```
-
-Linux:
-
-```bash
-sudo apt install gh
-```
-
-If your distro does not package `gh`, use the official instructions:
-https://github.com/cli/cli#installation
-
-## 2. Authenticate
-
-```bash
 gh auth login
 gh auth status
 ```
 
-Choose GitHub.com, HTTPS, and browser authentication unless your environment
-requires another flow.
+## 2. Build Android Split APKs
 
-## 3. Check Local Assets
+```powershell
+flutter pub get
+flutter analyze
+flutter build apk --release --split-per-abi
+powershell -ExecutionPolicy Bypass -File scripts/build/build_android_apk.ps1 -SkipPubGet
+```
 
-For `v4.0.0_1`, these files must exist locally:
+Expected release assets:
 
 ```text
-releases/hestia-4.0.0_1-android.apk
-releases/hestia-4.0.0_1-windows-setup.exe
-releases/hestia-4.0.0_1-windows-portable.zip
-releases/hestia-4.0.0_1-web-static.zip
-releases/hestia-4.0.0_1-backend.zip
-releases/hestia-4.0.0_1-landing.zip
-releases/4.0.0-checksums.txt
+releases/hestia-<release-id>-android-arm64-v8a.apk
+releases/hestia-<release-id>-android-armeabi-v7a.apk
+releases/hestia-<release-id>-android-x86_64.apk
+releases/<version>-checksums.txt
 releases/latest.json
 ```
 
-Do not run `git add releases/`. These files are ignored intentionally.
-
-## 4. Create And Push The Tag
-
-Create the tag from the commit you want to publish:
-
-```bash
-git status
-git tag v4.0.0_1
-git push origin v4.0.0_1
-```
-
-If the tag already exists locally, inspect it before changing anything:
-
-```bash
-git show v4.0.0_1
-```
-
-## 5. Upload Assets
-
-Bash:
-
-```bash
-./scripts/publish_release.sh v4.0.0_1
-```
-
-PowerShell:
+## 3. Upload
 
 ```powershell
-pwsh -File scripts/publish_release.ps1 v4.0.0_1
+powershell -ExecutionPolicy Bypass -File scripts/publish_release.ps1 v0.6.20
 ```
 
-The scripts:
-
-- verify `gh` is available
-- verify every required local file exists
-- create the GitHub Release if it does not exist
-- upload assets with `gh release upload`
-- keep local files in place
-- do not commit release binaries
-
-## 6. Verify The Release Page
-
-Open the release page:
+or:
 
 ```bash
-gh release view v4.0.0_1 --web
+./scripts/publish_release.sh v0.6.20
 ```
 
-Confirm that all eight assets are present:
+The publish scripts upload only Android split APKs, checksums, and `latest.json`.
 
-- Android APK
-- Windows installer
-- Windows portable ZIP
-- Web static ZIP
-- Backend ZIP
-- Landing/site ZIP
-- Checksums text file
-- `latest.json`
-
-Also download `4.0.0-checksums.txt` and compare at least one asset locally:
-
-```bash
-sha256sum releases/hestia-4.0.0_1-windows-setup.exe
-```
-
-On Windows PowerShell:
+## 4. Verify
 
 ```powershell
-Get-FileHash releases\hestia-4.0.0_1-windows-setup.exe -Algorithm SHA256
+gh release view v0.6.20 --web
 ```
+
+Verify that the landing page points to the correct release and, once direct asset URLs are available, update `Landing_Hestia/JS/release-config.js`.

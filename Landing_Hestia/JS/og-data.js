@@ -15,11 +15,11 @@
       en: {
         index: {
           title: "Hestia Messenger",
-          description: "Private messenger for people you trust: family, close friends, and small teams.",
+          description: "Hestia Android public builds are available as ARM64, ARMv7, and x86_64 APKs from the official GitHub Release.",
         },
         downloads: {
           title: "Get Hestia",
-          description: "Download Hestia for Android, Windows, macOS, Linux, or open the web version.",
+          description: "Download the Hestia Android APK for ARM64, ARMv7, or x86_64 from the official GitHub Release. Other platforms are planned.",
         },
         "server-setup": {
           title: "Server setup guide",
@@ -45,7 +45,7 @@
         },
         downloads: {
           title: "Завантажити Hestia",
-          description: "Завантажте Hestia для Android, Windows, macOS, Linux або відкрийте web-версію.",
+          description: "Android APK builds are available now. Web, Windows, Linux, macOS, and iOS are planned.",
         },
         "server-setup": {
           title: "Інструкція з налаштування сервера",
@@ -71,7 +71,7 @@
         },
         downloads: {
           title: "Скачать Hestia",
-          description: "Скачайте Hestia для Android, Windows, macOS, Linux или откройте web-версию.",
+          description: "Android APK builds are available now. Web, Windows, Linux, macOS, and iOS are planned.",
         },
         "server-setup": {
           title: "Инструкция по настройке сервера",
@@ -97,7 +97,7 @@
         },
         downloads: {
           title: "Pobierz Hestia",
-          description: "Pobierz Hestia dla Androida, Windows, macOS, Linux albo otwórz wersję web.",
+          description: "Android APK builds are available now. Web, Windows, Linux, macOS, and iOS are planned.",
         },
         "server-setup": {
           title: "Instrukcja konfiguracji serwera",
@@ -123,7 +123,7 @@
         },
         downloads: {
           title: "Obtener Hestia",
-          description: "Descarga Hestia para Android, Windows, macOS, Linux o abre la versión web.",
+          description: "Android APK builds are available now. Web, Windows, Linux, macOS, and iOS are planned.",
         },
         "server-setup": {
           title: "Guía de configuración del servidor",
@@ -149,7 +149,7 @@
         },
         downloads: {
           title: "Získat Hestia",
-          description: "Stáhněte Hestia pro Android, Windows, macOS, Linux nebo otevřete webovou verzi.",
+          description: "Android APK builds are available now. Web, Windows, Linux, macOS, and iOS are planned.",
         },
         "server-setup": {
           title: "Průvodce nastavením serveru",
@@ -175,7 +175,7 @@
         },
         downloads: {
           title: "Hestia herunterladen",
-          description: "Laden Sie Hestia für Android, Windows, macOS, Linux herunter oder öffnen Sie die Web-Version.",
+          description: "Android APK builds are available now. Web, Windows, Linux, macOS, and iOS are planned.",
         },
         "server-setup": {
           title: "Server-Einrichtungsanleitung",
@@ -202,3 +202,5 @@
     module.exports = data;
   }
 })(typeof window !== "undefined" ? window : globalThis);
+
+

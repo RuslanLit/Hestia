@@ -6,7 +6,6 @@
     "page_view",
     "platform_detected",
     "download_android",
-    "download_windows",
     "download_macos",
     "download_linux",
     "open_web",
@@ -77,7 +76,6 @@
     const absoluteHref = link.href || "";
 
     if (absoluteHref === platforms.android?.url || href === platforms.android?.url) return "download_android";
-    if (absoluteHref === platforms.windows?.url || href === platforms.windows?.url) return "download_windows";
     if (absoluteHref === platforms.macos?.url || href === platforms.macos?.url) return "download_macos";
     if (absoluteHref === platforms.linux?.url || href === platforms.linux?.url) return "download_linux";
     if (absoluteHref === platforms.web?.url || href === platforms.web?.url) return "open_web";
@@ -107,11 +105,11 @@
     if (!config.noticeEnabled) return;
     const noticeText = {
       en: "We use privacy-friendly analytics without tracking personal data.",
-      uk: "Ми використовуємо приватну аналітику без відстеження персональних даних.",
-      ru: "Мы используем приватную аналитику без отслеживания персональных данных.",
-      pl: "Używamy prywatnościowej analityki bez śledzenia danych osobowych.",
-      es: "Usamos analítica respetuosa con la privacidad sin rastrear datos personales.",
-      cs: "Používáme soukromí respektující analytiku bez sledování osobních údajů.",
+      uk: "We use privacy-friendly analytics without tracking personal data.",
+      ru: "We use privacy-friendly analytics without tracking personal data.",
+      pl: "Uzywamy prywatnosciowej analityki bez sledzenia danych osobowych.",
+      es: "Usamos analitica respetuosa con la privacidad sin rastrear datos personales.",
+      cs: "Pouzivame soukromi respektujici analytiku bez sledovani osobnich udaju.",
       de: "Wir nutzen datenschutzfreundliche Analytik ohne Tracking personenbezogener Daten.",
     };
 

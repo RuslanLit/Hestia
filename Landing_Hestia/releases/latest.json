@@ -1,78 +1,60 @@
 {
-  "version": "4.0.3",
-  "build": "4",
-  "releasedAt": "2026-04-29T00:00:00Z",
-  "releaseNotesUrl": "https://github.com/RuslanLit/Hestia/releases/tag/v4.0.3_4",
-  "checksumsUrl": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.3_4/4.0.3-checksums.txt",
-  "notes": "Hestia 4.0.3_4 restores username search and improves WebSocket connection handling for the official clients.",
-  "release_notes_url": "https://github.com/RuslanLit/Hestia/releases/tag/v4.0.3_4",
-  "downloads_url": "https://github.com/RuslanLit/Hestia/releases/tag/v4.0.3_4",
-  "apk_url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.3_4/hestia-4.0.3_4-android.apk",
-  "windows_url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.3_4/hestia-4.0.3_4-windows-setup.exe",
-  "windows_portable_url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.3_4/hestia-4.0.3_4-windows-portable.zip",
-  "web_url": "https://hestiachat.site",
+  "version": "0.6.20",
+  "build": "20",
+  "releasedAt": "2026-05-22T00:00:00Z",
+  "releaseNotesUrl": "https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup",
+  "checksumsUrl": "https://github.com/RuslanLit/Hestia/releases/download/v0.6.20-android-localized-wakeup/SHA256-0.6.20-localized.txt",
+  "notes": "Hestia 0.6.20 is an Android-first public build. Android split APKs are available by ABI; other platforms are planned.",
+  "release_notes_url": "https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup",
+  "downloads_url": "https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup",
+  "apk_url": "https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup",
   "platforms": {
-    "android": {
+    "androidArm64": {
       "available": true,
-      "file": "hestia-4.0.3_4-android.apk",
-      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.3_4/hestia-4.0.3_4-android.apk",
-      "sha256": "014b11e4cf0f2dc5d3647b16ca94eb9bf698af9ca96047a54c78d032d7cac3ac",
-      "sizeBytes": 97799174
+      "recommended": true,
+      "abi": "arm64-v8a",
+      "file": "hestia-0.6.20-android-arm64-v8a.apk",
+      "url": "https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup",
+      "sha256": "TODO: replace after uploading split APK asset",
+      "sizeBytes": 35863889
+    },
+    "androidArmv7": {
+      "available": true,
+      "recommended": false,
+      "abi": "armeabi-v7a",
+      "file": "hestia-0.6.20-android-armeabi-v7a.apk",
+      "url": "https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup",
+      "sha256": "TODO: replace after uploading split APK asset",
+      "sizeBytes": 28529159
+    },
+    "androidX64": {
+      "available": true,
+      "recommended": false,
+      "abi": "x86_64",
+      "file": "hestia-0.6.20-android-x86_64.apk",
+      "url": "https://github.com/RuslanLit/Hestia/releases/tag/v0.6.20-android-localized-wakeup",
+      "sha256": "TODO: replace after uploading split APK asset",
+      "sizeBytes": 41257482
+    },
+    "web": {
+      "available": false,
+      "reason": "Web app is planned and is not public yet."
     },
     "windows": {
-      "available": true,
-      "file": "hestia-4.0.3_4-windows-setup.exe",
-      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.3_4/hestia-4.0.3_4-windows-setup.exe",
-      "sha256": "2cee732929b3ac0f56ef23af3fbf9c8320a6d2499aeb905333b9ef9a5fe11430",
-      "sizeBytes": 47700992
-    },
-    "windowsPortable": {
-      "available": true,
-      "file": "hestia-4.0.3_4-windows-portable.zip",
-      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.3_4/hestia-4.0.3_4-windows-portable.zip",
-      "sha256": "99a7c751dee418d5b55db17452a1603b1c5458bb10139b05865540991f2bb208",
-      "sizeBytes": 47693421
-    },
-    "webStatic": {
-      "available": true,
-      "file": "hestia-4.0.3_4-web-static.zip",
-      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.3_4/hestia-4.0.3_4-web-static.zip",
-      "sha256": "a7e8591ead194b7f01b1e8bf0eb79030280502513554c49fa98c5e4e2740a248",
-      "sizeBytes": 14160008
-    },
-    "backend": {
-      "available": true,
-      "file": "hestia-4.0.3_4-backend.zip",
-      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.3_4/hestia-4.0.3_4-backend.zip",
-      "sha256": "073eed15404c8480878c5e2c7ace9b298768cf0a50bf3deb93cb785987298051",
-      "sizeBytes": 39442
-    },
-    "landing": {
-      "available": true,
-      "file": "hestia-4.0.3_4-landing.zip",
-      "url": "https://github.com/RuslanLit/Hestia/releases/download/v4.0.3_4/hestia-4.0.3_4-landing.zip",
-      "sha256": "911ba041fe8bb6ac5c657435748cc22fd74f6bcb4f6a98345cdd25c384cc544e",
-      "sizeBytes": 2462815
-    },
-    "linuxAppImage": {
       "available": false,
-      "reason": "Linux AppImage is not included in v4.0.3_4 yet."
+      "reason": "Windows build is planned and is not public yet."
     },
-    "linuxDeb": {
+    "linux": {
       "available": false,
-      "reason": "Linux DEB is not included in v4.0.3_4 yet."
-    },
-    "linuxTarGz": {
-      "available": false,
-      "reason": "Linux tar.gz is not included in v4.0.3_4 yet."
+      "reason": "Linux build is planned and is not public yet."
     },
     "macos": {
       "available": false,
-      "reason": "macOS DMG is not included in v4.0.3_4 yet."
+      "reason": "macOS build is planned and is not public yet."
     },
     "ios": {
       "available": false,
-      "reason": "iOS build is not included in v4.0.3_4 yet."
+      "reason": "iOS build is planned and is not public yet."
     }
   }
 }

@@ -1,4 +1,4 @@
-# Release Process
+﻿# Release Process
 
 This document describes a practical release flow for Hestia without changing application logic.
 
@@ -31,7 +31,7 @@ flutter pub get
 flutter analyze
 flutter build web
 flutter build apk --debug
-flutter build windows --debug
+flutter build apk --release --split-per-abi
 node --check server.js
 ```
 
@@ -39,11 +39,24 @@ node --check server.js
 
 Typical assets to publish:
 
-- Android APK
-- web build archive
-- Windows build archive
-- optional Linux/macOS archives if built
-- backend source snapshot or deployment bundle if needed
+- Android split APKs:
+  - `hestia-<version>-android-arm64-v8a.apk`
+  - `hestia-<version>-android-armeabi-v7a.apk`
+  - `hestia-<version>-android-x86_64.apk`
+- checksum file
+- `latest.json` update manifest
+
+For GitHub direct downloads, recommend `arm64-v8a` to most users, keep
+`armeabi-v7a` for older 32-bit Android devices, and keep `x86_64` for emulator
+or uncommon Intel/ChromeOS-style Android devices. A universal APK is useful as
+an internal fallback, but it is much larger because it contains native libraries
+for every ABI in one file.
+
+An Android App Bundle can be added for store distribution after signing is
+configured, but it should not replace direct APK assets on GitHub.
+
+Web, Windows, Linux, macOS, and iOS are planned but are not current public
+release assets.
 
 Do not publish:
 

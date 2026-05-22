@@ -17,15 +17,14 @@ $ReleaseId = $Tag -replace "^v", ""
 $Version = ($ReleaseId -split "_")[0]
 
 $Assets = @(
-  "releases/hestia-$ReleaseId-android.apk",
-  "releases/hestia-$ReleaseId-windows-setup.exe",
-  "releases/hestia-$ReleaseId-windows-portable.zip",
-  "releases/hestia-$ReleaseId-web-static.zip",
-  "releases/hestia-$ReleaseId-backend.zip",
-  "releases/hestia-$ReleaseId-landing.zip",
+  "releases/hestia-$ReleaseId-android-arm64-v8a.apk",
+  "releases/hestia-$ReleaseId-android-armeabi-v7a.apk",
+  "releases/hestia-$ReleaseId-android-x86_64.apk",
   "releases/$Version-checksums.txt",
   "releases/latest.json"
 )
+
+Write-Host "Publishing Android-first release assets for $Tag"
 
 $Missing = @($Assets | Where-Object { -not (Test-Path -LiteralPath $_ -PathType Leaf) })
 if ($Missing.Count -gt 0) {

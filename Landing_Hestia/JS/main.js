@@ -1,19 +1,24 @@
 const releaseConfig = window.HestiaReleaseConfig || {};
 const downloadConfig = releaseConfig.platforms || {};
+if (releaseConfig.webClientUrl && downloadConfig.web) {
+  downloadConfig.web.url = releaseConfig.webClientUrl;
+  downloadConfig.web.fileName = releaseConfig.webClientUrl;
+}
 const siteConfig = {
   version: releaseConfig.currentVersion || "preview",
   links: releaseConfig.links || {},
 };
 
 const platformNames = {
-  android: "Android",
+  android: "Android ARM64",
+  androidArmv7: "Android ARMv7",
+  androidX64: "Android x86_64",
   windows: "Windows",
-  windowsPortable: "Windows portable",
   macos: "macOS",
   linux: "Linux",
   ios: "iOS",
-  web: "Web",
-  server: "Backend server",
+  web: "Hestia Web",
+  server: "Backend for self-hosting",
   landing: "Landing/site",
   checksums: "Checksums",
 };
@@ -44,10 +49,6 @@ function detectPlatform() {
 
   if (/mac|darwin/.test(signal)) {
     return "macos";
-  }
-
-  if (/win/.test(signal)) {
-    return "windows";
   }
 
   if (/linux|x11/.test(signal)) {
@@ -190,15 +191,15 @@ function renderDownloadsPage() {
 
   const platformOrder = [
     "android",
-    "windows",
-    "windowsPortable",
+    "androidArmv7",
+    "androidX64",
     "web",
-    "server",
-    "landing",
-    "checksums",
+    "windows",
     "linux",
     "macos",
     "ios",
+    "server",
+    "checksums",
   ];
   list.replaceChildren(
     ...platformOrder
@@ -227,8 +228,8 @@ function setRecommendedDownload(platformKey) {
     !downloadConfig[platformKey] ||
     downloadConfig[platformKey].available === false
   ) {
-    primaryDownload.textContent = "View all downloads";
-    primaryDownload.href = "#downloads";
+    primaryDownload.textContent = "View platform status";
+    primaryDownload.href = document.querySelector("[data-release-list]") ? "#release-list" : "#downloads";
     primaryDownload.removeAttribute("target");
     primaryDownload.removeAttribute("rel");
     platformNote.textContent = downloadConfig[platformKey]?.available === false
@@ -249,7 +250,9 @@ function setRecommendedDownload(platformKey) {
     primaryDownload.removeAttribute("rel");
   }
 
-  platformNote.textContent = `Recommended for ${platformNames[platformKey]}. Download starts only after you click.`;
+  platformNote.textContent = platformKey === "android"
+    ? "ARM64 is recommended for most Android phones. The APK is downloaded from the official GitHub Release."
+    : `Recommended for ${platformNames[platformKey]}. Download starts only after you click.`;
 }
 
 function initDownloads() {
