@@ -624,6 +624,33 @@ class AppLocalizationsPl extends AppLocalizations {
   String get openDownloadPage => 'Otwórz stronę pobierania';
 
   @override
+  String get checkForUpdates => 'Sprawdź aktualizacje';
+
+  @override
+  String get latestVersionInstalled => 'Masz już najnowszą wersję.';
+
+  @override
+  String get updatesAndroidOnly =>
+      'Aktualizacje są dostępne tylko na Androidzie.';
+
+  @override
+  String get updateCheckFailed =>
+      'Nie udało się sprawdzić aktualizacji. Spróbuj ponownie.';
+
+  @override
+  String currentVersionLabel(String version) {
+    return 'Bieżąca wersja: $version';
+  }
+
+  @override
+  String latestVersionLabel(String version) {
+    return 'Najnowsza wersja: $version';
+  }
+
+  @override
+  String get releaseNotes => 'Informacje o wydaniu';
+
+  @override
   String get languageEnglish => 'English';
 
   @override

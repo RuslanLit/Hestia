@@ -1218,6 +1218,48 @@ abstract class AppLocalizations {
   /// **'Open download page'**
   String get openDownloadPage;
 
+  /// No description provided for @checkForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates'**
+  String get checkForUpdates;
+
+  /// No description provided for @latestVersionInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have the latest version.'**
+  String get latestVersionInstalled;
+
+  /// No description provided for @updatesAndroidOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Updates are available on Android only.'**
+  String get updatesAndroidOnly;
+
+  /// No description provided for @updateCheckFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check for updates. Please try again.'**
+  String get updateCheckFailed;
+
+  /// No description provided for @currentVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current version: {version}'**
+  String currentVersionLabel(String version);
+
+  /// No description provided for @latestVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest version: {version}'**
+  String latestVersionLabel(String version);
+
+  /// No description provided for @releaseNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Release notes'**
+  String get releaseNotes;
+
   /// No description provided for @languageEnglish.
   ///
   /// In en, this message translates to:

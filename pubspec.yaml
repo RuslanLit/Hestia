@@ -1,7 +1,7 @@
 name: hestia
 description: Stable text-only messenger
 publish_to: none
-version: 0.1.0+1
+version: 0.6.27+27
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

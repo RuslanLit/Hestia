@@ -311,6 +311,27 @@
   "updateViaAppStore": "Update via App Store",
   "downloadAndInstall": "Download and install",
   "openDownloadPage": "Open download page",
+  "checkForUpdates": "Check for updates",
+  "latestVersionInstalled": "You already have the latest version.",
+  "updatesAndroidOnly": "Updates are available on Android only.",
+  "updateCheckFailed": "Could not check for updates. Please try again.",
+  "currentVersionLabel": "Current version: {version}",
+  "@currentVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "latestVersionLabel": "Latest version: {version}",
+  "@latestVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "releaseNotes": "Release notes",
   "languageEnglish": "English",
   "languageUkrainian": "Українська",
   "languageRussian": "Русский",

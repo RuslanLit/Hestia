@@ -619,6 +619,33 @@ class AppLocalizationsRu extends AppLocalizations {
   String get openDownloadPage => 'Открыть страницу загрузки';
 
   @override
+  String get checkForUpdates => 'Проверить обновления';
+
+  @override
+  String get latestVersionInstalled =>
+      'У вас уже установлена последняя версия.';
+
+  @override
+  String get updatesAndroidOnly => 'Обновления доступны только на Android.';
+
+  @override
+  String get updateCheckFailed =>
+      'Не удалось проверить обновления. Попробуйте ещё раз.';
+
+  @override
+  String currentVersionLabel(String version) {
+    return 'Текущая версия: $version';
+  }
+
+  @override
+  String latestVersionLabel(String version) {
+    return 'Последняя версия: $version';
+  }
+
+  @override
+  String get releaseNotes => 'Примечания к выпуску';
+
+  @override
   String get languageEnglish => 'English';
 
   @override

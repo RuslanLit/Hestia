@@ -16,6 +16,7 @@ import '../services/retention_service.dart';
 import '../services/storage_service.dart';
 import '../services/theme_service.dart';
 import '../services/background_service.dart';
+import '../services/update_service.dart';
 import '../models/background_settings.dart';
 import '../widgets/app_background.dart';
 import '../widgets/micro_hint.dart';
@@ -382,6 +383,8 @@ class _ChatListScreenState extends State<ChatListScreen>
     );
   }
 
+  Future<void> _checkForUpdates() => checkForUpdate(context);
+
   void _openChat(String peerUserId, String username) {
     if (_usesDesktopLayout(context)) {
       setState(() {
@@ -654,6 +657,8 @@ class _ChatListScreenState extends State<ChatListScreen>
               _editTheme();
             case 'server':
               _editServer();
+            case 'updates':
+              _checkForUpdates();
             case 'logout':
               _confirmLogout();
           }
@@ -714,6 +719,14 @@ class _ChatListScreenState extends State<ChatListScreen>
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.dns_outlined),
               title: Text(l10n.server),
+            ),
+          ),
+          PopupMenuItem(
+            value: 'updates',
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.system_update_outlined),
+              title: Text(l10n.checkForUpdates),
             ),
           ),
           PopupMenuItem(

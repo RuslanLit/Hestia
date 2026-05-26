@@ -618,6 +618,32 @@ class AppLocalizationsUk extends AppLocalizations {
   String get openDownloadPage => 'Відкрити сторінку завантаження';
 
   @override
+  String get checkForUpdates => 'Перевірити оновлення';
+
+  @override
+  String get latestVersionInstalled => 'У вас уже встановлено останню версію.';
+
+  @override
+  String get updatesAndroidOnly => 'Оновлення доступні лише на Android.';
+
+  @override
+  String get updateCheckFailed =>
+      'Не вдалося перевірити оновлення. Спробуйте ще раз.';
+
+  @override
+  String currentVersionLabel(String version) {
+    return 'Поточна версія: $version';
+  }
+
+  @override
+  String latestVersionLabel(String version) {
+    return 'Остання версія: $version';
+  }
+
+  @override
+  String get releaseNotes => 'Примітки до випуску';
+
+  @override
   String get languageEnglish => 'English';
 
   @override

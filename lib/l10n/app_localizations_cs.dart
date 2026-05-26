@@ -616,6 +616,33 @@ class AppLocalizationsCs extends AppLocalizations {
   String get openDownloadPage => 'Otevřít stránku stažení';
 
   @override
+  String get checkForUpdates => 'Zkontrolovat aktualizace';
+
+  @override
+  String get latestVersionInstalled => 'Již máte nejnovější verzi.';
+
+  @override
+  String get updatesAndroidOnly =>
+      'Aktualizace jsou dostupné pouze pro Android.';
+
+  @override
+  String get updateCheckFailed =>
+      'Aktualizace se nepodařilo zkontrolovat. Zkuste to znovu.';
+
+  @override
+  String currentVersionLabel(String version) {
+    return 'Aktuální verze: $version';
+  }
+
+  @override
+  String latestVersionLabel(String version) {
+    return 'Nejnovější verze: $version';
+  }
+
+  @override
+  String get releaseNotes => 'Poznámky k vydání';
+
+  @override
   String get languageEnglish => 'English';
 
   @override
