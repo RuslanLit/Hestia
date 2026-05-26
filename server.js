@@ -260,11 +260,8 @@ function logDebug(message) {
   }
 }
 
-function sanitizedIceServers(iceServers) {
-  return iceServers.map((server) => ({
-    ...server,
-    ...(server.credential ? { credential: '<redacted>' } : {}),
-  }));
+function iceServerUrls(iceServers) {
+  return iceServers.map((server) => server.urls);
 }
 
 function logStartupConfig() {
@@ -286,11 +283,12 @@ function logStartupConfig() {
   logInfo(`[config] TURN_SERVERS env present: ${TURN_SERVERS_RAW ? 'yes' : 'no'}`);
   logInfo(`[config] TURN configured: ${CONFIGURED_TURN_SERVER_COUNT > 0 ? 'yes' : 'no'}`);
   logInfo(`[config] TURN placeholder detected: ${TURN_PLACEHOLDER_DETECTED ? 'yes' : 'no'}`);
+  logInfo(`[TURN] loaded count=${CONFIGURED_TURN_SERVER_COUNT} hasTurn=${CONFIGURED_TURN_SERVER_COUNT > 0} servers=${JSON.stringify(iceServerUrls(CONFIGURED_TURN_SERVERS))}`);
   logInfo(`[config] ICE servers parsed: ${ICE_SERVERS.length}`);
   if (ICE_SERVERS.length === 0) {
     logWarn('[config] ICE config is empty; calls can signal but ICE connectivity may fail.');
   }
-  logInfo(`[config] ICE servers: ${JSON.stringify(sanitizedIceServers(ICE_SERVERS))}`);
+  logInfo(`[config] ICE server urls: ${JSON.stringify(iceServerUrls(ICE_SERVERS))}`);
   logInfo(`[config] callMedia audio: ${JSON.stringify(CALL_MEDIA_CONFIG.audio)}`);
 }
 
