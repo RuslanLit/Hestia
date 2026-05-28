@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -37,6 +39,15 @@ class ChatListScreen extends StatefulWidget {
   State<ChatListScreen> createState() => _ChatListScreenState();
 }
 
+enum _WebLayoutBucket { compact, medium, wide }
+
+Color _desktopPanelColor(BuildContext context) {
+  final scheme = Theme.of(context).colorScheme;
+  final customBackground =
+      BackgroundService.instance.settings.type != BackgroundType.defaultTheme;
+  return kIsWeb && customBackground ? Colors.transparent : scheme.surface;
+}
+
 class _ChatListScreenState extends State<ChatListScreen>
     with SingleTickerProviderStateMixin {
   final _chat = ChatService.instance;
@@ -48,6 +59,8 @@ class _ChatListScreenState extends State<ChatListScreen>
   String? _selectedPeerNickname;
   bool _showDevicesPane = false;
   bool _retentionBannerDismissed = false;
+  _WebLayoutBucket? _lastWebLayoutBucket;
+  _WebLayoutBucket? _lastActionsCollapsedBucket;
 
   @override
   void initState() {
@@ -409,8 +422,36 @@ class _ChatListScreenState extends State<ChatListScreen>
     );
   }
 
-  bool _usesDesktopLayout(BuildContext context) =>
-      MediaQuery.sizeOf(context).width >= 900;
+  bool _usesDesktopLayout(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    return width >= (kIsWeb ? 720 : 900);
+  }
+
+  _WebLayoutBucket _layoutBucketForWidth(double width) {
+    if (width < 900) return _WebLayoutBucket.compact;
+    if (width < 1200) return _WebLayoutBucket.medium;
+    return _WebLayoutBucket.wide;
+  }
+
+  void _logWebLayoutBucket(_WebLayoutBucket bucket, Size size) {
+    if (!kIsWeb || _lastWebLayoutBucket == bucket) {
+      return;
+    }
+    _lastWebLayoutBucket = bucket;
+    debugPrint(
+      '[WebLayout] ${bucket.name} size=${size.width.toStringAsFixed(0)}x${size.height.toStringAsFixed(0)}',
+    );
+  }
+
+  void _logActionsCollapsed(_WebLayoutBucket bucket) {
+    if (!kIsWeb ||
+        bucket == _WebLayoutBucket.wide ||
+        _lastActionsCollapsedBucket == bucket) {
+      return;
+    }
+    _lastActionsCollapsedBucket = bucket;
+    debugPrint('[WebLayout] actions collapsed mode=${bucket.name}');
+  }
 
   String? _retentionHintText(BuildContext context) {
     if (_retentionBannerDismissed) {
@@ -436,37 +477,18 @@ class _ChatListScreenState extends State<ChatListScreen>
   String _connectionSubtitle(BuildContext context) {
     final l10n = context.l10n;
     return switch (_chat.connectionStatus) {
-      ServerConnectionStatus.connecting => _localizedConnectionText(
-          context,
-          ru: 'Подключение...',
-          en: 'Connecting...',
-        ),
+      ServerConnectionStatus.connecting => l10n.serverConnecting,
       ServerConnectionStatus.connected => l10n.serverConnected(AppConfig.host),
-      ServerConnectionStatus.authError => _localizedConnectionText(
-          context,
-          ru: 'Ошибка авторизации',
-          en: 'Authorization error',
-        ),
-      ServerConnectionStatus.serverError => _localizedConnectionText(
-          context,
-          ru: 'Ошибка сервера',
-          en: 'Server error',
-        ),
+      ServerConnectionStatus.authError => l10n.serverAuthorizationError,
+      ServerConnectionStatus.serverError => l10n.serverError,
       ServerConnectionStatus.disconnected => l10n.serverDisconnected,
     };
   }
 
-  String _localizedConnectionText(
-    BuildContext context, {
-    required String ru,
-    required String en,
-  }) {
-    final code = Localizations.localeOf(context).languageCode;
-    return code == 'ru' || code == 'uk' ? ru : en;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    _logWebLayoutBucket(_layoutBucketForWidth(size.width), size);
     if (_usesDesktopLayout(context)) {
       return _buildDesktop(context);
     }
@@ -501,9 +523,11 @@ class _ChatListScreenState extends State<ChatListScreen>
             ),
           ],
         ),
-        actions: useCompactAndroidToolbar
-            ? _compactAndroidToolbarActions(context)
-            : _fullMobileToolbarActions(context),
+        actions: kIsWeb
+            ? _webCompactToolbarActions(context)
+            : useCompactAndroidToolbar
+                ? _compactAndroidToolbarActions(context)
+                : _fullMobileToolbarActions(context),
         bottom: TabBar(
           controller: _tabController,
           tabs: [
@@ -552,18 +576,157 @@ class _ChatListScreenState extends State<ChatListScreen>
           ],
         ),
       ),
-      floatingActionButton: MicroHint(
-        hint: MicroOnboardingHint.addContact,
-        icon: Icons.person_search,
-        text: l10n.hintAddContact,
-        padding: const EdgeInsets.only(bottom: 10),
-        child: _MotionExtendedFab(
-          onPressed: _showFindUser,
-          icon: Icons.person_add_alt_1,
-          label: Text(l10n.addContact),
-        ),
-      ),
+      floatingActionButton: kIsWeb
+          ? null
+          : MicroHint(
+              hint: MicroOnboardingHint.addContact,
+              icon: Icons.person_search,
+              text: l10n.hintAddContact,
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _MotionExtendedFab(
+                onPressed: _showFindUser,
+                icon: Icons.person_add_alt_1,
+                label: Text(l10n.addContact),
+              ),
+            ),
     );
+  }
+
+  List<Widget> _webCompactToolbarActions(BuildContext context) {
+    final l10n = context.l10n;
+    return [
+      _MotionIconButton(
+        onPressed: _reload,
+        tooltip: l10n.refresh,
+        icon: Icons.refresh,
+        size: 40,
+      ),
+      PopupMenuButton<String>(
+        tooltip: MaterialLocalizations.of(context).showMenuTooltip,
+        icon: const Icon(Icons.menu),
+        onSelected: (value) {
+          switch (value) {
+            case 'add_contact':
+              _showFindUser();
+            case 'privacy':
+              _editPrivacy();
+            case 'blocked':
+              _showBlockedUsers();
+            case 'backup':
+              _showBackup();
+            case 'devices':
+              _showDevices();
+            case 'diagnostics':
+              _showDiagnostics();
+            case 'language':
+              _editLanguage();
+            case 'theme':
+              _editTheme();
+            case 'server':
+              _editServer();
+            case 'about':
+              showAboutDialog(
+                context: context,
+                applicationName: l10n.appName,
+              );
+            case 'logout':
+              _confirmLogout();
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: 'add_contact',
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.person_add_alt_1),
+              title: Text(l10n.addContact),
+            ),
+          ),
+          PopupMenuItem(
+            value: 'privacy',
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.privacy_tip_outlined),
+              title: Text(l10n.privacy),
+            ),
+          ),
+          PopupMenuItem(
+            value: 'blocked',
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.block),
+              title: Text(l10n.blockedUsers),
+            ),
+          ),
+          if (AppConfig.enableBackupUi)
+            PopupMenuItem(
+              value: 'backup',
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.backup_outlined),
+                title: Text(l10n.backup),
+              ),
+            ),
+          PopupMenuItem(
+            value: 'devices',
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.devices_other),
+              title: Text(l10n.devices),
+            ),
+          ),
+          PopupMenuItem(
+            value: 'diagnostics',
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.bug_report_outlined),
+              title: Text(l10n.diagnostics),
+            ),
+          ),
+          PopupMenuItem(
+            value: 'language',
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.language),
+              title: Text(l10n.language),
+            ),
+          ),
+          PopupMenuItem(
+            value: 'theme',
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.brightness_6_outlined),
+              title: Text(l10n.theme),
+            ),
+          ),
+          PopupMenuItem(
+            value: 'server',
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.dns_outlined),
+              title: Text(l10n.server),
+            ),
+          ),
+          PopupMenuItem(
+            value: 'about',
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.info_outline),
+              title: Text(MaterialLocalizations.of(context)
+                  .aboutListTileTitle(l10n.appName)),
+            ),
+          ),
+          PopupMenuItem(
+            value: 'logout',
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.logout),
+              title: Text(l10n.logout),
+            ),
+          ),
+        ],
+      ),
+    ];
   }
 
   List<Widget> _fullMobileToolbarActions(BuildContext context) {
@@ -743,6 +906,10 @@ class _ChatListScreenState extends State<ChatListScreen>
   }
 
   Widget _buildDesktop(BuildContext context) {
+    final viewport = MediaQuery.sizeOf(context);
+    final layoutBucket = _layoutBucketForWidth(viewport.width);
+    _logWebLayoutBucket(layoutBucket, viewport);
+    _logActionsCollapsed(layoutBucket);
     final profile = _chat.profile;
     final unreadChats = _chat.unreadChatCount;
     final newRequests = _chat.newContactRequestCount;
@@ -751,124 +918,181 @@ class _ChatListScreenState extends State<ChatListScreen>
     final selectedPeerUserId = _selectedPeerUserId;
     final selectedPeerNickname = _selectedPeerNickname;
     final listQuery = _listSearchCtrl.text;
+    final customBackground =
+        BackgroundService.instance.settings.type != BackgroundType.defaultTheme;
+    final useDesktopBackground = kIsWeb && customBackground;
+    final panelColor = _desktopPanelColor(context);
+    final maxWidth = switch (layoutBucket) {
+      _WebLayoutBucket.compact => double.infinity,
+      _WebLayoutBucket.medium => 1220.0,
+      _WebLayoutBucket.wide => 1440.0,
+    };
 
-    return Scaffold(
-      backgroundColor: scheme.surfaceContainerHighest,
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1360),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: scheme.surface,
-                border: Border.symmetric(
-                  vertical: BorderSide(color: scheme.outline),
-                ),
+    final body = SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: panelColor,
+              border: Border.symmetric(
+                vertical: BorderSide(color: scheme.outline),
               ),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 348,
-                    child: Material(
-                      color: scheme.surface,
-                      child: Column(
-                        children: [
-                          _DesktopLeftHeader(
-                            title: l10n.appName,
-                            subtitle: _connectionSubtitle(context),
-                            onAddContact: _showFindUser,
-                            onReload: _reload,
-                            onPrivacy: _editPrivacy,
-                            onBlockedUsers: _showBlockedUsers,
-                            onBackup: _showBackup,
-                            onDevices: _showDevices,
-                            onDiagnostics: _showDiagnostics,
-                            onLanguage: _editLanguage,
-                            onTheme: _editTheme,
-                            onServer: _editServer,
-                            onLogout: _confirmLogout,
-                          ),
-                          _AccountSummary(profile: profile, compact: true),
-                          _DesktopListSearch(
-                            controller: _listSearchCtrl,
-                            onChanged: (_) => setState(() {}),
-                          ),
-                          _RetentionBanner(
-                            text: _retentionHintText(context),
-                            compact: true,
-                            onDismiss: () => setState(() {
-                              _retentionBannerDismissed = true;
-                            }),
-                          ),
-                          TabBar(
-                            controller: _tabController,
-                            tabs: [
-                              Tab(
-                                icon: _TabIconWithBadge(
-                                  icon: Icons.chat_bubble_outline,
-                                  count: unreadChats,
-                                ),
-                                text: l10n.chats,
+            ),
+            child: LayoutBuilder(
+              builder: (context, shellConstraints) {
+                final sidebarWidth = switch (layoutBucket) {
+                  _WebLayoutBucket.compact => math.min(
+                      292.0,
+                      math.max(248.0, shellConstraints.maxWidth * 0.38),
+                    ),
+                  _WebLayoutBucket.medium => 320.0,
+                  _WebLayoutBucket.wide => 348.0,
+                };
+                return Row(
+                  children: [
+                    SizedBox(
+                      width: sidebarWidth,
+                      child: Material(
+                        color: panelColor,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final topControls = [
+                              _DesktopLeftHeader(
+                                title: l10n.appName,
+                                subtitle: _connectionSubtitle(context),
+                                onAddContact: _showFindUser,
+                                onReload: _reload,
+                                onPrivacy: _editPrivacy,
+                                onBlockedUsers: _showBlockedUsers,
+                                onBackup: _showBackup,
+                                onDevices: _showDevices,
+                                onDiagnostics: _showDiagnostics,
+                                onLanguage: _editLanguage,
+                                onTheme: _editTheme,
+                                onServer: _editServer,
+                                onLogout: _confirmLogout,
+                                layoutBucket: layoutBucket,
                               ),
-                              Tab(
-                                icon: const Icon(Icons.people_outline),
-                                text: l10n.contacts,
+                              _AccountSummary(profile: profile, compact: true),
+                              _DesktopListSearch(
+                                controller: _listSearchCtrl,
+                                onChanged: (_) => setState(() {}),
                               ),
-                              Tab(
-                                icon: _TabIconWithBadge(
-                                  icon: Icons.inbox_outlined,
-                                  count: newRequests,
-                                ),
-                                text: l10n.requests,
+                              _RetentionBanner(
+                                text: _retentionHintText(context),
+                                compact: true,
+                                onDismiss: () => setState(() {
+                                  _retentionBannerDismissed = true;
+                                }),
                               ),
-                            ],
-                          ),
-                          Expanded(
-                            child: TabBarView(
-                              controller: _tabController,
+                            ];
+                            final shortHeight = constraints.maxHeight < 720;
+                            final maxTopHeight = math.max(
+                              0.0,
+                              constraints.maxHeight - 112,
+                            );
+
+                            return Column(
                               children: [
-                                _ChatsTab(
-                                  searchQuery: listQuery,
-                                  selectedPeerUserId: selectedPeerUserId,
-                                  onAddContact: _showFindUser,
-                                  onOpenChat: _openChat,
+                                if (shortHeight)
+                                  ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxHeight: maxTopHeight,
+                                    ),
+                                    child: SingleChildScrollView(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: topControls,
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  ...topControls,
+                                TabBar(
+                                  controller: _tabController,
+                                  tabs: [
+                                    Tab(
+                                      icon: _TabIconWithBadge(
+                                        icon: Icons.chat_bubble_outline,
+                                        count: unreadChats,
+                                      ),
+                                      text: l10n.chats,
+                                    ),
+                                    Tab(
+                                      icon: const Icon(Icons.people_outline),
+                                      text: l10n.contacts,
+                                    ),
+                                    Tab(
+                                      icon: _TabIconWithBadge(
+                                        icon: Icons.inbox_outlined,
+                                        count: newRequests,
+                                      ),
+                                      text: l10n.requests,
+                                    ),
+                                  ],
                                 ),
-                                _ContactsTab(
-                                  searchCtrl: _searchCtrl,
-                                  searchQuery: listQuery,
-                                  selectedPeerUserId: selectedPeerUserId,
-                                  onAddContact: _showFindUser,
-                                  onOpenChat: _openChat,
+                                Expanded(
+                                  child: TabBarView(
+                                    controller: _tabController,
+                                    children: [
+                                      _ChatsTab(
+                                        searchQuery: listQuery,
+                                        selectedPeerUserId: selectedPeerUserId,
+                                        onAddContact: _showFindUser,
+                                        onOpenChat: _openChat,
+                                      ),
+                                      _ContactsTab(
+                                        searchCtrl: _searchCtrl,
+                                        searchQuery: listQuery,
+                                        selectedPeerUserId: selectedPeerUserId,
+                                        onAddContact: _showFindUser,
+                                        onOpenChat: _openChat,
+                                      ),
+                                      _RequestsTab(searchQuery: listQuery),
+                                    ],
+                                  ),
                                 ),
-                                _RequestsTab(searchQuery: listQuery),
                               ],
-                            ),
-                          ),
-                        ],
+                            );
+                          },
+                        ),
                       ),
                     ),
-                  ),
-                  VerticalDivider(width: 1, color: scheme.outline),
-                  Expanded(
-                    child: _showDevicesPane
-                        ? const _DesktopDevicesPane()
-                        : selectedPeerUserId == null ||
-                                selectedPeerNickname == null
-                            ? const _DesktopEmptyChatPane()
-                            : ChatScreen(
-                                key: ValueKey(
-                                  'desktop_chat_$selectedPeerUserId',
+                    VerticalDivider(width: 1, color: scheme.outline),
+                    Expanded(
+                      child: _showDevicesPane
+                          ? const _DesktopDevicesPane()
+                          : selectedPeerUserId == null ||
+                                  selectedPeerNickname == null
+                              ? const _DesktopEmptyChatPane()
+                              : ChatScreen(
+                                  key: ValueKey(
+                                    'desktop_chat_$selectedPeerUserId',
+                                  ),
+                                  peerUserId: selectedPeerUserId,
+                                  peerNickname: selectedPeerNickname,
                                 ),
-                                peerUserId: selectedPeerUserId,
-                                peerNickname: selectedPeerNickname,
-                              ),
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),
       ),
+    );
+
+    return Scaffold(
+      backgroundColor: useDesktopBackground
+          ? Colors.transparent
+          : scheme.surfaceContainerHighest,
+      body: useDesktopBackground
+          ? AppBackground(
+              overlayOpacity: 0.12,
+              child: body,
+            )
+          : body,
     );
   }
 }
@@ -1053,6 +1277,7 @@ class _DesktopLeftHeader extends StatelessWidget {
   final VoidCallback onTheme;
   final VoidCallback onServer;
   final VoidCallback onLogout;
+  final _WebLayoutBucket layoutBucket;
 
   const _DesktopLeftHeader({
     required this.title,
@@ -1068,11 +1293,14 @@ class _DesktopLeftHeader extends StatelessWidget {
     required this.onTheme,
     required this.onServer,
     required this.onLogout,
+    required this.layoutBucket,
   });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final collapsedActions = kIsWeb && layoutBucket != _WebLayoutBucket.wide;
+    final iconSize = collapsedActions ? 40.0 : 48.0;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: scheme.surface,
@@ -1107,22 +1335,27 @@ class _DesktopLeftHeader extends StatelessWidget {
                     ],
                   ),
                 ),
-                _MotionIconButton(
-                  onPressed: onAddContact,
-                  tooltip: context.l10n.addContact,
-                  icon: Icons.person_add_alt_1,
-                  haptic: true,
-                ),
+                if (!collapsedActions)
+                  _MotionIconButton(
+                    onPressed: onAddContact,
+                    tooltip: context.l10n.addContact,
+                    icon: Icons.person_add_alt_1,
+                    haptic: true,
+                    size: iconSize,
+                  ),
                 _MotionIconButton(
                   onPressed: onReload,
                   tooltip: context.l10n.refresh,
                   icon: Icons.refresh,
+                  size: iconSize,
                 ),
                 PopupMenuButton<String>(
                   tooltip: context.l10n.settings,
-                  icon: const Icon(Icons.more_vert),
+                  icon: Icon(collapsedActions ? Icons.menu : Icons.more_vert),
                   onSelected: (value) {
                     switch (value) {
+                      case 'add_contact':
+                        onAddContact();
                       case 'privacy':
                         onPrivacy();
                       case 'blocked':
@@ -1141,9 +1374,19 @@ class _DesktopLeftHeader extends StatelessWidget {
                         onServer();
                       case 'logout':
                         onLogout();
+                      case 'about':
+                        showAboutDialog(
+                          context: context,
+                          applicationName: context.l10n.appName,
+                        );
                     }
                   },
                   itemBuilder: (context) => [
+                    if (collapsedActions)
+                      PopupMenuItem(
+                        value: 'add_contact',
+                        child: Text(context.l10n.addContact),
+                      ),
                     PopupMenuItem(
                       value: 'privacy',
                       child: Text(context.l10n.privacy),
@@ -1180,6 +1423,11 @@ class _DesktopLeftHeader extends StatelessWidget {
                     PopupMenuItem(
                       value: 'logout',
                       child: Text(context.l10n.logout),
+                    ),
+                    PopupMenuItem(
+                      value: 'about',
+                      child: Text(MaterialLocalizations.of(context)
+                          .aboutListTileTitle(context.l10n.appName)),
                     ),
                   ],
                 ),
@@ -1242,7 +1490,7 @@ class _DesktopEmptyChatPane extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Material(
-      color: scheme.surface,
+      color: _desktopPanelColor(context),
       child: Center(
         child: Text(
           context.l10n.chats,
@@ -1582,8 +1830,10 @@ class _BackupDialogState extends State<_BackupDialog> {
       return;
     }
     await _run(() async {
-      final path = await ChatService.instance
-          .exportEncryptedBackup(_passphraseCtrl.text);
+      final path = await ChatService.instance.exportEncryptedBackup(
+        _passphraseCtrl.text,
+        dialogTitle: context.l10n.exportBackupDialogTitle,
+      );
       return path == null ? exportCancelled : backupSaved;
     });
   }
@@ -1839,7 +2089,6 @@ class _DesktopDevicesPaneState extends State<_DesktopDevicesPane> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final scheme = Theme.of(context).colorScheme;
     final sessions = _chat.sessions;
     final hasCurrentSession = sessions.any((session) => session.current);
     final visibleSessions = hasCurrentSession
@@ -1859,7 +2108,7 @@ class _DesktopDevicesPaneState extends State<_DesktopDevicesPane> {
     final dateFormat = DateFormat.yMMMd(locale).add_Hm();
 
     return Material(
-      color: scheme.surface,
+      color: _desktopPanelColor(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -2173,10 +2422,7 @@ class _FindUserDialogState extends State<_FindUserDialog> {
   String _searchErrorText(BuildContext context, Object error) {
     final text = error.toString();
     if (text.contains('No server connection')) {
-      final code = Localizations.localeOf(context).languageCode;
-      return code == 'ru' || code == 'uk'
-          ? 'Нет подключения к серверу'
-          : 'No server connection';
+      return context.l10n.noServerConnection;
     }
     return context.localizedError(error);
   }
@@ -2337,94 +2583,100 @@ class _ChatsTab extends StatelessWidget {
         final subtitle = _conversationPreview(context, last);
         return HestiaListEntrance(
           index: index,
-          child: ListTile(
-            selected: conversation.peerUserId == selectedPeerUserId,
-            selectedTileColor:
-                Theme.of(context).colorScheme.primary.withValues(alpha: 0.10),
-            leading: _AvatarWithStatus(
-              label: conversation.peerNickname,
-              online:
-                  ChatService.instance.isPeerOnline(conversation.peerUserId),
-            ),
-            title: _ContactTitle(conversation.peerNickname),
-            subtitle: Text(
-              subtitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (settings.muted)
-                  const Padding(
-                    padding: EdgeInsets.only(right: 8),
-                    child: Icon(Icons.notifications_off_outlined, size: 18),
+          child: Material(
+            color: Colors.transparent,
+            child: ListTile(
+              selected: conversation.peerUserId == selectedPeerUserId,
+              selectedTileColor:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.10),
+              leading: _AvatarWithStatus(
+                label: conversation.peerNickname,
+                online:
+                    ChatService.instance.isPeerOnline(conversation.peerUserId),
+              ),
+              title: _ContactTitle(conversation.peerNickname),
+              subtitle: Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (settings.muted)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 8),
+                      child: Icon(Icons.notifications_off_outlined, size: 18),
+                    ),
+                  if (settings.pinned)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 8),
+                      child: Icon(Icons.push_pin_outlined, size: 18),
+                    ),
+                  AnimatedSwitcher(
+                    duration: HestiaMotion.normal,
+                    child: unreadCount > 0
+                        ? Padding(
+                            key: ValueKey(unreadCount),
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Badge.count(
+                              count: unreadCount,
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                            ),
+                          )
+                        : const SizedBox.shrink(),
                   ),
-                if (settings.pinned)
-                  const Padding(
-                    padding: EdgeInsets.only(right: 8),
-                    child: Icon(Icons.push_pin_outlined, size: 18),
+                  PopupMenuButton<String>(
+                    onSelected: (value) async {
+                      if (value == 'mute') {
+                        await ChatService.instance
+                            .toggleChatMute(conversation.id);
+                      } else if (value == 'pin') {
+                        await ChatService.instance
+                            .toggleChatPin(conversation.id);
+                      } else if (value == 'archive') {
+                        await ChatService.instance
+                            .toggleChatArchive(conversation.id);
+                      } else if (value == 'delete') {
+                        await ChatService.instance
+                            .deleteConversationForMe(conversation.id);
+                      }
+                    },
+                    itemBuilder: (_) => [
+                      PopupMenuItem(
+                        value: 'mute',
+                        child: Text(
+                          settings.muted
+                              ? context.l10n.unmute
+                              : context.l10n.mute,
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'pin',
+                        child: Text(
+                          settings.pinned
+                              ? context.l10n.unpin
+                              : context.l10n.pin,
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'archive',
+                        child: Text(context.l10n.archive),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Text(context.l10n.deleteForMe),
+                      ),
+                    ],
                   ),
-                AnimatedSwitcher(
-                  duration: HestiaMotion.normal,
-                  child: unreadCount > 0
-                      ? Padding(
-                          key: ValueKey(unreadCount),
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Badge.count(
-                            count: unreadCount,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) async {
-                    if (value == 'mute') {
-                      await ChatService.instance
-                          .toggleChatMute(conversation.id);
-                    } else if (value == 'pin') {
-                      await ChatService.instance.toggleChatPin(conversation.id);
-                    } else if (value == 'archive') {
-                      await ChatService.instance
-                          .toggleChatArchive(conversation.id);
-                    } else if (value == 'delete') {
-                      await ChatService.instance
-                          .deleteConversationForMe(conversation.id);
-                    }
-                  },
-                  itemBuilder: (_) => [
-                    PopupMenuItem(
-                      value: 'mute',
-                      child: Text(
-                        settings.muted
-                            ? context.l10n.unmute
-                            : context.l10n.mute,
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'pin',
-                      child: Text(
-                        settings.pinned ? context.l10n.unpin : context.l10n.pin,
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'archive',
-                      child: Text(context.l10n.archive),
-                    ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Text(context.l10n.deleteForMe),
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
+              onTap: () {
+                ChatService.instance.markConversationRead(conversation.id);
+                onOpenChat(conversation.peerUserId, conversation.peerNickname);
+              },
             ),
-            onTap: () {
-              ChatService.instance.markConversationRead(conversation.id);
-              onOpenChat(conversation.peerUserId, conversation.peerNickname);
-            },
           ),
         );
       },
@@ -2502,13 +2754,10 @@ class _ContactsTab extends StatelessWidget {
         await chat.searchUsername(value);
       } catch (error) {
         if (!context.mounted) return;
-        final code = Localizations.localeOf(context).languageCode;
         showHestiaSnackBar(
           context,
           error.toString().contains('No server connection')
-              ? (code == 'ru' || code == 'uk'
-                  ? 'Нет подключения к серверу'
-                  : 'No server connection')
+              ? context.l10n.noServerConnection
               : context.localizedError(error),
           tone: HestiaStatusTone.error,
         );
@@ -2543,17 +2792,20 @@ class _ContactsTab extends StatelessWidget {
           ),
           if (visibleSearchResult != null) ...[
             const SizedBox(height: 12),
-            ListTile(
-              leading: _AvatarWithStatus(
-                label: visibleSearchResult.nickname,
-                online: visibleSearchResult.online,
-              ),
-              title: _ContactTitle(visibleSearchResult.nickname),
-              subtitle: Text(context.l10n.userFound),
-              trailing: FilledButton(
-                onPressed: () =>
-                    chat.sendContactRequest(visibleSearchResult.userId),
-                child: Text(context.l10n.request),
+            Material(
+              color: Colors.transparent,
+              child: ListTile(
+                leading: _AvatarWithStatus(
+                  label: visibleSearchResult.nickname,
+                  online: visibleSearchResult.online,
+                ),
+                title: _ContactTitle(visibleSearchResult.nickname),
+                subtitle: Text(context.l10n.userFound),
+                trailing: FilledButton(
+                  onPressed: () =>
+                      chat.sendContactRequest(visibleSearchResult.userId),
+                  child: Text(context.l10n.request),
+                ),
               ),
             ),
           ],
@@ -2569,34 +2821,40 @@ class _ContactsTab extends StatelessWidget {
             for (final (index, contact) in contacts.indexed)
               HestiaListEntrance(
                 index: index,
-                child: ListTile(
-                  selected: contact.peerUserId == selectedPeerUserId,
-                  selectedTileColor: Theme.of(context)
-                      .colorScheme
-                      .primary
-                      .withValues(alpha: 0.10),
-                  leading: _AvatarWithStatus(
-                    label: contact.username,
-                    online: chat.isPeerOnline(contact.peerUserId),
+                child: Material(
+                  color: Colors.transparent,
+                  child: ListTile(
+                    selected: contact.peerUserId == selectedPeerUserId,
+                    selectedTileColor: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.10),
+                    leading: _AvatarWithStatus(
+                      label: contact.username,
+                      online: chat.isPeerOnline(contact.peerUserId),
+                    ),
+                    title: _ContactTitle(contact.username),
+                    subtitle: Text(
+                      chat.isPeerOnline(contact.peerUserId)
+                          ? context.l10n.contactOnline
+                          : context.l10n.contact,
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'block') {
+                          chat.blockUser(contact.peerUserId);
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        PopupMenuItem(
+                          value: 'block',
+                          child: Text(context.l10n.block),
+                        ),
+                      ],
+                    ),
+                    onTap: () =>
+                        onOpenChat(contact.peerUserId, contact.username),
                   ),
-                  title: _ContactTitle(contact.username),
-                  subtitle: Text(
-                    chat.isPeerOnline(contact.peerUserId)
-                        ? context.l10n.contactOnline
-                        : context.l10n.contact,
-                  ),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'block') chat.blockUser(contact.peerUserId);
-                    },
-                    itemBuilder: (_) => [
-                      PopupMenuItem(
-                        value: 'block',
-                        child: Text(context.l10n.block),
-                      ),
-                    ],
-                  ),
-                  onTap: () => onOpenChat(contact.peerUserId, contact.username),
                 ),
               ),
         ],
@@ -2725,42 +2983,46 @@ class _RequestsTab extends StatelessWidget {
         final request = requests[index - 1];
         return HestiaListEntrance(
           index: index,
-          child: ListTile(
-            leading: CircleAvatar(
-              child: Text(request.fromUsername.isEmpty
-                  ? '?'
-                  : request.fromUsername[0].toUpperCase()),
-            ),
-            title: _ContactTitle(request.fromUsername),
-            subtitle: Text(context.l10n.wantsToAddYou),
-            trailing: Wrap(
-              spacing: 8,
-              children: [
-                _MotionIconButton(
-                  tooltip: context.l10n.decline,
-                  onPressed: () => chat.declineContactRequest(request.id),
-                  icon: Icons.close,
-                ),
-                _MotionIconButton(
-                  tooltip: context.l10n.accept,
-                  onPressed: () async {
-                    HestiaMotion.lightImpact();
-                    await chat.acceptContactRequest(request.id);
-                    final firstContact = await RetentionService.instance
-                        .markSeen(RetentionMoment.firstContactAdded);
-                    chat.sendRetentionEvent(RetentionMoment.firstContactAdded);
-                    if (!context.mounted || !firstContact) {
-                      return;
-                    }
-                    showHestiaSnackBar(
-                      context,
-                      context.l10n.retentionContactAdded,
-                      tone: HestiaStatusTone.info,
-                    );
-                  },
-                  icon: Icons.check,
-                ),
-              ],
+          child: Material(
+            color: Colors.transparent,
+            child: ListTile(
+              leading: CircleAvatar(
+                child: Text(request.fromUsername.isEmpty
+                    ? '?'
+                    : request.fromUsername[0].toUpperCase()),
+              ),
+              title: _ContactTitle(request.fromUsername),
+              subtitle: Text(context.l10n.wantsToAddYou),
+              trailing: Wrap(
+                spacing: 8,
+                children: [
+                  _MotionIconButton(
+                    tooltip: context.l10n.decline,
+                    onPressed: () => chat.declineContactRequest(request.id),
+                    icon: Icons.close,
+                  ),
+                  _MotionIconButton(
+                    tooltip: context.l10n.accept,
+                    onPressed: () async {
+                      HestiaMotion.lightImpact();
+                      await chat.acceptContactRequest(request.id);
+                      final firstContact = await RetentionService.instance
+                          .markSeen(RetentionMoment.firstContactAdded);
+                      chat.sendRetentionEvent(
+                          RetentionMoment.firstContactAdded);
+                      if (!context.mounted || !firstContact) {
+                        return;
+                      }
+                      showHestiaSnackBar(
+                        context,
+                        context.l10n.retentionContactAdded,
+                        tone: HestiaStatusTone.info,
+                      );
+                    },
+                    icon: Icons.check,
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -2776,25 +3038,26 @@ class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.icon, required this.text});
 
   @override
-  Widget build(BuildContext context) => ListView(
-        children: [
-          const SizedBox(height: 160),
-          Icon(
-            icon,
-            size: 64,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 12),
-          Center(
-            child: Text(
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 88, 24, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 64,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 12),
+            Text(
               text,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       );
 }
 
@@ -2876,44 +3139,46 @@ class _FirstActionEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        const SizedBox(height: 88),
-        Icon(
-          Icons.people_outline,
-          size: 64,
-          color: scheme.primary,
-        ),
-        const SizedBox(height: 18),
-        Text(
-          context.l10n.firstRunNoContactsTitle,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          context.l10n.firstRunNoContactsBody,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 88, 24, 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.people_outline,
+            size: 64,
+            color: scheme.primary,
+          ),
+          const SizedBox(height: 18),
+          Text(
+            context.l10n.firstRunNoContactsTitle,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            context.l10n.firstRunNoContactsBody,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 24),
+          Center(
+            child: MicroHint(
+              hint: MicroOnboardingHint.addContact,
+              icon: Icons.person_search,
+              text: context.l10n.hintAddContact,
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _MotionExtendedFab(
+                onPressed: onAddContact,
+                icon: Icons.person_add_alt_1,
+                label: Text(context.l10n.addContact),
               ),
-        ),
-        const SizedBox(height: 24),
-        Center(
-          child: MicroHint(
-            hint: MicroOnboardingHint.addContact,
-            icon: Icons.person_search,
-            text: context.l10n.hintAddContact,
-            padding: const EdgeInsets.only(bottom: 10),
-            child: _MotionExtendedFab(
-              onPressed: onAddContact,
-              icon: Icons.person_add_alt_1,
-              label: Text(context.l10n.addContact),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

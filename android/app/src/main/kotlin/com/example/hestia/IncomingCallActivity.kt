@@ -141,16 +141,18 @@ class IncomingCallActivity : Activity() {
         }
         val title = TextView(this).apply {
             text = if (video) {
-                getString(R.string.incoming_video_call)
+                HestiaStrings.get(this@IncomingCallActivity, R.string.incoming_video_call)
             } else {
-                getString(R.string.incoming_voice_call)
+                HestiaStrings.get(this@IncomingCallActivity, R.string.incoming_voice_call)
             }
             textSize = 22f
             setTextColor(Color.rgb(226, 232, 240))
             gravity = Gravity.CENTER
         }
         val caller = TextView(this).apply {
-            text = fromNickname.ifBlank { getString(R.string.hestia_call_fallback) }
+            text = fromNickname.ifBlank {
+                HestiaStrings.get(this@IncomingCallActivity, R.string.hestia_call_fallback)
+            }
             textSize = 34f
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER
@@ -161,11 +163,11 @@ class IncomingCallActivity : Activity() {
             gravity = Gravity.CENTER
         }
         val decline = Button(this).apply {
-            text = getString(R.string.decline)
+            text = HestiaStrings.get(this@IncomingCallActivity, R.string.decline)
             setOnClickListener { decline() }
         }
         val accept = Button(this).apply {
-            text = getString(R.string.accept)
+            text = HestiaStrings.get(this@IncomingCallActivity, R.string.accept)
             setOnClickListener { accept() }
         }
         actions.addView(decline, LinearLayout.LayoutParams(0, 128, 1f).apply { marginEnd = 16 })

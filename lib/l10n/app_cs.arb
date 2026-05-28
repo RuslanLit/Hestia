@@ -290,6 +290,15 @@
   "currentVersionLabel": "Aktuální verze: {version}",
   "latestVersionLabel": "Nejnovější verze: {version}",
   "releaseNotes": "Poznámky k vydání",
+  "downloadApk": "Stáhnout",
+  "downloadVerified": "Stažení ověřeno",
+  "downloadVerificationFailed": "Ověření stažení selhalo. Soubor byl odstraněn.",
+  "downloadUnavailableForDevice": "Pro toto zařízení není dostupné ověřené stažení.",
+  "installVerifiedDownload": "Nainstalovat",
+  "installPermissionRequired": "Povolte aplikaci Hestia instalovat neznámé aplikace a potom znovu klepněte na Nainstalovat.",
+  "openInstallSettings": "Povolit instalaci",
+  "installOpenFailed": "Instalátor Androidu se nepodařilo otevřít.",
+  "updatePackageMismatch": "Tento soubor APK nemůže aktualizovat aplikaci Hestia, protože patří jinému balíčku aplikace.",
   "onboardingSkip": "Přeskočit",
   "onboardingNext": "Další",
   "onboardingGetStarted": "Začít",
@@ -321,5 +330,11 @@
   "noCameraVideoTrack": "Nebyla vytvořena video stopa kamery.",
   "micPermissionRequiredForCalls": "Pro hovory je vyžadováno oprávnění k mikrofonu.",
   "cameraPermissionRequiredForVideoCalls": "Pro videohovory je vyžadováno oprávnění ke kameře.",
-  "noCameraFound": "Nebyla nalezena žádná kamera."
+  "noCameraFound": "Nebyla nalezena žádná kamera.",
+  "invalidServerUrl": "Neplatná adresa URL serveru: {value}",
+  "unsupportedServerUrlScheme": "Nepodporované schéma adresy URL serveru: {scheme}",
+  "attachmentDownloadFailed": "Přílohu se nepodařilo stáhnout.",
+  "attachmentDecryptFailed": "Přílohu se nepodařilo dešifrovat.",
+  "attachmentSaveFailed": "Přílohu se nepodařilo uložit.",
+  "videoDiagnosticsOverlay": "Textura {textureId} | {width}x{height} | Snímky {frames}"
 }

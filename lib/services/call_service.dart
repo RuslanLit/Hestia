@@ -13,6 +13,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../models/models.dart';
 import 'diagnostic_service.dart';
+import 'platform_capabilities.dart';
 import 'push_service.dart';
 
 enum CallState {
@@ -88,6 +89,7 @@ class CallService {
   static final CallService instance = CallService._();
 
   void Function(Map<String, dynamic>)? sendSignal;
+  Future<void> Function()? refreshBackendIceConfig;
 
   CallState _state = CallState.idle;
   CallState get state => _state;
@@ -139,6 +141,10 @@ class CallService {
   bool _firstRemoteIceCandidateLogged = false;
   bool _desktopIncomingMicActivationAfterIceScheduled = false;
   bool _desktopIncomingAnswerSent = false;
+  bool _turnWarningShownForCall = false;
+  bool _browserAudioUnlockRecommended = false;
+  DateTime? _webInboundAudioZeroSince;
+  bool _webInboundAudioHintLogged = false;
 
   RTCVideoRenderer _localRenderer = RTCVideoRenderer();
   // Remote audio renderer — routes incoming audio to the earpiece/speaker
@@ -182,8 +188,10 @@ class CallService {
       !kIsWeb &&
       defaultTargetPlatform == TargetPlatform.fuchsia &&
       _receiveVideoOnly;
+  bool get _supportsWebForegroundVideoCalls => false;
   bool get _supportsRealVideoCalls =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+      _supportsWebForegroundVideoCalls ||
+      (!kIsWeb && defaultTargetPlatform == TargetPlatform.android);
   bool get _supportsIncomingVideoReceiveOnly =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.fuchsia;
   String get appLifecycleState => _appLifecycleState;
@@ -259,6 +267,8 @@ class CallService {
   // Public mute state + toggle so CallScreen doesn't touch _localStream
   bool _muted = false;
   bool get isMuted => _muted;
+  bool _cameraEnabled = true;
+  bool get isCameraEnabled => _cameraEnabled;
   String _connectionState = 'not_created';
   String _iceConnectionState = 'not_created';
   String _lastCallEventSent = 'none';
@@ -268,6 +278,119 @@ class CallService {
   int _localVideoTrackCount = 0;
   int _remoteAudioTrackCount = 0;
   int _remoteVideoTrackCount = 0;
+  bool get browserAudioUnlockRecommended => _browserAudioUnlockRecommended;
+
+  void _webVoice(String message) {
+    if (kIsWeb) {
+      debugPrint('[WebVoice] $message');
+    }
+  }
+
+  void _webVideo(String message) {
+    if (kIsWeb) {
+      debugPrint('[WebVideo] $message');
+    }
+  }
+
+  void _callStopFix(String message) {
+    if (kIsWeb) {
+      debugPrint('[CallStopFix] $message');
+    }
+  }
+
+  void _safeReportCallError(String message) {
+    try {
+      onError?.call(message);
+    } catch (error, stack) {
+      _callStopFix('error callback failed error=$error');
+      DiagnosticService.instance.log(
+        'call error callback failed message=$message error=$error '
+        'stack=${_firstStackLine(stack)}',
+      );
+    }
+  }
+
+  String _iceServerSchemeSummary() {
+    final schemes = <String>{};
+    for (final server in _iceServers) {
+      final urls = server['urls'];
+      final values =
+          urls is List ? urls.whereType<String>() : [if (urls is String) urls];
+      for (final url in values) {
+        final separator = url.indexOf(':');
+        if (separator > 0) {
+          schemes.add(url.substring(0, separator).toLowerCase());
+        }
+      }
+    }
+    final ordered = ['stun', 'turn', 'turns']
+        .where(schemes.contains)
+        .followedBy(schemes.where((scheme) =>
+            scheme != 'stun' && scheme != 'turn' && scheme != 'turns'))
+        .toList();
+    return ordered.isEmpty ? 'none' : ordered.join(',');
+  }
+
+  int _iceServerSchemeEntryCount(bool Function(String scheme) matches) {
+    var count = 0;
+    for (final server in _iceServers) {
+      final urls = server['urls'];
+      final values =
+          urls is List ? urls.whereType<String>() : [if (urls is String) urls];
+      final serverSchemes = <String>{};
+      for (final url in values) {
+        final separator = url.indexOf(':');
+        if (separator > 0) {
+          serverSchemes.add(url.substring(0, separator).toLowerCase());
+        }
+      }
+      if (serverSchemes.any(matches)) {
+        count += 1;
+      }
+    }
+    return count;
+  }
+
+  void _resetWebVoiceCallDiagnostics() {
+    _turnWarningShownForCall = false;
+    _browserAudioUnlockRecommended = false;
+    _webInboundAudioZeroSince = null;
+    _webInboundAudioHintLogged = false;
+  }
+
+  void _recommendBrowserAudioUnlock(String reason) {
+    if (!kIsWeb || _browserAudioUnlockRecommended) {
+      return;
+    }
+    _browserAudioUnlockRecommended = true;
+    _webVoice('browser audio unlock recommended reason=$reason');
+    _notifyMediaListeners();
+  }
+
+  Future<void> requestBrowserAudioUnlock() async {
+    if (!kIsWeb) {
+      return;
+    }
+    _webVoice('browser audio unlock requested');
+    try {
+      await _ensureRenderersReady('browser audio unlock');
+      final stream = _remoteStream;
+      if (stream != null) {
+        await _remoteRenderer.setSrcObject(stream: stream);
+      }
+      await _remoteRenderer.setVolume(1.0);
+      _browserAudioUnlockRecommended = false;
+      _webInboundAudioZeroSince = null;
+      _webInboundAudioHintLogged = false;
+      _notifyMediaListeners();
+      _webVoice('browser audio unlock success');
+      unawaited(_logPlaybackStats());
+    } catch (error) {
+      _webVoice('browser audio unlock failure error=$error');
+      _safeReportCallError(
+          'Could not enable browser audio. Check tab audio permissions.');
+    }
+  }
 
   void reportRemoteRendererView({
     required bool mounted,
@@ -304,6 +427,25 @@ class CallService {
       'mute toggled muted=$_muted localAudioTracks=${localTracks.length}',
     );
     unawaited(_applyMuteToAudioSenders(enabled));
+  }
+
+  void toggleCamera() {
+    if (!_videoEnabled || _localStream == null) {
+      return;
+    }
+    _cameraEnabled = !_cameraEnabled;
+    final enabled = _cameraEnabled;
+    final localTracks = _localStream?.getVideoTracks() ?? const [];
+    for (final track in localTracks) {
+      final before = track.enabled;
+      track.enabled = enabled;
+      _debug(
+        'local video track enabled before/after toggle $before->$enabled '
+        'id=${_short(track.id ?? '')}',
+      );
+    }
+    _webVideo('camera toggled ${enabled ? 'on' : 'off'}');
+    _notifyMediaListeners();
   }
 
   Future<void> _applyMuteToAudioSenders(bool enabled) async {
@@ -379,14 +521,15 @@ class CallService {
     _defaultIceServers,
   );
   bool _iceConfigHasTurn = false;
+  String _iceConfigSource = 'default';
   int _videoWidth = _defaultVideoWidth;
   int _videoHeight = _defaultVideoHeight;
   int _videoFrameRate = _defaultVideoFrameRate;
   int _videoMaxBitrateKbps = _defaultVideoMaxBitrateKbps;
 
   Future<bool> isVideoCallAvailableOnThisDevice() async {
-    if (kIsWeb) {
-      return false;
+    if (_supportsWebForegroundVideoCalls) {
+      return true;
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       return true;
@@ -399,17 +542,23 @@ class CallService {
       'Desktop microphone diagnostic',
       'startedAt: ${DateTime.now().toIso8601String()}',
       'platform: $defaultTargetPlatform',
+    ];
+    if (!PlatformCapabilities.supportsIoFilePaths) {
+      lines.add('skipped: browser platform');
+      return lines.join('\n');
+    }
+    lines.addAll([
       'operatingSystem: ${Platform.operatingSystem}',
       'operatingSystemVersion: ${Platform.operatingSystemVersion}',
       'flutter_webrtc: 1.4.1',
-    ];
+    ]);
 
     void add(String message) {
       lines.add(message);
       _debug('desktop audio diagnostic $message');
     }
 
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.fuchsia) {
+    if (defaultTargetPlatform != TargetPlatform.fuchsia) {
       add('skipped: not Desktop');
       return lines.join('\n');
     }
@@ -469,7 +618,11 @@ class CallService {
     return lines.join('\n');
   }
 
-  void setIceServers(List<Map<String, dynamic>> iceServers) {
+  void setIceServers(
+    List<Map<String, dynamic>> iceServers, {
+    String source = 'backend',
+    String fallbackReason = 'backend_unavailable',
+  }) {
     final sanitized = iceServers
         .map(_sanitizeIceServer)
         .whereType<Map<String, dynamic>>()
@@ -477,13 +630,43 @@ class CallService {
     if (sanitized.isEmpty) {
       _iceServers = List<Map<String, dynamic>>.from(_defaultIceServers);
       _iceConfigHasTurn = false;
+      _iceConfigSource = 'default';
       _trace('ICE config fallback: using default STUN servers');
+      final stunEntries = _iceServerSchemeEntryCount(
+        (scheme) => scheme == 'stun',
+      );
+      _webVoice('fallback reason=$fallbackReason');
+      _webVoice(
+        'config source=$_iceConfigSource '
+        'parsed ICE servers count=${_iceServers.length} '
+        'TURN entries count=0 STUN entries count=$stunEntries '
+        'schemes detected=${_iceServerSchemeSummary()} hasTurn=false',
+      );
       return;
     }
     _iceServers = sanitized;
     _iceConfigHasTurn = _iceServers.any(_iceServerHasTurn);
+    _iceConfigSource = source;
+    final turnEntries = _iceServerSchemeEntryCount(
+      (scheme) => scheme == 'turn' || scheme == 'turns',
+    );
+    final stunEntries = _iceServerSchemeEntryCount(
+      (scheme) => scheme == 'stun',
+    );
     _trace(
       'ICE config loaded servers=${_iceServers.length} hasTurn=$_iceConfigHasTurn',
+    );
+    _webVoice(
+      'backend ICE applied source=$_iceConfigSource '
+      'TURN count=$turnEntries STUN count=$stunEntries '
+      'hasTurn=$_iceConfigHasTurn',
+    );
+    _webVoice(
+      'config source=$_iceConfigSource '
+      'parsed ICE servers count=${_iceServers.length} '
+      'TURN entries count=$turnEntries '
+      'STUN entries count=$stunEntries '
+      'schemes detected=${_iceServerSchemeSummary()} hasTurn=$_iceConfigHasTurn',
     );
   }
 
@@ -540,6 +723,9 @@ class CallService {
       return;
     }
     if (_state != CallState.idle) return;
+    _callStopFix(video
+        ? 'start video call blocked/enabled request'
+        : 'start voice call');
     _callGeneration++;
     _callTerminating = false;
     _pendingRemoteCandidates.clear();
@@ -551,7 +737,17 @@ class CallService {
     _lastInboundAudioBytes = null;
     _lastOutboundAudioBytes = null;
     _lastInboundVideoBytes = null;
+    _resetWebVoiceCallDiagnostics();
+    if (video) {
+      _webVideo('video call requested direction=outgoing');
+    }
+    final requestedVideo = video;
     video = video && _supportsRealVideoCalls;
+    if (requestedVideo && !video) {
+      _webVideo('fallback to audio reason=video_unsupported');
+      _callStopFix(
+          'start video call blocked reason=web_video_temporarily_disabled');
+    }
     final startedAtMs = DateTime.now().millisecondsSinceEpoch;
     _activeCallId = _generateId();
     _remotePeerId = toUserId;
@@ -587,13 +783,14 @@ class CallService {
         'type': 'call_offer_init',
         'callId': _activeCallId,
         'toUserId': toUserId,
-        'video': video,
+        'video': _videoEnabled,
         'callCreatedAt': startedAtMs,
       });
       _setState(CallState.ringing);
       _startCallAnswerTimer();
-      _trace('offer init sent video=$video');
+      _trace('offer init sent video=$_videoEnabled');
     } catch (e) {
+      _callStopFix('error caught step=startCall error=$e');
       _emitCallHistory(status: CallStatus.failedNetwork);
       _handleError('Failed to start call: $e');
     }
@@ -684,7 +881,7 @@ class CallService {
         'toUserId': expiredCall.fromUserId,
         'reason': 'expired',
       });
-      onError?.call('Call expired');
+      _safeReportCallError('Call expired');
       _reset();
       return;
     }
@@ -701,7 +898,14 @@ class CallService {
     _activeCallDirection = CallDirection.incoming;
     _activeCallTimestampMs = incomingCall!.callCreatedAtMs;
     _videoEnabled = incomingCall!.video && _supportsRealVideoCalls;
+    if (incomingCall!.video) {
+      _webVideo('video call requested direction=incoming');
+    }
+    if (incomingCall!.video && !_videoEnabled) {
+      _webVideo('fallback to audio reason=video_unsupported');
+    }
     _receiveVideoOnly = false;
+    _resetWebVoiceCallDiagnostics();
     _setState(CallState.connecting);
     if (_videoEnabled) {
       _debug(
@@ -762,6 +966,7 @@ class CallService {
     _videoEnabled = false;
     _receiveVideoOnly = info.video;
     _muted = false;
+    _resetWebVoiceCallDiagnostics();
     _outboundAudioZeroSince = null;
     _outboundAudioZeroWarningLogged = false;
     _desktopIncomingMicActivationAfterIceScheduled = false;
@@ -916,7 +1121,7 @@ class CallService {
         await _flushPendingRemoteCandidates();
         realCallActive = true;
         if (microphoneUnavailable) {
-          onError?.call(
+          _safeReportCallError(
             'Microphone unavailable. You can watch/listen only.',
           );
         }
@@ -932,7 +1137,7 @@ class CallService {
       if (text.contains('Microphone unavailable')) {
         _debug('microphone unavailable handled safely');
       }
-      onError?.call(
+      _safeReportCallError(
         text.startsWith('Exception: ')
             ? text.substring('Exception: '.length)
             : 'Desktop voice call setup failed.',
@@ -1217,7 +1422,7 @@ class CallService {
               'toUserId': fromUserId,
               'reason': 'video_disabled',
             });
-            onError?.call('Video calls are disabled.');
+            _safeReportCallError('Video calls are disabled.');
             return;
           }
           incomingCall = IncomingCallInfo(
@@ -1388,7 +1593,7 @@ class CallService {
           _emitMissedIncomingOnce(incomingCall!, 'call_reject');
         } else {
           _emitCallHistory(status: CallStatus.rejectedByRecipient);
-          onError?.call('Call was rejected');
+          _safeReportCallError('Call was rejected');
         }
         _debug('call UI closed by reject/timeout type=$type');
         _reset();
@@ -1428,7 +1633,7 @@ class CallService {
           );
           return;
         }
-        onError?.call(
+        _safeReportCallError(
           message == null || message == 'User is unavailable.'
               ? _userUnavailableMessage()
               : message,
@@ -1466,6 +1671,7 @@ class CallService {
       return result;
     } catch (error) {
       _debug('$label failed error=$error');
+      _callStopFix('error caught step=$label error=$error');
       rethrow;
     }
   }
@@ -1489,6 +1695,7 @@ class CallService {
       );
     }
     _muted = false;
+    _cameraEnabled = true;
     _outboundAudioZeroSince = null;
     _outboundAudioZeroWarningLogged = false;
     _callTerminating = false;
@@ -1501,14 +1708,57 @@ class CallService {
       () => _ensureMediaPermissions(video: video),
     );
     await _awaitWebRtcStep('enable audio output', _enableMobileAudioOutput);
+    if (kIsWeb) {
+      final refresh = refreshBackendIceConfig;
+      if (refresh == null) {
+        _webVoice('fallback reason=backend_refresh_hook_missing');
+      } else {
+        await _awaitWebRtcStep(
+          'refresh backend ICE config',
+          refresh,
+        );
+      }
+    }
     _iceConfigHasTurn = _iceServers.any(_iceServerHasTurn);
     _debug(
       'creating peer connection iceServers=${_iceServers.length} hasTurn=$_iceConfigHasTurn',
+    );
+    final turnEntries = _iceServerSchemeEntryCount(
+      (scheme) => scheme == 'turn' || scheme == 'turns',
+    );
+    final stunEntries = _iceServerSchemeEntryCount(
+      (scheme) => scheme == 'stun',
+    );
+    _webVoice(
+      'parsed ICE servers count=${_iceServers.length} '
+      'TURN entries count=$turnEntries '
+      'STUN entries count=$stunEntries '
+      'schemes detected=${_iceServerSchemeSummary()} hasTurn=$_iceConfigHasTurn',
+    );
+    _webVoice(
+      'final peer config TURN count=$turnEntries '
+      'STUN count=$stunEntries source=$_iceConfigSource '
+      'hasTurn=$_iceConfigHasTurn',
+    );
+    if (kIsWeb && !_iceConfigHasTurn && !_turnWarningShownForCall) {
+      _turnWarningShownForCall = true;
+      _safeReportCallError(
+        'TURN is not configured; calls may fail on some networks.',
+      );
+    }
+    _callStopFix(
+      'before peer create iceServers=${_iceServers.length} '
+      'hasTurn=$_iceConfigHasTurn source=$_iceConfigSource '
+      'video=$video localStream=${_localStream != null} '
+      'localRendererDisposed=$_localRendererDisposed '
+      'remoteRendererDisposed=$_remoteRendererDisposed',
     );
     _pc = await _awaitWebRtcStep(
       'create peer connection',
       () => createPeerConnection(_iceConfig),
     );
+    _callStopFix('after peer create pcNull=${_pc == null}');
+    _webVoice('peer connection created hasTurn=$_iceConfigHasTurn');
     _connectionState = 'created';
     _iceConnectionState = 'created';
     _iceConnected = false;
@@ -1528,12 +1778,13 @@ class CallService {
         !_receiveVideoOnly;
 
     // Capture local microphone with noise/echo cancellation.
+    var activeVideo = video;
     try {
       final audioConstraints = await _awaitWebRtcStep(
         'audio input selection',
         _audioConstraints,
       );
-      final videoConstraints = video
+      final videoConstraints = activeVideo
           ? await _awaitWebRtcStep('video input selection', _videoConstraints)
           : false;
       if (desktopVoiceCall) {
@@ -1550,11 +1801,34 @@ class CallService {
       if (desktopVoiceCall) {
         _debug('getUserMedia success');
       }
-      if (video) {
+      _webVoice(
+        'local audio track created count=${_localStream?.getAudioTracks().length ?? 0}',
+      );
+      if (activeVideo) {
         _debug('camera getUserMedia completed');
       }
     } catch (error) {
-      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.fuchsia) {
+      if (kIsWeb && activeVideo) {
+        _webVideo('camera permission denied error=$error');
+        _webVideo('fallback to audio reason=camera_unavailable');
+        _safeReportCallError(
+          'Camera unavailable. Continuing with audio.',
+        );
+        activeVideo = false;
+        _videoEnabled = false;
+        _cameraEnabled = false;
+        final audioConstraints = await _awaitWebRtcStep(
+          'audio input selection fallback',
+          _audioConstraints,
+        );
+        _localStream = await _awaitWebRtcStep(
+          'getUserMedia audio fallback',
+          () => navigator.mediaDevices.getUserMedia({
+            'audio': audioConstraints,
+            'video': false,
+          }),
+        );
+      } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.fuchsia) {
         if (desktopVoiceCall) {
           _debug('getUserMedia failure error=$error');
         }
@@ -1567,14 +1841,16 @@ class CallService {
         throw Exception(
           'Microphone unavailable. Check Desktop microphone permissions.',
         );
-      }
-      if (video && !kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      } else if (video &&
+          !kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.android) {
         _debug('android video getUserMedia failed error=$error');
         throw Exception(
           'Could not start camera or microphone. Check Android camera and microphone permissions.',
         );
+      } else {
+        rethrow;
       }
-      rethrow;
     }
 
     await _ensureRenderersReady('local stream attach');
@@ -1608,9 +1884,19 @@ class CallService {
     _trace('local stream created');
     _trace('audio tracks count=${localAudioTracks.length}');
     _trace('video tracks count=${localVideoTracks.length}');
-    if (video) {
+    if (activeVideo && kIsWeb && localVideoTracks.isEmpty) {
+      activeVideo = false;
+      _videoEnabled = false;
+      _cameraEnabled = false;
+      _webVideo('fallback to audio reason=no_camera_video_track');
+      _safeReportCallError('Camera unavailable. Continuing with audio.');
+    }
+    if (activeVideo) {
       _debug('camera track created count=${localVideoTracks.length}');
       _debug('local video track created count=${localVideoTracks.length}');
+      _webVideo('camera permission granted');
+      _webVideo('local video track created count=${localVideoTracks.length}');
+      _webVideo('local preview attached');
       if (!kIsWeb &&
           defaultTargetPlatform == TargetPlatform.fuchsia &&
           localVideoTracks.isEmpty) {
@@ -1657,6 +1943,14 @@ class CallService {
         debugPrint('[CallService] onTrack: ${event.track.kind}');
       }
       event.track.enabled = true;
+      if (event.track.kind == 'audio') {
+        _webVoice('remote track received muted=${event.track.muted}');
+        if (event.track.muted == true) {
+          _recommendBrowserAudioUnlock('remote_track_muted');
+        }
+      } else if (event.track.kind == 'video') {
+        _webVideo('remote video track received');
+      }
       _trace(
         'onTrack kind=${event.track.kind} id=${_short(event.track.id ?? '')} '
         'enabled=${event.track.enabled} muted=${event.track.muted} '
@@ -1680,9 +1974,14 @@ class CallService {
         if (remoteVideoTracks.isNotEmpty) {
           _debug(
               'remote video track received count=${remoteVideoTracks.length}');
+          _webVideo(
+              'remote video track received count=${remoteVideoTracks.length}');
         }
         for (final track in remoteAudioTracks) {
           track.enabled = true;
+          if (track.muted == true) {
+            _recommendBrowserAudioUnlock('remote_audio_track_muted');
+          }
           _trace(
             'remote audio track id=${_short(track.id ?? '')} '
             'enabled=${track.enabled} muted=${track.muted} '
@@ -1836,6 +2135,7 @@ class CallService {
         }),
       );
       final audioTracks = stream.getAudioTracks();
+      _webVoice('local audio track created count=${audioTracks.length}');
       if (audioTracks.isEmpty) {
         _debug('getUserMedia audio failure reason=no_audio_track');
         _debug('local audio track skipped reason=mic_unavailable');
@@ -2312,6 +2612,7 @@ class CallService {
     _iceConnected = false;
     _desktopIncomingMicActivationAfterIceScheduled = false;
     _desktopIncomingAnswerSent = false;
+    _resetWebVoiceCallDiagnostics();
     _localAudioTrackCount = 0;
     _localVideoTrackCount = 0;
     _remoteAudioTrackCount = 0;
@@ -2423,8 +2724,13 @@ class CallService {
     if (kDebugMode) {
       debugPrint('[CallService] ERROR: $msg');
     }
-    onError?.call(msg);
-    _reset();
+    try {
+      _safeReportCallError(msg);
+    } finally {
+      _reset();
+      _callStopFix('state reset after failure');
+      _callStopFix('ready for next call');
+    }
   }
 
   void _failActiveCall(
@@ -2486,6 +2792,7 @@ class CallService {
 
   void _markIceConnected() {
     _iceConnected = true;
+    _webVoice('ICE connected');
     _connectedAtMs ??= DateTime.now().millisecondsSinceEpoch;
     _emitCallHistory(status: CallStatus.connected);
     _iceConnectionTimer?.cancel();
@@ -2509,10 +2816,11 @@ class CallService {
   }
 
   void _startPlaybackStatsTimer() {
-    if (kDebugMode) {
+    if (kDebugMode || kIsWeb) {
       unawaited(_logPlaybackStats());
     }
-    if (!_isDesktopReceiveVideoOnlyActive || _playbackStatsTimer != null) {
+    final shouldPollStats = kIsWeb || _isDesktopReceiveVideoOnlyActive;
+    if (!shouldPollStats || _playbackStatsTimer != null) {
       return;
     }
     _playbackStatsTimer = Timer.periodic(const Duration(seconds: 2), (_) {
@@ -2528,6 +2836,8 @@ class CallService {
     _lastInboundVideoBytes = null;
     _outboundAudioZeroSince = null;
     _outboundAudioZeroWarningLogged = false;
+    _webInboundAudioZeroSince = null;
+    _webInboundAudioHintLogged = false;
   }
 
   void _emitCallEndHistory() {
@@ -2646,10 +2956,14 @@ class CallService {
 
   Future<void> _ensureMediaPermissions({required bool video}) async {
     _debug('microphone permission request start video=$video');
+    _webVoice('mic permission requested');
     final microphone = await Permission.microphone.request();
     _debug(
       'microphone permission result granted=${microphone.isGranted} '
       'denied=${microphone.isDenied} permanentlyDenied=${microphone.isPermanentlyDenied}',
+    );
+    _webVoice(
+      microphone.isGranted ? 'mic permission granted' : 'mic permission denied',
     );
     if (!microphone.isGranted) {
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.fuchsia) {
@@ -2665,6 +2979,10 @@ class CallService {
       throw Exception('microphone_permission_required_for_calls');
     }
     if (video) {
+      if (kIsWeb) {
+        _webVideo('camera permission requested');
+        return;
+      }
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.fuchsia) {
         await _ensureDesktopCameraAvailable();
         return;
@@ -3074,6 +3392,9 @@ class CallService {
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       _debug('camera/mic cleanup completed');
     }
+    if (kIsWeb) {
+      _webVideo('video cleanup completed');
+    }
     _debug('call cleanup completed');
     _debug('cleanup completed');
   }
@@ -3410,6 +3731,7 @@ class CallService {
         '${_rendererSummary(_remoteRenderer, 'remoteRenderer')}',
       );
       if (videoTracks.isNotEmpty) {
+        _webVideo('remote video attached');
         if (_isDesktopReceiveVideoOnlyActive) {
           if (!_remoteVideoRendererAttachedLogged) {
             _remoteVideoRendererAttachedLogged = true;
@@ -3424,6 +3746,8 @@ class CallService {
       }
     } catch (error) {
       _trace('remote playback attach failed: $error');
+      _webVoice('browser audio unlock failure error=$error');
+      _recommendBrowserAudioUnlock('remote_playback_attach_failed');
     }
     if (_isCurrentCallGeneration(generation, 'start playback stats')) {
       _startPlaybackStatsTimer();
@@ -3472,10 +3796,14 @@ class CallService {
       }
       if (inboundBytes == null) {
         _trace('playback stats no inbound audio ${_rendererStateSummary()}');
+        _webVoice('inboundAudio bytes=0');
+        _updateBrowserInboundAudioFlowWatch(delta: null);
       } else {
         final previous = _lastInboundAudioBytes;
         final delta = previous == null ? 0 : inboundBytes - previous;
         _lastInboundAudioBytes = inboundBytes;
+        _webVoice('inboundAudio bytes=$inboundBytes');
+        _updateBrowserInboundAudioFlowWatch(delta: delta);
         _trace(
           'playback stats inboundAudio bytes=$inboundBytes delta=$delta '
           'packets=$packetsReceived lost=$packetsLost '
@@ -3484,11 +3812,13 @@ class CallService {
       }
       if (outboundBytes == null) {
         _trace('send stats no outbound audio');
+        _webVoice('outboundAudio bytes=0');
         _updateOutboundAudioFlowWatch(delta: null);
       } else {
         final previous = _lastOutboundAudioBytes;
         final delta = previous == null ? 0 : outboundBytes - previous;
         _lastOutboundAudioBytes = outboundBytes;
+        _webVoice('outboundAudio bytes=$outboundBytes');
         _trace(
           'send stats outboundAudio bytes=$outboundBytes delta=$delta '
           'packets=$packetsSent audioLevel=$outboundAudioLevel '
@@ -3501,6 +3831,34 @@ class CallService {
       }
     } catch (error) {
       _trace('playback stats unavailable: $error');
+    }
+  }
+
+  void _updateBrowserInboundAudioFlowWatch({required int? delta}) {
+    if (!kIsWeb ||
+        _state == CallState.idle ||
+        _state == CallState.ended ||
+        _remoteAudioTrackCount == 0) {
+      _webInboundAudioZeroSince = null;
+      _webInboundAudioHintLogged = false;
+      return;
+    }
+    if (delta != null && delta > 0) {
+      _webInboundAudioZeroSince = null;
+      _webInboundAudioHintLogged = false;
+      if (_browserAudioUnlockRecommended) {
+        _browserAudioUnlockRecommended = false;
+        _notifyMediaListeners();
+      }
+      return;
+    }
+    final now = DateTime.now();
+    _webInboundAudioZeroSince ??= now;
+    if (!_webInboundAudioHintLogged &&
+        now.difference(_webInboundAudioZeroSince!) >=
+            const Duration(seconds: 5)) {
+      _webInboundAudioHintLogged = true;
+      _recommendBrowserAudioUnlock('inbound_audio_not_flowing');
     }
   }
 

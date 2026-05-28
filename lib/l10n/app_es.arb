@@ -290,6 +290,15 @@
   "currentVersionLabel": "Versión actual: {version}",
   "latestVersionLabel": "Última versión: {version}",
   "releaseNotes": "Notas de la versión",
+  "downloadApk": "Descargar",
+  "downloadVerified": "Descarga verificada",
+  "downloadVerificationFailed": "La verificación de la descarga falló. Se eliminó el archivo.",
+  "downloadUnavailableForDevice": "No hay una descarga verificada disponible para este dispositivo.",
+  "installVerifiedDownload": "Instalar",
+  "installPermissionRequired": "Permite que Hestia instale aplicaciones desconocidas y vuelve a tocar Instalar.",
+  "openInstallSettings": "Permitir instalación",
+  "installOpenFailed": "No se pudo abrir el instalador de Android.",
+  "updatePackageMismatch": "Este APK no puede actualizar Hestia porque pertenece a otro paquete de aplicación.",
   "onboardingSkip": "Omitir",
   "onboardingNext": "Siguiente",
   "onboardingGetStarted": "Empezar",
@@ -321,5 +330,11 @@
   "noCameraVideoTrack": "No se creó ninguna pista de vídeo de la cámara.",
   "micPermissionRequiredForCalls": "Se requiere permiso de micrófono para las llamadas.",
   "cameraPermissionRequiredForVideoCalls": "Se requiere permiso de cámara para las videollamadas.",
-  "noCameraFound": "No se encontró ninguna cámara."
+  "noCameraFound": "No se encontró ninguna cámara.",
+  "invalidServerUrl": "URL del servidor no válida: {value}",
+  "unsupportedServerUrlScheme": "Esquema de URL del servidor no compatible: {scheme}",
+  "attachmentDownloadFailed": "No se pudo descargar el archivo adjunto.",
+  "attachmentDecryptFailed": "No se pudo descifrar el archivo adjunto.",
+  "attachmentSaveFailed": "No se pudo guardar el archivo adjunto.",
+  "videoDiagnosticsOverlay": "Textura {textureId} | {width}x{height} | Fotogramas {frames}"
 }

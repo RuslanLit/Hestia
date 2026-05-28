@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/models.dart';
+import 'platform_capabilities.dart';
 import 'web_large_storage_stub.dart'
     if (dart.library.html) 'web_large_storage_web.dart';
 
@@ -36,6 +38,7 @@ class LocalDataService {
   SharedPreferences? _prefs;
   String? _userId;
   final Map<String, String> _webAttachmentData = {};
+  bool _webAttachmentPersistenceLogged = false;
 
   bool get isInitialized =>
       kIsWeb ? _prefs != null && _userId != null : _conversationsFile != null;
@@ -46,7 +49,7 @@ class LocalDataService {
       return;
     }
 
-    if (kIsWeb) {
+    if (!PlatformCapabilities.supportsIoFilePaths) {
       _prefs = await SharedPreferences.getInstance();
       _userId = userId;
       return;
@@ -352,7 +355,8 @@ class LocalDataService {
     required String fileName,
     required Uint8List bytes,
   }) async {
-    if (kIsWeb) {
+    if (!PlatformCapabilities.supportsPersistentAttachments) {
+      _logWebAttachmentPersistenceDisabled();
       final base64Data = base64Encode(bytes);
       _webAttachmentData[messageId] = base64Data;
       return SavedAttachment(
@@ -402,10 +406,25 @@ class LocalDataService {
   }
 
   Future<String> exportAttachment(ChatAttachment attachment) async {
-    if (kIsWeb) {
-      return _webAttachmentData.containsKey(attachment.id)
-          ? 'Файл доступен в текущей сессии браузера.'
-          : 'Файл недоступен после перезапуска браузера.';
+    if (!PlatformCapabilities.supportsPersistentAttachments) {
+      _logWebAttachmentPersistenceDisabled();
+      final bytes = webAttachmentBytes(attachment);
+      if (bytes == null || bytes.isEmpty) {
+        debugPrint('[WebFile] error reason=attachment_bytes_unavailable');
+        throw UnsupportedError(
+          'Attachment is not available after refresh. Ask the sender to resend it.',
+        );
+      }
+      final fileName = _webDownloadFileName(attachment.name);
+      debugPrint(
+        '[WebFile] browser save triggered name=$fileName size=${bytes.length}',
+      );
+      await FilePicker.saveFile(
+        fileName: fileName,
+        bytes: bytes,
+        type: FileType.any,
+      );
+      return fileName;
     }
 
     final source = File(attachment.localPath);
@@ -480,7 +499,8 @@ class LocalDataService {
         final conversation = Conversation(
           id: conversationJson['id'] as String,
           peerUserId: conversationJson['peerUserId'] as String,
-          peerNickname: conversationJson['peerNickname'] as String? ?? 'Unknown',
+          peerNickname:
+              conversationJson['peerNickname'] as String? ?? 'Unknown',
           messages: messages..sort(ChatMessage.compareForDisplay),
         );
         conversations.add(conversation);
@@ -504,7 +524,8 @@ class LocalDataService {
     } catch (error) {
       if (json.containsKey('attachment')) {
         try {
-          _log('message attachment metadata corrupted; loading without attachment');
+          _log(
+              'message attachment metadata corrupted; loading without attachment');
           return ChatMessage.fromJson({...json, 'attachment': null});
         } catch (_) {
           // Fall through to the original error log below.
@@ -568,6 +589,14 @@ class LocalDataService {
     } catch (_) {
       return null;
     }
+  }
+
+  void _logWebAttachmentPersistenceDisabled() {
+    if (_webAttachmentPersistenceLogged || !PlatformCapabilities.isWeb) {
+      return;
+    }
+    _webAttachmentPersistenceLogged = true;
+    debugPrint('[WebPlatform] attachment persistence disabled reason=web');
   }
 
   List<Conversation> _conversationsWithoutWebBytes(
@@ -865,6 +894,9 @@ class LocalDataService {
     final stamp = DateTime.now().millisecondsSinceEpoch;
     return '${stamp}_${_sanitizeFileName(originalName, fallbackId: '$stamp')}';
   }
+
+  String _webDownloadFileName(String originalName) {
+    final sanitized = _sanitizeFileName(originalName);
+    return _safeExtension(sanitized).isEmpty ? '$sanitized.bin' : sanitized;
+  }
 }
-
-

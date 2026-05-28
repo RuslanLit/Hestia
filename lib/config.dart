@@ -1,13 +1,15 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:flutter/foundation.dart';
+import 'services/platform_capabilities.dart';
+import 'services/web_smoke_log.dart';
 
 class AppConfig {
-  static bool get enableFileAttachments => true;
+  static bool get enableFileAttachments =>
+      PlatformCapabilities.supportsForegroundFileTransfers;
   static bool get enableVoiceCalls => _voiceCallsEnabled;
   static bool get enableVideoCalls => _videoCallsEnabled;
   static bool get enablePushNotifications =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+      PlatformCapabilities.supportsFirebasePush;
   static bool get enableBackupUi => false;
   static bool get enableKeyQrVerification => false;
 
@@ -48,12 +50,14 @@ class AppConfig {
     } else {
       _applyServerInput(defaultServerInput, custom: false);
     }
+    WebSmokeLog.log('server url loaded url=$wsUrl');
   }
 
   static Future<void> setServerInput(String input) async {
     _applyServerInput(input, custom: input.trim().isNotEmpty);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_serverKey, serverInput);
+    WebSmokeLog.log('server url loaded url=$wsUrl');
   }
 
   static String get serverInput => _serverInput;

@@ -643,6 +643,37 @@ class AppLocalizationsCs extends AppLocalizations {
   String get releaseNotes => 'Poznámky k vydání';
 
   @override
+  String get downloadApk => 'Stáhnout';
+
+  @override
+  String get downloadVerified => 'Stažení ověřeno';
+
+  @override
+  String get downloadVerificationFailed =>
+      'Ověření stažení selhalo. Soubor byl odstraněn.';
+
+  @override
+  String get downloadUnavailableForDevice =>
+      'Pro toto zařízení není dostupné ověřené stažení.';
+
+  @override
+  String get installVerifiedDownload => 'Nainstalovat';
+
+  @override
+  String get installPermissionRequired =>
+      'Povolte aplikaci Hestia instalovat neznámé aplikace a potom znovu klepněte na Nainstalovat.';
+
+  @override
+  String get openInstallSettings => 'Povolit instalaci';
+
+  @override
+  String get installOpenFailed => 'Instalátor Androidu se nepodařilo otevřít.';
+
+  @override
+  String get updatePackageMismatch =>
+      'Tento soubor APK nemůže aktualizovat aplikaci Hestia, protože patří jinému balíčku aplikace.';
+
+  @override
   String get languageEnglish => 'English';
 
   @override
@@ -770,4 +801,29 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get noCameraFound => 'Nebyla nalezena žádná kamera.';
+
+  @override
+  String invalidServerUrl(String value) {
+    return 'Neplatná adresa URL serveru: $value';
+  }
+
+  @override
+  String unsupportedServerUrlScheme(String scheme) {
+    return 'Nepodporované schéma adresy URL serveru: $scheme';
+  }
+
+  @override
+  String get attachmentDownloadFailed => 'Přílohu se nepodařilo stáhnout.';
+
+  @override
+  String get attachmentDecryptFailed => 'Přílohu se nepodařilo dešifrovat.';
+
+  @override
+  String get attachmentSaveFailed => 'Přílohu se nepodařilo uložit.';
+
+  @override
+  String videoDiagnosticsOverlay(
+      int textureId, int width, int height, int frames) {
+    return 'Textura $textureId | ${width}x$height | Snímky $frames';
+  }
 }

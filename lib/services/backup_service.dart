@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -19,7 +19,10 @@ class BackupService {
   static const _format = 'HESTIA_BACKUP_V1';
   static const _iterations = 120000;
 
-  Future<String?> exportEncryptedBackup(String passphrase) async {
+  Future<String?> exportEncryptedBackup(
+    String passphrase, {
+    required String dialogTitle,
+  }) async {
     final profile = StorageService.instance.loadProfile();
     if (profile == null) {
       throw StateError('No profile is available to export.');
@@ -37,7 +40,7 @@ class BackupService {
         'hestia-backup-${DateTime.now().millisecondsSinceEpoch}.hbak';
 
     final path = await FilePicker.saveFile(
-      dialogTitle: 'Export Hestia backup',
+      dialogTitle: dialogTitle,
       fileName: fileName,
       bytes: bytes,
     );
@@ -381,5 +384,3 @@ class _BackupKeys {
     required this.macKey,
   });
 }
-
-

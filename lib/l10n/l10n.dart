@@ -144,6 +144,42 @@ extension HestiaErrorLocalizations on AppLocalizations {
         de: 'Weiterleiten von Dateianhängen ist in dieser Version deaktiviert.',
         en: 'Forwarding file attachments is disabled in this version.',
       );
+  String get previewUnavailable => _extra(
+        uk: 'Попередній перегляд недоступний.',
+        ru: 'Предпросмотр недоступен.',
+        pl: 'Podgląd jest niedostępny.',
+        es: 'La vista previa no está disponible.',
+        cs: 'Náhled není dostupný.',
+        de: 'Vorschau nicht verfügbar.',
+        en: 'Preview unavailable.',
+      );
+  String get cameraOn => _extra(
+        uk: 'Камера увімкнена',
+        ru: 'Камера включена',
+        pl: 'Kamera włączona',
+        es: 'Cámara activada',
+        cs: 'Kamera zapnuta',
+        de: 'Kamera an',
+        en: 'Camera on',
+      );
+  String get cameraOff => _extra(
+        uk: 'Камера вимкнена',
+        ru: 'Камера выключена',
+        pl: 'Kamera wyłączona',
+        es: 'Cámara desactivada',
+        cs: 'Kamera vypnuta',
+        de: 'Kamera aus',
+        en: 'Camera off',
+      );
+  String get cameraUnavailableAudioFallback => _extra(
+        uk: 'Камера недоступна. Продовжуємо з аудіо.',
+        ru: 'Камера недоступна. Продолжаем с аудио.',
+        pl: 'Kamera jest niedostępna. Kontynuuję z audio.',
+        es: 'La cámara no está disponible. Continuando con audio.',
+        cs: 'Kamera není dostupná. Pokračuje se zvukem.',
+        de: 'Kamera nicht verfügbar. Weiter mit Audio.',
+        en: 'Camera unavailable. Continuing with audio.',
+      );
   String cannotEncryptFor(String name) => _extra(
         uk: 'Не вдалося зашифрувати для $name: ключа шифрування ще немає.',
         ru: 'Не удалось зашифровать для $name: ключа шифрования пока нет.',
@@ -189,6 +225,24 @@ extension HestiaErrorLocalizations on AppLocalizations {
         de: 'Anruf wurde abgelehnt.',
         en: 'Call was rejected.',
       );
+  String get finishingPreviousCall => _extra(
+        uk: 'Завершення попереднього дзвінка...',
+        ru: 'Завершение предыдущего звонка...',
+        pl: 'Kończenie poprzedniego połączenia...',
+        es: 'Finalizando la llamada anterior...',
+        cs: 'Ukončování předchozího hovoru...',
+        de: 'Vorheriger Anruf wird beendet...',
+        en: 'Finishing previous call...',
+      );
+  String get desktopVideoExperimental => _extra(
+        uk: 'Надсилання відео на компʼютері є експериментальним',
+        ru: 'Передача видео на компьютере является экспериментальной',
+        pl: 'Wysyłanie wideo na komputerze jest eksperymentalne',
+        es: 'El envío de vídeo en escritorio es experimental',
+        cs: 'Odesílání videa na počítači je experimentální',
+        de: 'Das Senden von Desktop-Video ist experimentell',
+        en: 'Desktop video sending is experimental',
+      );
   String get callEventOutgoingVoice => _extra(
         uk: 'Вихідний голосовий дзвінок',
         ru: 'Исходящий голосовой звонок',
@@ -233,6 +287,33 @@ extension HestiaErrorLocalizations on AppLocalizations {
         cs: 'Zrušený hlasový hovor',
         de: 'Abgebrochener Sprachanruf',
         en: 'Canceled voice call',
+      );
+  String get callEventMissedVideo => _extra(
+        uk: 'Пропущений відеодзвінок',
+        ru: 'Пропущенный видеозвонок',
+        pl: 'Nieodebrane połączenie wideo',
+        es: 'Videollamada perdida',
+        cs: 'Zmeškaný videohovor',
+        de: 'Verpasster Videoanruf',
+        en: 'Missed video call',
+      );
+  String get callEventRejectedVideo => _extra(
+        uk: 'Відхилений відеодзвінок',
+        ru: 'Отклонённый видеозвонок',
+        pl: 'Odrzucone połączenie wideo',
+        es: 'Videollamada rechazada',
+        cs: 'Odmítnutý videohovor',
+        de: 'Abgelehnter Videoanruf',
+        en: 'Rejected video call',
+      );
+  String get callEventCanceledVideo => _extra(
+        uk: 'Скасований відеодзвінок',
+        ru: 'Отменённый видеозвонок',
+        pl: 'Anulowane połączenie wideo',
+        es: 'Videollamada cancelada',
+        cs: 'Zrušený videohovor',
+        de: 'Abgebrochener Videoanruf',
+        en: 'Canceled video call',
       );
   String get callEventVoice => _extra(
         uk: 'Голосовий дзвінок',
@@ -360,6 +441,33 @@ extension HestiaErrorLocalizations on AppLocalizations {
         de: 'Geräteverwaltung wird später verfügbar sein.',
         en: 'Device management will be available later.',
       );
+  String get serverConnecting => _extra(
+        uk: 'Підключення...',
+        ru: 'Подключение...',
+        pl: 'Łączenie...',
+        es: 'Conectando...',
+        cs: 'Připojování...',
+        de: 'Verbindung wird hergestellt...',
+        en: 'Connecting...',
+      );
+  String get serverAuthorizationError => _extra(
+        uk: 'Помилка авторизації',
+        ru: 'Ошибка авторизации',
+        pl: 'Błąd autoryzacji',
+        es: 'Error de autorización',
+        cs: 'Chyba autorizace',
+        de: 'Autorisierungsfehler',
+        en: 'Authorization error',
+      );
+  String get serverError => _extra(
+        uk: 'Помилка сервера',
+        ru: 'Ошибка сервера',
+        pl: 'Błąd serwera',
+        es: 'Error del servidor',
+        cs: 'Chyba serveru',
+        de: 'Serverfehler',
+        en: 'Server error',
+      );
   String couldNotConnectTo(String host) => _extra(
         uk: 'Не вдалося підключитися до $host',
         ru: 'Не удалось подключиться к $host',
@@ -395,6 +503,123 @@ extension HestiaErrorLocalizations on AppLocalizations {
         cs: 'Místní soubor nebyl nalezen.',
         de: 'Lokale Datei nicht gefunden.',
         en: 'Local file not found.',
+      );
+  String get unsupportedImageFormat => _extra(
+        uk: 'Непідтримуваний формат зображення.',
+        ru: 'Неподдерживаемый формат изображения.',
+        pl: 'Nieobsługiwany format obrazu.',
+        es: 'Formato de imagen no compatible.',
+        cs: 'Nepodporovaný formát obrázku.',
+        de: 'Nicht unterstütztes Bildformat.',
+        en: 'Unsupported image format.',
+      );
+  String get imageTooLarge => _extra(
+        uk: 'Зображення завелике.',
+        ru: 'Изображение слишком большое.',
+        pl: 'Obraz jest za duży.',
+        es: 'La imagen es demasiado grande.',
+        cs: 'Obrázek je příliš velký.',
+        de: 'Das Bild ist zu groß.',
+        en: 'Image is too large.',
+      );
+  String get backupProfileUnavailable => _extra(
+        uk: 'Немає профілю для експорту.',
+        ru: 'Нет профиля для экспорта.',
+        pl: 'Brak profilu do wyeksportowania.',
+        es: 'No hay perfil disponible para exportar.',
+        cs: 'Pro export není dostupný žádný profil.',
+        de: 'Kein Profil zum Exportieren verfügbar.',
+        en: 'No profile is available to export.',
+      );
+  String get backupFileNotSelected => _extra(
+        uk: 'Файл резервної копії не вибрано.',
+        ru: 'Файл резервной копии не выбран.',
+        pl: 'Nie wybrano pliku kopii zapasowej.',
+        es: 'No se seleccionó ningún archivo de copia de seguridad.',
+        cs: 'Nebyl vybrán soubor zálohy.',
+        de: 'Keine Sicherungsdatei ausgewählt.',
+        en: 'No backup file selected.',
+      );
+  String get backupReadFailed => _extra(
+        uk: 'Не вдалося прочитати файл резервної копії.',
+        ru: 'Не удалось прочитать файл резервной копии.',
+        pl: 'Nie udało się odczytać pliku kopii zapasowej.',
+        es: 'No se pudo leer el archivo de copia de seguridad.',
+        cs: 'Soubor zálohy se nepodařilo přečíst.',
+        de: 'Sicherungsdatei konnte nicht gelesen werden.',
+        en: 'Could not read backup file.',
+      );
+  String get backupFormatUnsupported => _extra(
+        uk: 'Непідтримуваний формат резервної копії.',
+        ru: 'Неподдерживаемый формат резервной копии.',
+        pl: 'Nieobsługiwany format kopii zapasowej.',
+        es: 'Formato de copia de seguridad no compatible.',
+        cs: 'Nepodporovaný formát zálohy.',
+        de: 'Nicht unterstütztes Sicherungsformat.',
+        en: 'Unsupported backup format.',
+      );
+  String get backupPasswordWrongOrCorrupted => _extra(
+        uk: 'Пароль резервної копії неправильний або файл пошкоджено.',
+        ru: 'Пароль резервной копии неверен или файл повреждён.',
+        pl: 'Hasło kopii zapasowej jest nieprawidłowe lub plik jest uszkodzony.',
+        es: 'La contraseña es incorrecta o el archivo está dañado.',
+        cs: 'Heslo zálohy je nesprávné nebo je soubor poškozen.',
+        de: 'Das Sicherungspasswort ist falsch oder die Datei ist beschädigt.',
+        en: 'Backup password is wrong or file is corrupted.',
+      );
+  String get backupPasswordMinimum => _extra(
+        uk: 'Пароль резервної копії має містити щонайменше 8 символів.',
+        ru: 'Пароль резервной копии должен содержать не менее 8 символов.',
+        pl: 'Hasło kopii zapasowej musi mieć co najmniej 8 znaków.',
+        es: 'La contraseña de copia de seguridad debe tener al menos 8 caracteres.',
+        cs: 'Heslo zálohy musí mít alespoň 8 znaků.',
+        de: 'Das Sicherungspasswort muss mindestens 8 Zeichen lang sein.',
+        en: 'Backup password must be at least 8 characters.',
+      );
+  String get exportBackupDialogTitle => _extra(
+        uk: 'Експорт резервної копії Hestia',
+        ru: 'Экспорт резервной копии Hestia',
+        pl: 'Eksport kopii zapasowej Hestia',
+        es: 'Exportar copia de seguridad de Hestia',
+        cs: 'Export zálohy Hestia',
+        de: 'Hestia-Sicherung exportieren',
+        en: 'Export Hestia backup',
+      );
+  String get encryptionIdentityUnavailable => _extra(
+        uk: 'Ключі шифрування недоступні.',
+        ru: 'Ключи шифрования недоступны.',
+        pl: 'Klucze szyfrowania są niedostępne.',
+        es: 'Las claves de cifrado no están disponibles.',
+        cs: 'Šifrovací klíče nejsou dostupné.',
+        de: 'Verschlüsselungsschlüssel sind nicht verfügbar.',
+        en: 'Encryption identity is not available.',
+      );
+  String get invalidBackupEncryptionIdentity => _extra(
+        uk: 'Резервна копія не містить коректних ключів шифрування.',
+        ru: 'Резервная копия не содержит корректных ключей шифрования.',
+        pl: 'Kopia zapasowa nie zawiera prawidłowych kluczy szyfrowania.',
+        es: 'La copia de seguridad no contiene claves de cifrado válidas.',
+        cs: 'Záloha neobsahuje platné šifrovací klíče.',
+        de: 'Die Sicherung enthält keine gültigen Verschlüsselungsschlüssel.',
+        en: 'Backup does not contain a valid encryption identity.',
+      );
+  String get invalidEncryptionKey => _extra(
+        uk: 'Некоректний ключ шифрування.',
+        ru: 'Некорректный ключ шифрования.',
+        pl: 'Nieprawidłowy klucz szyfrowania.',
+        es: 'Clave de cifrado no válida.',
+        cs: 'Neplatný šifrovací klíč.',
+        de: 'Ungültiger Verschlüsselungsschlüssel.',
+        en: 'Invalid encryption key.',
+      );
+  String get encryptedPayloadVerificationFailed => _extra(
+        uk: 'Не вдалося перевірити зашифровані дані.',
+        ru: 'Не удалось проверить зашифрованные данные.',
+        pl: 'Nie udało się zweryfikować zaszyfrowanych danych.',
+        es: 'No se pudieron verificar los datos cifrados.',
+        cs: 'Šifrovaná data se nepodařilo ověřit.',
+        de: 'Verschlüsselte Daten konnten nicht geprüft werden.',
+        en: 'Encrypted data verification failed.',
       );
   String get webAttachmentAvailable => _extra(
         uk: 'Файл доступний у поточній сесії браузера.',
@@ -494,6 +719,60 @@ extension HestiaErrorLocalizations on AppLocalizations {
         cs: 'Nahrává se',
         de: 'Wird hochgeladen',
         en: 'Uploading',
+      );
+  String get attachmentPreparing => _extra(
+        uk: 'Підготовка',
+        ru: 'Подготовка',
+        pl: 'Przygotowywanie',
+        es: 'Preparando',
+        cs: 'Příprava',
+        de: 'Vorbereitung',
+        en: 'Preparing',
+      );
+  String get attachmentEncrypting => _extra(
+        uk: 'Шифрування',
+        ru: 'Шифрование',
+        pl: 'Szyfrowanie',
+        es: 'Cifrando',
+        cs: 'Šifrování',
+        de: 'Verschlüsselung',
+        en: 'Encrypting',
+      );
+  String get attachmentDownloading => _extra(
+        uk: 'Завантаження',
+        ru: 'Загрузка',
+        pl: 'Pobieranie',
+        es: 'Descargando',
+        cs: 'Stahování',
+        de: 'Download',
+        en: 'Downloading',
+      );
+  String get attachmentDecrypting => _extra(
+        uk: 'Розшифрування',
+        ru: 'Расшифровка',
+        pl: 'Odszyfrowywanie',
+        es: 'Descifrando',
+        cs: 'Dešifrování',
+        de: 'Entschlüsselung',
+        en: 'Decrypting',
+      );
+  String get attachmentSaving => _extra(
+        uk: 'Збереження',
+        ru: 'Сохранение',
+        pl: 'Zapisywanie',
+        es: 'Guardando',
+        cs: 'Ukládání',
+        de: 'Speichern',
+        en: 'Saving',
+      );
+  String get attachmentWorking => _extra(
+        uk: 'Обробка...',
+        ru: 'Обработка...',
+        pl: 'Przetwarzanie...',
+        es: 'Procesando...',
+        cs: 'Zpracování...',
+        de: 'Verarbeitung...',
+        en: 'Working...',
       );
   String get attachmentSent => _extra(
         uk: 'Надіслано',
@@ -647,6 +926,51 @@ extension HestiaErrorLocalizations on AppLocalizations {
         cs: 'Upozornění Hestia na příchozí hovory.',
         de: 'Hinweise auf eingehende Hestia-Anrufe.',
         en: 'Incoming call alerts for Hestia.',
+      );
+  String get pushMessagesChannel => _extra(
+        uk: 'Повідомлення',
+        ru: 'Сообщения',
+        pl: 'Wiadomości',
+        es: 'Mensajes',
+        cs: 'Zprávy',
+        de: 'Nachrichten',
+        en: 'Messages',
+      );
+  String get pushCallsChannel => _extra(
+        uk: 'Дзвінки',
+        ru: 'Звонки',
+        pl: 'Połączenia',
+        es: 'Llamadas',
+        cs: 'Hovory',
+        de: 'Anrufe',
+        en: 'Calls',
+      );
+  String get pushBackgroundChannel => _extra(
+        uk: 'Фонове підключення',
+        ru: 'Фоновое соединение',
+        pl: 'Połączenie w tle',
+        es: 'Conexión en segundo plano',
+        cs: 'Připojení na pozadí',
+        de: 'Hintergrundverbindung',
+        en: 'Background connection',
+      );
+  String get pushMessageChannelDescription => _extra(
+        uk: 'Сповіщення про вхідні повідомлення.',
+        ru: 'Уведомления о входящих сообщениях.',
+        pl: 'Powiadomienia o przychodzących wiadomościach.',
+        es: 'Notificaciones de mensajes entrantes.',
+        cs: 'Oznámení o příchozích zprávách.',
+        de: 'Benachrichtigungen über eingehende Nachrichten.',
+        en: 'Incoming message notifications.',
+      );
+  String get pushBackgroundChannelDescription => _extra(
+        uk: 'Підтримує підключення Hestia, коли Firebase push недоступний.',
+        ru: 'Поддерживает подключение Hestia, когда Firebase push недоступен.',
+        pl: 'Utrzymuje połączenie Hestia, gdy powiadomienia Firebase są niedostępne.',
+        es: 'Mantiene Hestia conectada cuando las notificaciones Firebase no están disponibles.',
+        cs: 'Udržuje připojení Hestia, když push Firebase není dostupný.',
+        de: 'Hält Hestia verbunden, wenn Firebase Push nicht verfügbar ist.',
+        en: 'Keeps Hestia connected when Firebase push is unavailable.',
       );
   String get newContactRequestNotification => _extra(
         uk: 'Новий запит у контакти',
@@ -866,6 +1190,44 @@ extension HestiaErrorLocalizations on AppLocalizations {
     if (message == 'This session was revoked.') return sessionRevoked;
     if (message == 'Unknown server error') return unknownServerError;
     if (message == 'Authentication required.') return authenticationRequired;
+    const invalidServerUrlPrefix = 'Invalid server URL: ';
+    if (message.startsWith(invalidServerUrlPrefix)) {
+      return invalidServerUrl(message.substring(invalidServerUrlPrefix.length));
+    }
+    const unsupportedServerUrlSchemePrefix = 'Unsupported server URL scheme: ';
+    if (message.startsWith(unsupportedServerUrlSchemePrefix)) {
+      return unsupportedServerUrlScheme(
+        message.substring(unsupportedServerUrlSchemePrefix.length),
+      );
+    }
+    if (message == 'No profile is available to export.') {
+      return backupProfileUnavailable;
+    }
+    if (message == 'No backup file selected.') return backupFileNotSelected;
+    if (message == 'Could not read backup file.') return backupReadFailed;
+    if (message == 'Unsupported backup format.') return backupFormatUnsupported;
+    if (message == 'Backup password is wrong or file is corrupted.') {
+      return backupPasswordWrongOrCorrupted;
+    }
+    if (message == 'Backup password must be at least 8 characters.') {
+      return backupPasswordMinimum;
+    }
+    if (message == 'Unsupported image format.') return unsupportedImageFormat;
+    if (message == 'Image is too large.') return imageTooLarge;
+    if (message == 'Encryption identity is not available.') {
+      return encryptionIdentityUnavailable;
+    }
+    if (message == 'Backup does not contain a valid encryption identity.') {
+      return invalidBackupEncryptionIdentity;
+    }
+    if (message == 'Invalid public key') return invalidEncryptionKey;
+    if (message == 'Encrypted payload verification failed') {
+      return encryptedPayloadVerificationFailed;
+    }
+    if (message == 'WebSocket is not connected.' ||
+        message == 'Reconnect did not establish a websocket session.') {
+      return noServerConnection;
+    }
     if (message == 'camera_microphone_permissions_required') {
       return cameraMicPermissionsRequired;
     }
@@ -884,6 +1246,9 @@ extension HestiaErrorLocalizations on AppLocalizations {
     if (message == 'no_camera_found') {
       return noCameraFound;
     }
+    if (message == 'Camera unavailable. Continuing with audio.') {
+      return cameraUnavailableAudioFallback;
+    }
     if (message.startsWith('Could not connect to ')) {
       return couldNotConnectTo(
           message.substring('Could not connect to '.length));
@@ -896,11 +1261,11 @@ extension HestiaErrorLocalizations on AppLocalizations {
       return attachmentValidationFailed;
     }
     if (message.startsWith('Attachment validation failed. Allowed files:')) {
-      return '$attachmentValidationFailed ${_attachmentPolicyDetails(message)}';
+      return '$attachmentValidationFailed $attachmentLimits';
     }
     if (message == 'Attachment is too large.') return attachmentTooLarge;
     if (message.startsWith('Attachment is too large. Allowed files:')) {
-      return '$attachmentTooLarge ${_attachmentPolicyDetails(message)}';
+      return '$attachmentTooLarge $attachmentLimits';
     }
     if (message == 'Could not read the selected file') {
       return selectedFileReadFailed;
@@ -919,6 +1284,17 @@ extension HestiaErrorLocalizations on AppLocalizations {
     if (message == 'Invalid upload response.') return invalidUploadResponse;
     if (message == 'Server does not support file uploads.') {
       return serverFileUploadUnsupported;
+    }
+    if (message.startsWith('download failed:')) {
+      return attachmentDownloadFailed;
+    }
+    if (message.startsWith('decrypt exception:') ||
+        message.startsWith('decrypt failed:') ||
+        message.startsWith('decode failed:')) {
+      return attachmentDecryptFailed;
+    }
+    if (message.startsWith('file write failed:')) {
+      return attachmentSaveFailed;
     }
     if (message == 'Not found' || message == 'Attachment is unavailable.') {
       return attachmentNotFoundOnServer;
@@ -942,13 +1318,6 @@ extension HestiaErrorLocalizations on AppLocalizations {
     }
 
     return message;
-  }
-
-  String _attachmentPolicyDetails(String message) {
-    const marker = 'Allowed files:';
-    final markerIndex = message.indexOf(marker);
-    if (markerIndex == -1) return attachmentLimits;
-    return message.substring(markerIndex).trim();
   }
 
   String _englishKeyChangedSuffix() =>

@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta
       name="description"
-      content="Download Hestia 4.0.3_4 for Android, open Hestia Web in the browser, get the self-hosting backend, and verify public downloads with SHA-256 checksums."
+      content="Download Hestia 1.0.0 for Android from hestiachat.site and verify the APK with SHA-256 checksums."
     >
     <title>Downloads | Hestia Messenger</title>
     <meta name="keywords" content="Hestia downloads, Android APK, macOS, Linux, Web messenger">
     <meta property="og:title" content="Downloads | Hestia Messenger">
-    <meta property="og:description" content="Download Hestia 4.0.3_4 release assets from GitHub Releases.">
+    <meta property="og:description" content="Download Hestia 1.0.0 Android APKs hosted on hestiachat.site.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://hestiachat.site/downloads.html?lang=en">
     <meta property="og:image" content="https://hestiachat.site/og/en/downloads.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Downloads | Hestia Messenger">
-    <meta name="twitter:description" content="Download Hestia 4.0.3_4 release assets from GitHub Releases.">
+    <meta name="twitter:description" content="Download Hestia 1.0.0 Android APKs hosted on hestiachat.site.">
     <meta name="twitter:image" content="https://hestiachat.site/og/en/downloads.png">
     <link rel="canonical" href="https://hestiachat.site/downloads.html?lang=en">
     <link rel="alternate" hreflang="en" href="https://hestiachat.site/downloads.html?lang=en">
@@ -54,15 +54,15 @@
           <p class="eyebrow">Release downloads</p>
           <h1 id="download-page-title">Get Hestia</h1>
           <p class="hero-copy">
-            Download Android, open Hestia Web in your browser, or get
-            the backend package for self-hosting.
+            Hestia 1.0.0 is available for Android. Other platforms are
+            coming later.
           </p>
           <div class="cta-row">
             <a class="button button-primary" id="primary-download" href="#release-list">
               Recommended download
             </a>
-            <a class="button button-secondary" href="https://github.com/RuslanLit/Hestia/releases/tag/v4.0.3_4" data-release-link="releasePageUrl">
-              GitHub Release page
+            <a class="button button-secondary" href="https://github.com/RuslanLit/Hestia" data-release-link="releasePageUrl">
+              Source code
             </a>
           </div>
           <p class="platform-note" id="platform-note" aria-live="polite">
@@ -75,20 +75,19 @@
         <div class="section-heading">
           <div>
             <p class="eyebrow">Current release</p>
-            <h2 id="release-title">Hestia <span data-site-version>4.0.3_4</span></h2>
+            <h2 id="release-title">Hestia <span data-site-version>1.0.0</span></h2>
           </div>
           <p class="section-copy">
-            User downloads are listed first. Internal site and web-static
-            packages may remain in release metadata, but are not shown here as
-            ordinary downloads.
+            Android APKs are hosted on hestiachat.site. Checksums are
+            provided for verification before installing.
           </p>
         </div>
 
         <div class="release-toolbar">
-          <a class="release-link" href="https://github.com/RuslanLit/Hestia/releases/tag/v4.0.3_4" data-release-link="releasePageUrl">
-            GitHub Release page
+          <a class="release-link" href="https://github.com/RuslanLit/Hestia" data-release-link="releasePageUrl">
+            Source code
           </a>
-          <a class="release-link" href="https://github.com/RuslanLit/Hestia/releases/download/v4.0.3_4/4.0.3-checksums.txt" data-release-link="checksumUrl">
+          <a class="release-link" href="https://hestiachat.site/releases/v1.0.0/SHA256-1.0.0.txt" data-release-link="checksumUrl">
             Checksums
           </a>
           <a class="release-link" href="#" data-release-link="updateManifestUrl">
@@ -97,6 +96,11 @@
           <a class="release-link" href="#" data-site-link="serverGuide">
             Server setup guide
           </a>
+        </div>
+
+        <div class="note-block">
+          <p>Manual verified APK updates are supported from inside the Android app.</p>
+          <p>Known issue: If the caller times out before the callee answers, the callee may continue ringing and a late Accept will not connect. Decline or miss the call, then call again.</p>
         </div>
 
         <div class="release-list" id="release-list" data-release-list></div>

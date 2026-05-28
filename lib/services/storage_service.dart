@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
+import 'platform_capabilities.dart';
+import 'web_smoke_log.dart';
 
 class StorageService {
   static const _keyUserId = 'userId';
@@ -24,11 +26,27 @@ class StorageService {
   late SharedPreferences _prefs;
   String? _authToken;
   String? _publicKey;
+  bool _secureValuesLoaded = false;
+
+  bool get secureValuesLoaded => _secureValuesLoaded;
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
-    _authToken = await _readSecureWithMigration(_keyAuthToken);
-    _publicKey = await _readSecureWithMigration(_keyPublicKey);
+    _secureValuesLoaded = false;
+    try {
+      _authToken = await _readSecureWithMigration(_keyAuthToken);
+      _publicKey = await _readSecureWithMigration(_keyPublicKey);
+      _secureValuesLoaded = true;
+    } catch (error) {
+      if (PlatformCapabilities.isWeb) {
+        WebSmokeLog.log('runtime blocker reason=secure_storage error=$error');
+      }
+      rethrow;
+    }
+    if (PlatformCapabilities.isWeb &&
+        loadProfile()?.authToken?.isNotEmpty == true) {
+      WebSmokeLog.log('storage restored after reload');
+    }
   }
 
   // Returns null if user has never registered
@@ -162,5 +180,3 @@ class StorageService {
     await _prefs.remove(key);
   }
 }
-
-

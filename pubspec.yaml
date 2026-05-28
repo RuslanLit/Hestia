@@ -1,7 +1,7 @@
 name: hestia
 description: Stable text-only messenger
 publish_to: none
-version: 0.6.27+27
+version: 1.0.0+1000
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -36,6 +36,8 @@ dependencies:
   timezone: ^0.11.0
   qr_flutter: ^4.1.0
   web: ^1.1.1
+  device_info_plus: ^12.4.0
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_lints: ^6.0.0

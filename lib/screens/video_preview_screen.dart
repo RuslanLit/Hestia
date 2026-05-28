@@ -93,7 +93,7 @@ class _VideoPreviewScreenState extends State<VideoPreviewScreen> {
     if (message.contains('camera_preview_timed_out')) {
       return context.l10n.cameraPreviewTimedOut;
     }
-    return '$error';
+    return context.l10n.cameraUnavailableCheckPermissions;
   }
 
   Future<void> _switchCamera() async {

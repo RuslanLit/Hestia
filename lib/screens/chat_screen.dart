@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -13,10 +13,12 @@ import '../l10n/l10n.dart';
 import '../models/models.dart';
 import '../services/call_service.dart';
 import '../services/attachment_policy.dart';
+import '../services/browser_attachment_preview.dart';
 import '../services/chat_service.dart';
 import '../services/diagnostic_service.dart';
 import '../services/local_data_service.dart';
 import '../services/micro_onboarding_service.dart';
+import '../services/platform_capabilities.dart';
 import '../services/retention_service.dart';
 import '../widgets/app_background.dart';
 import '../widgets/micro_hint.dart';
@@ -199,7 +201,12 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _startCall({required bool video}) async {
-    final realVideoCall = video && !kIsWeb && Platform.isAndroid;
+    final webDesktopVideoCall = video &&
+        kIsWeb &&
+        defaultTargetPlatform != TargetPlatform.android &&
+        defaultTargetPlatform != TargetPlatform.iOS;
+    final realVideoCall =
+        video && ((!kIsWeb && Platform.isAndroid) || webDesktopVideoCall);
     if (video && !realVideoCall) {
       DiagnosticService.instance.log(
         'video call pressed ignored reason=unsupported_platform peerUserId=${_shortId(widget.peerUserId)}',
@@ -228,7 +235,7 @@ class _ChatScreenState extends State<ChatScreen> {
       DiagnosticService.instance.log('call blocked reason=cleanup_in_progress');
       showHestiaSnackBar(
         context,
-        'Finishing previous call...',
+        context.l10n.finishingPreviousCall,
         tone: HestiaStatusTone.warning,
       );
       return;
@@ -447,7 +454,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final keyInfo = _chat.peerKeyInfo(widget.peerUserId, widget.peerNickname);
     final l10n = context.l10n;
     final showVideoCallEntry = _shouldShowVideoCallEntry();
-    final videoButtonDisabledReason = _videoButtonDisabledReason();
+    final videoButtonDisabledReason = _videoButtonDisabledReason(context);
     _chat.markConversationRead(_conversationId);
 
     return Scaffold(
@@ -785,18 +792,26 @@ class _ChatScreenState extends State<ChatScreen> {
     final voiceEnabled = AppConfig.enableVoiceCalls;
     final android = !kIsWeb && Platform.isAndroid;
     final desktop = !kIsWeb && defaultTargetPlatform == TargetPlatform.fuchsia;
+    final webVideoStopFixDisabled = _webVideoTemporarilyDisabled();
+    final webDesktop = kIsWeb &&
+        !webVideoStopFixDisabled &&
+        defaultTargetPlatform != TargetPlatform.android &&
+        defaultTargetPlatform != TargetPlatform.iOS;
     final activeContact = _chat.isActiveContact(widget.peerUserId);
     final androidPhaseFallback = android && voiceEnabled;
     final visible = activeContact &&
         ((android && (featureEnabled || androidPhaseFallback)) ||
-            (desktop && featureEnabled));
-    final disabledReason = _videoButtonDisabledReason();
+            (desktop && featureEnabled) ||
+            (webDesktop && featureEnabled));
+    final disabledReason = _videoButtonDisabledReason(null);
     final platform = android
         ? 'android'
         : desktop
             ? 'desktop'
             : kIsWeb
-                ? 'web'
+                ? webDesktop
+                    ? 'web_desktop'
+                    : 'web_unsupported'
                 : 'other';
     final logKey =
         'platform=$platform enableVideoCalls=$featureEnabled activeContact=$activeContact '
@@ -806,16 +821,30 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_lastVideoButtonVisibilityLog != logKey) {
       _lastVideoButtonVisibilityLog = logKey;
       DiagnosticService.instance.log('UI video call entry $logKey');
+      if (kIsWeb && webVideoStopFixDisabled) {
+        debugPrint(
+          '[CallStopFix] start video call blocked reason=web_video_temporarily_disabled',
+        );
+      }
     }
     return visible;
   }
 
-  String? _videoButtonDisabledReason() {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.fuchsia) {
+  String? _videoButtonDisabledReason(BuildContext? context) {
+    if (kIsWeb) {
+      if (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS) {
+        return 'web_mobile_unsupported';
+      }
       return null;
     }
-    return 'Desktop video sending is experimental';
+    if (defaultTargetPlatform != TargetPlatform.fuchsia) {
+      return null;
+    }
+    return context?.l10n.desktopVideoExperimental ?? 'desktop_experimental';
   }
+
+  bool _webVideoTemporarilyDisabled() => true;
 
   String _shortId(String value) =>
       value.length <= 8 ? value : '${value.substring(0, 8)}...';
@@ -1154,7 +1183,7 @@ class _MessageBubble extends StatelessWidget {
                     child: Text(
                       durationLabel == null
                           ? callTitle
-                          : '$callTitle В· $durationLabel',
+                          : '$callTitle \u00b7 $durationLabel',
                       style: TextStyle(
                         color: scheme.onErrorContainer,
                         fontWeight: FontWeight.w700,
@@ -1358,11 +1387,11 @@ class _MessageBubble extends StatelessWidget {
       final videoCall = context.l10n.videoCall;
       switch (message.callStatus) {
         case CallStatus.missed:
-          return '$videoCall В· missed';
+          return context.l10n.callEventMissedVideo;
         case CallStatus.rejectedByRecipient:
-          return '$videoCall В· rejected';
+          return context.l10n.callEventRejectedVideo;
         case CallStatus.canceledByCaller:
-          return '$videoCall В· canceled';
+          return context.l10n.callEventCanceledVideo;
         case CallStatus.failedTimeout:
         case CallStatus.failedNetwork:
           return context.l10n.callEventFailed;
@@ -1546,7 +1575,7 @@ String _localizedReplyPreview(BuildContext context, String preview) {
   return preview == 'Attachment' ? context.l10n.attachment : preview;
 }
 
-class _AttachmentCard extends StatelessWidget {
+class _AttachmentCard extends StatefulWidget {
   final ChatAttachment attachment;
   final MessageDeliveryStatus status;
   final bool isMe;
@@ -1560,12 +1589,47 @@ class _AttachmentCard extends StatelessWidget {
   });
 
   @override
+  State<_AttachmentCard> createState() => _AttachmentCardState();
+}
+
+class _AttachmentCardState extends State<_AttachmentCard> {
+  String? _objectUrl;
+  String? _objectUrlKey;
+  bool? _lastPreviewAvailable;
+  String? _lastUnsupportedType;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshObjectUrl();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AttachmentCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _refreshObjectUrl();
+  }
+
+  @override
+  void dispose() {
+    _revokeObjectUrl();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    _refreshObjectUrl();
+    final attachment = widget.attachment;
     final imageBytes = _webAttachmentBytes(attachment);
-    final canOpenInPlace = !kIsWeb &&
+    final webAttachmentAvailable = kIsWeb && imageBytes != null;
+    final webPreviewSupported = kIsWeb &&
+        webAttachmentAvailable &&
+        BrowserAttachmentPreview.canPreview(attachment.name, attachment.kind);
+    final canOpenInBrowser = webPreviewSupported && _objectUrl != null;
+    final canOpenInPlace = PlatformCapabilities.supportsPersistentAttachments &&
         attachment.localPath.isNotEmpty &&
         AttachmentPolicy.canOpenInPlace(attachment.name, attachment.kind);
-    final progress = this.progress;
+    final progress = widget.progress;
     final showProgress = progress != null &&
         progress.stage != AttachmentTransferStage.sent &&
         progress.stage != AttachmentTransferStage.received &&
@@ -1623,7 +1687,7 @@ class _AttachmentCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${_typeLabel(attachment)} В· ${_formatBytes(attachment.sizeBytes)} В· ${_statusLabel(context, progress)}',
+                      '${_typeLabel(attachment)} \u00b7 ${_formatBytes(attachment.sizeBytes)} \u00b7 ${_statusLabel(context, progress)}',
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context)
@@ -1642,7 +1706,7 @@ class _AttachmentCard extends StatelessWidget {
             LinearProgressIndicator(value: progress.fraction),
             const SizedBox(height: 6),
             Text(
-              _progressDetails(progress),
+              _progressDetails(context, progress),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context)
                         .colorScheme
@@ -1655,7 +1719,7 @@ class _AttachmentCard extends StatelessWidget {
               (progress?.error?.isNotEmpty ?? false)) ...[
             const SizedBox(height: 8),
             Text(
-              progress!.error!,
+              context.localizedError(progress!.error!),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -1670,24 +1734,116 @@ class _AttachmentCard extends StatelessWidget {
             runSpacing: 8,
             children: [
               OutlinedButton.icon(
-                onPressed: canOpenInPlace
-                    ? () => OpenFile.open(attachment.localPath)
-                    : null,
+                onPressed: !showProgress && canOpenInBrowser
+                    ? _openBrowserPreview
+                    : !showProgress && canOpenInPlace
+                        ? () => OpenFile.open(attachment.localPath)
+                        : null,
                 icon: const Icon(Icons.open_in_new),
                 label: Text(context.l10n.open),
               ),
               OutlinedButton.icon(
-                onPressed: attachment.localPath.isNotEmpty && !showProgress
-                    ? () => _saveCopy(context, attachment)
-                    : null,
+                onPressed:
+                    ((PlatformCapabilities.supportsPersistentAttachments &&
+                                    attachment.localPath.isNotEmpty) ||
+                                webAttachmentAvailable) &&
+                            !showProgress
+                        ? () => _saveCopy(context, attachment)
+                        : null,
                 icon: const Icon(Icons.download),
                 label: Text(context.l10n.save),
               ),
             ],
           ),
+          if (kIsWeb &&
+              webAttachmentAvailable &&
+              !webPreviewSupported &&
+              !showProgress) ...[
+            const SizedBox(height: 6),
+            Text(
+              context.l10n.previewUnavailable,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.68),
+                  ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  void _refreshObjectUrl() {
+    if (!kIsWeb) {
+      return;
+    }
+    final attachment = widget.attachment;
+    final bytes = _webAttachmentBytes(attachment);
+    final previewAvailable = bytes != null &&
+        BrowserAttachmentPreview.canPreview(attachment.name, attachment.kind);
+    _logPreviewAvailability(attachment, previewAvailable);
+    if (bytes == null || !previewAvailable) {
+      if (bytes != null) {
+        _logUnsupportedPreviewType(attachment);
+      }
+      _revokeObjectUrl();
+      return;
+    }
+
+    final key =
+        '${attachment.id}:${attachment.name}:${attachment.kind}:${bytes.length}';
+    if (_objectUrl != null && _objectUrlKey == key) {
+      return;
+    }
+    _revokeObjectUrl();
+    _objectUrl = BrowserAttachmentPreview.createObjectUrl(
+      fileName: attachment.name,
+      kind: attachment.kind,
+      bytes: bytes,
+    );
+    _objectUrlKey = _objectUrl == null ? null : key;
+  }
+
+  void _openBrowserPreview() {
+    final objectUrl = _objectUrl;
+    if (objectUrl == null) {
+      return;
+    }
+    BrowserAttachmentPreview.openObjectUrl(objectUrl);
+  }
+
+  void _revokeObjectUrl() {
+    final objectUrl = _objectUrl;
+    if (objectUrl == null) {
+      return;
+    }
+    BrowserAttachmentPreview.revokeObjectUrl(objectUrl);
+    _objectUrl = null;
+    _objectUrlKey = null;
+  }
+
+  void _logPreviewAvailability(
+    ChatAttachment attachment,
+    bool previewAvailable,
+  ) {
+    if (_lastPreviewAvailable == previewAvailable) {
+      return;
+    }
+    _lastPreviewAvailable = previewAvailable;
+    debugPrint('[WebFile] preview available=$previewAvailable');
+  }
+
+  void _logUnsupportedPreviewType(ChatAttachment attachment) {
+    final type = AttachmentPolicy.extensionForName(attachment.name).isEmpty
+        ? attachment.kind
+        : AttachmentPolicy.extensionForName(attachment.name);
+    if (_lastUnsupportedType == type) {
+      return;
+    }
+    _lastUnsupportedType = type;
+    debugPrint('[WebFile] unsupported preview type=$type');
   }
 
   Future<void> _saveCopy(
@@ -1734,17 +1890,17 @@ class _AttachmentCard extends StatelessWidget {
     if (progress != null) {
       switch (progress.stage) {
         case AttachmentTransferStage.preparing:
-          return 'Preparing';
+          return context.l10n.attachmentPreparing;
         case AttachmentTransferStage.encrypting:
-          return 'Encrypting';
+          return context.l10n.attachmentEncrypting;
         case AttachmentTransferStage.uploading:
-          return 'Uploading';
+          return context.l10n.attachmentUploading;
         case AttachmentTransferStage.downloading:
-          return 'Downloading';
+          return context.l10n.attachmentDownloading;
         case AttachmentTransferStage.decrypting:
-          return 'Decrypting';
+          return context.l10n.attachmentDecrypting;
         case AttachmentTransferStage.saving:
-          return 'Saving';
+          return context.l10n.attachmentSaving;
         case AttachmentTransferStage.sent:
           return context.l10n.attachmentSent;
         case AttachmentTransferStage.received:
@@ -1753,32 +1909,35 @@ class _AttachmentCard extends StatelessWidget {
           return context.l10n.attachmentFailed;
       }
     }
-    switch (status) {
+    switch (widget.status) {
       case MessageDeliveryStatus.sending:
         return context.l10n.attachmentUploading;
       case MessageDeliveryStatus.failed:
         return context.l10n.attachmentFailed;
       case MessageDeliveryStatus.sent:
       case MessageDeliveryStatus.delivered:
-        return isMe
+        return widget.isMe
             ? context.l10n.attachmentSent
             : context.l10n.attachmentReceived;
     }
   }
 
-  String _progressDetails(AttachmentTransferProgress progress) {
+  String _progressDetails(
+    BuildContext context,
+    AttachmentTransferProgress progress,
+  ) {
     final total = progress.totalBytes;
     final fraction = progress.fraction;
     final percent = fraction == null ? null : (fraction * 100).floor();
     if (total != null && total > 0) {
       final text =
           '${_formatBytes(progress.transferredBytes)} / ${_formatBytes(total)}';
-      return percent == null ? text : '$percent% В· $text';
+      return percent == null ? text : '$percent% \u00b7 $text';
     }
     if (progress.transferredBytes > 0) {
       return _formatBytes(progress.transferredBytes);
     }
-    return 'Working...';
+    return context.l10n.attachmentWorking;
   }
 
   String _typeLabel(ChatAttachment attachment) {
@@ -1804,5 +1963,3 @@ class _AttachmentCard extends StatelessWidget {
     return LocalDataService.instance.webAttachmentBytes(attachment);
   }
 }
-
-

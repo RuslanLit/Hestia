@@ -10,7 +10,9 @@ const siteConfig = {
 };
 
 const platformNames = {
-  android: "Android",
+  android: "Android arm64-v8a",
+  androidArmv7: "Android armeabi-v7a",
+  androidX64: "Android x86_64",
   macos: "macOS",
   linux: "Linux",
   ios: "iOS",
@@ -188,12 +190,14 @@ function renderDownloadsPage() {
 
   const platformOrder = [
     "android",
-    "web",
-    "server",
+    "androidArmv7",
+    "androidX64",
     "checksums",
+    "web",
     "linux",
     "macos",
     "ios",
+    "server",
   ];
   list.replaceChildren(
     ...platformOrder

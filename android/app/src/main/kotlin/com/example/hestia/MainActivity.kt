@@ -2,14 +2,18 @@ package com.example.hestia
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
+import android.provider.Settings
+import androidx.core.content.FileProvider
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import org.json.JSONArray
+import java.io.File
 
 class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -210,6 +214,82 @@ class MainActivity : FlutterActivity() {
                         startService(cancelIntent)
                     }
                     result.success(true)
+                }
+                else -> result.notImplemented()
+            }
+        }
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "hestia/app_update"
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "installVerifiedApk" -> {
+                    val path = call.argument<String>("path") ?: ""
+                    val updateDir = File(cacheDir, "updates").canonicalFile
+                    val apkFile = File(path).canonicalFile
+                    if (!apkFile.exists() ||
+                        apkFile.parentFile != updateDir ||
+                        !apkFile.name.endsWith(".apk", ignoreCase = true)
+                    ) {
+                        result.error("INVALID_UPDATE_FILE", "Verified update file is unavailable.", null)
+                        return@setMethodCallHandler
+                    }
+                    val archivePackageName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        packageManager.getPackageArchiveInfo(
+                            apkFile.path,
+                            PackageManager.PackageInfoFlags.of(0)
+                        )?.packageName
+                    } else {
+                        @Suppress("DEPRECATION")
+                        packageManager.getPackageArchiveInfo(apkFile.path, 0)?.packageName
+                    }
+                    if (archivePackageName != packageName) {
+                        android.util.Log.w(
+                            "HestiaAppUpdate",
+                            "installer blocked package mismatch downloaded=$archivePackageName expected=$packageName"
+                        )
+                        result.success("package_mismatch")
+                        return@setMethodCallHandler
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                        !packageManager.canRequestPackageInstalls()
+                    ) {
+                        result.success("permission_required")
+                        return@setMethodCallHandler
+                    }
+                    try {
+                        val uri = FileProvider.getUriForFile(
+                            this,
+                            "$packageName.updateFileProvider",
+                            apkFile
+                        )
+                        startActivity(Intent(Intent.ACTION_VIEW).apply {
+                            setDataAndType(uri, "application/vnd.android.package-archive")
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        })
+                        result.success("opened")
+                    } catch (e: Exception) {
+                        android.util.Log.e("HestiaAppUpdate", "open package installer failed", e)
+                        result.error("INSTALLER_FAILED", e.message, null)
+                    }
+                }
+                "openInstallPermissionSettings" -> {
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                                data = Uri.parse("package:$packageName")
+                            })
+                        } else {
+                            startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.parse("package:$packageName")
+                            })
+                        }
+                        result.success(true)
+                    } catch (e: Exception) {
+                        android.util.Log.e("HestiaAppUpdate", "open install settings failed", e)
+                        result.success(false)
+                    }
                 }
                 else -> result.notImplemented()
             }

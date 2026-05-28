@@ -271,11 +271,11 @@ class HestiaForegroundService : Service() {
             .put("fromUserId", fromUserId)
             .put("fromNickname", fromNickname)
         storePendingAction(action)
-        val title = if (fromNickname.isBlank()) getString(R.string.hestia_brand) else fromNickname
+        val title = if (fromNickname.isBlank()) HestiaStrings.get(this, R.string.hestia_brand) else fromNickname
         val notification = NotificationCompat.Builder(this, MESSAGE_CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_notify_chat)
             .setContentTitle(title)
-            .setContentText(getString(R.string.new_message))
+            .setContentText(HestiaStrings.get(this, R.string.new_message))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
@@ -292,11 +292,11 @@ class HestiaForegroundService : Service() {
         Log.i(HestiaCallUi.TAG, "fullScreenIntent requested callId=${HestiaCallUi.short(callId)}")
         val caller = action.optString("fromNickname", "")
         val title = if (action.optString("video") == "true") {
-            getString(R.string.incoming_video_call)
+            HestiaStrings.get(this, R.string.incoming_video_call)
         } else {
-            getString(R.string.incoming_call)
+            HestiaStrings.get(this, R.string.incoming_call)
         }
-        val body = caller.ifBlank { getString(R.string.hestia_call_fallback) }
+        val body = caller.ifBlank { HestiaStrings.get(this, R.string.hestia_call_fallback) }
         val canUseFullScreen = HestiaCallUi.canUseFullScreenIntent(this)
         Log.i(HestiaCallUi.TAG, "canUseFullScreenIntent=$canUseFullScreen")
         HestiaCallUi.markCallNotificationShown(this, callId)
@@ -330,9 +330,9 @@ class HestiaForegroundService : Service() {
             .setSound(ringtoneUri())
             .setContentIntent(contentIntent)
             .setFullScreenIntent(fullScreenIntent, canUseFullScreen)
-            .addAction(android.R.drawable.sym_action_call, getString(R.string.accept), HestiaCallUi.openAppPendingIntent(this, copyAction(action), accept = true))
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.decline), declineIntent(action))
-            .addAction(android.R.drawable.ic_menu_view, getString(R.string.open_app), contentIntent)
+            .addAction(android.R.drawable.sym_action_call, HestiaStrings.get(this, R.string.accept), HestiaCallUi.openAppPendingIntent(this, copyAction(action), accept = true))
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, HestiaStrings.get(this, R.string.decline), declineIntent(action))
+            .addAction(android.R.drawable.ic_menu_view, HestiaStrings.get(this, R.string.open_app), contentIntent)
             .build()
         val id = notificationId(callId, 8001)
         notificationManager.notify(id, notification)
@@ -439,8 +439,8 @@ class HestiaForegroundService : Service() {
         )
         return NotificationCompat.Builder(this, BACKGROUND_CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_notify_sync)
-            .setContentTitle(getString(R.string.hestia_brand))
-            .setContentText(getString(R.string.background_connection_active))
+            .setContentTitle(HestiaStrings.get(this, R.string.hestia_brand))
+            .setContentText(HestiaStrings.get(this, R.string.background_connection_active))
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
@@ -451,12 +451,12 @@ class HestiaForegroundService : Service() {
     private fun createChannels() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         notificationManager.createNotificationChannel(
-            NotificationChannel(BACKGROUND_CHANNEL_ID, getString(R.string.background_connection_channel), NotificationManager.IMPORTANCE_LOW)
+            NotificationChannel(BACKGROUND_CHANNEL_ID, HestiaStrings.get(this, R.string.background_connection_channel), NotificationManager.IMPORTANCE_LOW)
         )
         notificationManager.createNotificationChannel(
-            NotificationChannel(MESSAGE_CHANNEL_ID, getString(R.string.messages_channel), NotificationManager.IMPORTANCE_HIGH)
+            NotificationChannel(MESSAGE_CHANNEL_ID, HestiaStrings.get(this, R.string.messages_channel), NotificationManager.IMPORTANCE_HIGH)
         )
-        val callChannel = NotificationChannel(CALL_CHANNEL_ID, getString(R.string.calls_channel), NotificationManager.IMPORTANCE_HIGH)
+        val callChannel = NotificationChannel(CALL_CHANNEL_ID, HestiaStrings.get(this, R.string.calls_channel), NotificationManager.IMPORTANCE_HIGH)
         callChannel.enableVibration(true)
         callChannel.vibrationPattern = longArrayOf(0, 700, 250, 700, 250, 1200)
         callChannel.setSound(

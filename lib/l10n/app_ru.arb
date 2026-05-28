@@ -192,6 +192,15 @@
   "currentVersionLabel": "Текущая версия: {version}",
   "latestVersionLabel": "Последняя версия: {version}",
   "releaseNotes": "Примечания к выпуску",
+  "downloadApk": "Скачать",
+  "downloadVerified": "Загрузка проверена",
+  "downloadVerificationFailed": "Проверка загрузки не удалась. Файл удалён.",
+  "downloadUnavailableForDevice": "Для этого устройства нет проверенной загрузки.",
+  "installVerifiedDownload": "Установить",
+  "installPermissionRequired": "Разрешите Hestia устанавливать неизвестные приложения, затем снова нажмите «Установить».",
+  "openInstallSettings": "Разрешить установку",
+  "installOpenFailed": "Не удалось открыть установщик Android.",
+  "updatePackageMismatch": "Этот APK не может обновить Hestia, потому что относится к другому пакету приложения.",
   "languageEnglish": "English",
   "languageUkrainian": "Українська",
   "languageRussian": "Русский",
@@ -230,5 +239,11 @@
   "noCameraVideoTrack": "Видеодорожка камеры не создана.",
   "micPermissionRequiredForCalls": "Для звонков требуется разрешение на микрофон.",
   "cameraPermissionRequiredForVideoCalls": "Для видеозвонков требуется разрешение на камеру.",
-  "noCameraFound": "Камера не найдена."
+  "noCameraFound": "Камера не найдена.",
+  "invalidServerUrl": "Некорректный URL сервера: {value}",
+  "unsupportedServerUrlScheme": "Неподдерживаемая схема URL сервера: {scheme}",
+  "attachmentDownloadFailed": "Не удалось скачать вложение.",
+  "attachmentDecryptFailed": "Не удалось расшифровать вложение.",
+  "attachmentSaveFailed": "Не удалось сохранить вложение.",
+  "videoDiagnosticsOverlay": "Текстура {textureId} | {width}x{height} | Кадры {frames}"
 }

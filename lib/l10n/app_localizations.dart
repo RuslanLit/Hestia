@@ -1260,6 +1260,60 @@ abstract class AppLocalizations {
   /// **'Release notes'**
   String get releaseNotes;
 
+  /// No description provided for @downloadApk.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get downloadApk;
+
+  /// No description provided for @downloadVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Download verified'**
+  String get downloadVerified;
+
+  /// No description provided for @downloadVerificationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Download verification failed. The file was deleted.'**
+  String get downloadVerificationFailed;
+
+  /// No description provided for @downloadUnavailableForDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'No verified download is available for this device.'**
+  String get downloadUnavailableForDevice;
+
+  /// No description provided for @installVerifiedDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Install'**
+  String get installVerifiedDownload;
+
+  /// No description provided for @installPermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Hestia to install unknown apps, then tap Install again.'**
+  String get installPermissionRequired;
+
+  /// No description provided for @openInstallSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow installation'**
+  String get openInstallSettings;
+
+  /// No description provided for @installOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the Android installer.'**
+  String get installOpenFailed;
+
+  /// No description provided for @updatePackageMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'This APK cannot update Hestia because it belongs to a different app package.'**
+  String get updatePackageMismatch;
+
   /// No description provided for @languageEnglish.
   ///
   /// In en, this message translates to:
@@ -1493,6 +1547,43 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No camera was found.'**
   String get noCameraFound;
+
+  /// No description provided for @invalidServerUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid server URL: {value}'**
+  String invalidServerUrl(String value);
+
+  /// No description provided for @unsupportedServerUrlScheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported server URL scheme: {scheme}'**
+  String unsupportedServerUrlScheme(String scheme);
+
+  /// No description provided for @attachmentDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not download the attachment.'**
+  String get attachmentDownloadFailed;
+
+  /// No description provided for @attachmentDecryptFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not decrypt the attachment.'**
+  String get attachmentDecryptFailed;
+
+  /// No description provided for @attachmentSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the attachment.'**
+  String get attachmentSaveFailed;
+
+  /// No description provided for @videoDiagnosticsOverlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Texture {textureId} | {width}x{height} | Frames {frames}'**
+  String videoDiagnosticsOverlay(
+      int textureId, int width, int height, int frames);
 }
 
 class _AppLocalizationsDelegate

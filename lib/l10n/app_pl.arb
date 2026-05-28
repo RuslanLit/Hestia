@@ -290,6 +290,15 @@
   "currentVersionLabel": "Bieżąca wersja: {version}",
   "latestVersionLabel": "Najnowsza wersja: {version}",
   "releaseNotes": "Informacje o wydaniu",
+  "downloadApk": "Pobierz",
+  "downloadVerified": "Pobieranie zweryfikowane",
+  "downloadVerificationFailed": "Weryfikacja pobrania nie powiodła się. Plik został usunięty.",
+  "downloadUnavailableForDevice": "Brak zweryfikowanego pliku do pobrania dla tego urządzenia.",
+  "installVerifiedDownload": "Zainstaluj",
+  "installPermissionRequired": "Zezwól Hestii na instalowanie nieznanych aplikacji, a następnie ponownie dotknij Zainstaluj.",
+  "openInstallSettings": "Zezwól na instalację",
+  "installOpenFailed": "Nie można otworzyć instalatora Android.",
+  "updatePackageMismatch": "Ten plik APK nie może zaktualizować Hestii, ponieważ należy do innego pakietu aplikacji.",
   "onboardingSkip": "Pomiń",
   "onboardingNext": "Dalej",
   "onboardingGetStarted": "Zacznij",
@@ -321,5 +330,11 @@
   "noCameraVideoTrack": "Nie utworzono ścieżki wideo z kamery.",
   "micPermissionRequiredForCalls": "Do połączeń wymagane jest uprawnienie do mikrofonu.",
   "cameraPermissionRequiredForVideoCalls": "Do wideorozmów wymagane jest uprawnienie do kamery.",
-  "noCameraFound": "Nie znaleziono kamery."
+  "noCameraFound": "Nie znaleziono kamery.",
+  "invalidServerUrl": "Nieprawidłowy adres URL serwera: {value}",
+  "unsupportedServerUrlScheme": "Nieobsługiwany schemat adresu URL serwera: {scheme}",
+  "attachmentDownloadFailed": "Nie udało się pobrać załącznika.",
+  "attachmentDecryptFailed": "Nie udało się odszyfrować załącznika.",
+  "attachmentSaveFailed": "Nie udało się zapisać załącznika.",
+  "videoDiagnosticsOverlay": "Tekstura {textureId} | {width}x{height} | Klatki {frames}"
 }

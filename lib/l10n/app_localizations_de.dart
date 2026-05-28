@@ -653,6 +653,38 @@ class AppLocalizationsDe extends AppLocalizations {
   String get releaseNotes => 'Versionshinweise';
 
   @override
+  String get downloadApk => 'Herunterladen';
+
+  @override
+  String get downloadVerified => 'Download verifiziert';
+
+  @override
+  String get downloadVerificationFailed =>
+      'Download-Prüfung fehlgeschlagen. Die Datei wurde gelöscht.';
+
+  @override
+  String get downloadUnavailableForDevice =>
+      'Für dieses Gerät ist kein verifizierter Download verfügbar.';
+
+  @override
+  String get installVerifiedDownload => 'Installieren';
+
+  @override
+  String get installPermissionRequired =>
+      'Erlaube Hestia, unbekannte Apps zu installieren, und tippe danach erneut auf Installieren.';
+
+  @override
+  String get openInstallSettings => 'Installation erlauben';
+
+  @override
+  String get installOpenFailed =>
+      'Das Android-Installationsprogramm konnte nicht geöffnet werden.';
+
+  @override
+  String get updatePackageMismatch =>
+      'Dieses APK kann Hestia nicht aktualisieren, da es zu einem anderen App-Paket gehört.';
+
+  @override
   String get languageEnglish => 'English';
 
   @override
@@ -781,4 +813,32 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get noCameraFound => 'Keine Kamera gefunden.';
+
+  @override
+  String invalidServerUrl(String value) {
+    return 'Ungültige Server-URL: $value';
+  }
+
+  @override
+  String unsupportedServerUrlScheme(String scheme) {
+    return 'Nicht unterstütztes Server-URL-Schema: $scheme';
+  }
+
+  @override
+  String get attachmentDownloadFailed =>
+      'Der Anhang konnte nicht heruntergeladen werden.';
+
+  @override
+  String get attachmentDecryptFailed =>
+      'Der Anhang konnte nicht entschlüsselt werden.';
+
+  @override
+  String get attachmentSaveFailed =>
+      'Der Anhang konnte nicht gespeichert werden.';
+
+  @override
+  String videoDiagnosticsOverlay(
+      int textureId, int width, int height, int frames) {
+    return 'Textur $textureId | ${width}x$height | Bilder $frames';
+  }
 }

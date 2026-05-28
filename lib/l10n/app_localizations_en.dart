@@ -640,6 +640,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get releaseNotes => 'Release notes';
 
   @override
+  String get downloadApk => 'Download';
+
+  @override
+  String get downloadVerified => 'Download verified';
+
+  @override
+  String get downloadVerificationFailed =>
+      'Download verification failed. The file was deleted.';
+
+  @override
+  String get downloadUnavailableForDevice =>
+      'No verified download is available for this device.';
+
+  @override
+  String get installVerifiedDownload => 'Install';
+
+  @override
+  String get installPermissionRequired =>
+      'Allow Hestia to install unknown apps, then tap Install again.';
+
+  @override
+  String get openInstallSettings => 'Allow installation';
+
+  @override
+  String get installOpenFailed => 'Could not open the Android installer.';
+
+  @override
+  String get updatePackageMismatch =>
+      'This APK cannot update Hestia because it belongs to a different app package.';
+
+  @override
   String get languageEnglish => 'English';
 
   @override
@@ -767,4 +798,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noCameraFound => 'No camera was found.';
+
+  @override
+  String invalidServerUrl(String value) {
+    return 'Invalid server URL: $value';
+  }
+
+  @override
+  String unsupportedServerUrlScheme(String scheme) {
+    return 'Unsupported server URL scheme: $scheme';
+  }
+
+  @override
+  String get attachmentDownloadFailed => 'Could not download the attachment.';
+
+  @override
+  String get attachmentDecryptFailed => 'Could not decrypt the attachment.';
+
+  @override
+  String get attachmentSaveFailed => 'Could not save the attachment.';
+
+  @override
+  String videoDiagnosticsOverlay(
+      int textureId, int width, int height, int frames) {
+    return 'Texture $textureId | ${width}x$height | Frames $frames';
+  }
 }

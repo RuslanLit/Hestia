@@ -1,14 +1,16 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../models/background_settings.dart';
 import '../services/background_service.dart';
 
 class AppBackground extends StatelessWidget {
   final Widget child;
+  final double? overlayOpacity;
 
   const AppBackground({
     super.key,
     required this.child,
+    this.overlayOpacity,
   });
 
   @override
@@ -35,23 +37,28 @@ class AppBackground extends StatelessWidget {
       ),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: _overlayColor(context, settings.type),
+          color: _overlayColor(context, settings.type, overlayOpacity),
         ),
         child: child,
       ),
     );
   }
 
-  Color _overlayColor(BuildContext context, BackgroundType type) {
+  Color _overlayColor(
+    BuildContext context,
+    BackgroundType type,
+    double? opacity,
+  ) {
     if (type == BackgroundType.defaultTheme) {
       return Colors.transparent;
     }
     final scheme = Theme.of(context).colorScheme;
     final brightness = Theme.of(context).brightness;
+    if (opacity != null) {
+      return scheme.surface.withValues(alpha: opacity);
+    }
     return brightness == Brightness.dark
         ? scheme.surface.withValues(alpha: 0.48)
         : scheme.surface.withValues(alpha: 0.38);
   }
 }
-
-

@@ -19,7 +19,7 @@
         },
         downloads: {
           title: "Get Hestia",
-          description: "Download Hestia for Android, macOS, Linux, or open the web version.",
+          description: "Download Hestia 1.0.0 for Android. Other platforms are coming later.",
         },
         "server-setup": {
           title: "Server setup guide",
@@ -45,7 +45,7 @@
         },
         downloads: {
           title: "Завантажити Hestia",
-          description: "Завантажте Hestia для Android, macOS, Linux або відкрийте web-версію.",
+          description: "Завантажте Hestia 1.0.0 для Android. Інші платформи з'являться пізніше.",
         },
         "server-setup": {
           title: "Інструкція з налаштування сервера",
@@ -71,7 +71,7 @@
         },
         downloads: {
           title: "Скачать Hestia",
-          description: "Скачайте Hestia для Android, macOS, Linux или откройте web-версию.",
+          description: "Скачайте Hestia 1.0.0 для Android. Другие платформы появятся позже.",
         },
         "server-setup": {
           title: "Инструкция по настройке сервера",
@@ -97,7 +97,7 @@
         },
         downloads: {
           title: "Pobierz Hestia",
-          description: "Pobierz Hestia dla Androida, macOS, Linux albo otwórz wersję web.",
+          description: "Pobierz Hestia 1.0.0 dla Androida. Inne platformy pojawią się później.",
         },
         "server-setup": {
           title: "Instrukcja konfiguracji serwera",
@@ -123,7 +123,7 @@
         },
         downloads: {
           title: "Obtener Hestia",
-          description: "Descarga Hestia para Android, macOS, Linux o abre la versión web.",
+          description: "Descarga Hestia 1.0.0 para Android. Las demás plataformas llegarán más adelante.",
         },
         "server-setup": {
           title: "Guía de configuración del servidor",
@@ -149,7 +149,7 @@
         },
         downloads: {
           title: "Získat Hestia",
-          description: "Stáhněte Hestia pro Android, macOS, Linux nebo otevřete webovou verzi.",
+          description: "Stáhněte Hestia 1.0.0 pro Android. Další platformy přijdou později.",
         },
         "server-setup": {
           title: "Průvodce nastavením serveru",
@@ -175,7 +175,7 @@
         },
         downloads: {
           title: "Hestia herunterladen",
-          description: "Laden Sie Hestia für Android, macOS, Linux herunter oder öffnen Sie die Web-Version.",
+          description: "Laden Sie Hestia 1.0.0 für Android herunter. Weitere Plattformen folgen später.",
         },
         "server-setup": {
           title: "Server-Einrichtungsanleitung",
@@ -202,6 +202,5 @@
     module.exports = data;
   }
 })(typeof window !== "undefined" ? window : globalThis);
-
 
 

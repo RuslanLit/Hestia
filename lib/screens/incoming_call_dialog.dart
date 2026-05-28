@@ -9,6 +9,7 @@
 //      is already in the stack when the WebRTC stream arrives.
 // ─────────────────────────────────────────────────────────────────────────────
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:hestia/l10n/l10n.dart';
 import 'package:hestia/services/call_service.dart';
 import 'package:hestia/services/diagnostic_service.dart';
+import 'package:hestia/services/platform_capabilities.dart';
 import 'package:hestia/screens/call_screen.dart';
 import 'package:hestia/widgets/ui_kit.dart';
 import 'package:hestia/widgets/motion.dart';
@@ -35,7 +37,8 @@ class _IncomingCallDialogState extends State<IncomingCallDialog> {
   bool _closing = false;
   bool _ringtoneStarted = false;
   bool get _disableAudioplayers =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.fuchsia;
+      !PlatformCapabilities.supportsAutomaticRingtonePlayback ||
+      (!kIsWeb && defaultTargetPlatform == TargetPlatform.fuchsia);
   bool get _desktopSignalingOnly =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.fuchsia;
 
@@ -56,6 +59,14 @@ class _IncomingCallDialogState extends State<IncomingCallDialog> {
 
   Future<void> _startRingtone() async {
     if (_disableAudioplayers) {
+      if (PlatformCapabilities.isWeb) {
+        debugPrint(
+            '[WebPlatform] ringtone skipped reason=autoplay_not_guaranteed');
+        DiagnosticService.instance.log(
+          'incoming ringtone skipped reason=browser_autoplay_not_guaranteed callId=${_shortId(widget.info.callId)}',
+        );
+        return;
+      }
       DiagnosticService.instance.log(
         'incoming ringtone skipped on Desktop due to audioplayers platform limitation callId=${_shortId(widget.info.callId)}',
       );
@@ -237,6 +248,24 @@ class _IncomingCallDialogState extends State<IncomingCallDialog> {
     unawaited(CallService.instance.acceptCall());
   }
 
+  Widget _webFittingDialogContent(BuildContext context, Widget child) {
+    if (!kIsWeb) {
+      return child;
+    }
+    final size = MediaQuery.sizeOf(context);
+    final maxDialogWidth =
+        size.width < 480 ? math.max(240.0, size.width - 48) : 420.0;
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: maxDialogWidth,
+        maxHeight: size.height * 0.68,
+      ),
+      child: SingleChildScrollView(
+        child: child,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_desktopSignalingOnly) {
@@ -250,56 +279,59 @@ class _IncomingCallDialogState extends State<IncomingCallDialog> {
                 : context.l10n.incomingCall,
             textAlign: TextAlign.center,
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              HestiaAvatar(label: widget.info.fromNickname, radius: 36),
-              const SizedBox(height: 16),
-              Text(
-                widget.info.fromNickname,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  HestiaCircleAction(
-                    icon: Icons.call_end,
-                    color: Theme.of(context).colorScheme.error,
-                    onTap: _onReject,
-                  ),
-                  const SizedBox(width: 40),
-                  HestiaCircleAction(
-                    icon: widget.info.video ? Icons.videocam : Icons.call,
-                    color: Colors.green,
-                    onTap: _onAccept,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 72,
-                    child: Text(
-                      context.l10n.rejectCall,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.labelSmall,
+          content: _webFittingDialogContent(
+            context,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                HestiaAvatar(label: widget.info.fromNickname, radius: 36),
+                const SizedBox(height: 16),
+                Text(
+                  widget.info.fromNickname,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    HestiaCircleAction(
+                      icon: Icons.call_end,
+                      color: Theme.of(context).colorScheme.error,
+                      onTap: _onReject,
                     ),
-                  ),
-                  const SizedBox(width: 40),
-                  SizedBox(
-                    width: 72,
-                    child: Text(
-                      context.l10n.accept,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.labelSmall,
+                    const SizedBox(width: 40),
+                    HestiaCircleAction(
+                      icon: widget.info.video ? Icons.videocam : Icons.call,
+                      color: Colors.green,
+                      onTap: _onAccept,
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 72,
+                      child: Text(
+                        context.l10n.rejectCall,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ),
+                    const SizedBox(width: 40),
+                    SizedBox(
+                      width: 72,
+                      child: Text(
+                        context.l10n.accept,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -312,15 +344,18 @@ class _IncomingCallDialogState extends State<IncomingCallDialog> {
           context.l10n.incomingCall,
           textAlign: TextAlign.center,
         ),
-        content: HestiaIncomingCallCard(
-          callerName: widget.info.fromNickname,
-          callType: widget.info.video
-              ? context.l10n.videoCall
-              : context.l10n.voiceCall,
-          video: widget.info.video,
-          framed: false,
-          onAccept: _onAccept,
-          onDecline: _onReject,
+        content: _webFittingDialogContent(
+          context,
+          HestiaIncomingCallCard(
+            callerName: widget.info.fromNickname,
+            callType: widget.info.video
+                ? context.l10n.videoCall
+                : context.l10n.voiceCall,
+            video: widget.info.video,
+            framed: false,
+            onAccept: _onAccept,
+            onDecline: _onReject,
+          ),
         ),
       ),
     );

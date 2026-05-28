@@ -12,7 +12,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../firebase_options.dart';
+import '../l10n/app_localizations.dart';
+import '../l10n/l10n.dart';
 import 'diagnostic_service.dart';
+import 'platform_capabilities.dart';
 import 'storage_service.dart';
 
 enum PushProvider {
@@ -195,15 +198,8 @@ class FirebasePushService implements PushService {
   static final FirebasePushService instance = FirebasePushService._();
   static const _pendingPushActionsKey = 'hestia_pending_push_actions';
   static const _messageChannelId = 'hestia_messages';
-  static const _messageChannelName = 'Messages';
-  static const _messageChannelDescription = 'Incoming message notifications';
   static const _callChannelId = 'hestia_calls';
-  static const _callChannelName = 'Calls';
-  static const _callChannelDescription = 'Incoming call notifications';
   static const _backgroundServiceChannelId = 'hestia_background_service';
-  static const _backgroundServiceChannelName = 'Background connection';
-  static const _backgroundServiceChannelDescription =
-      'Keeps Hestia connected when Firebase push is unavailable';
   static const _actionAcceptCall = 'accept_call';
   static const _actionDeclineCall = 'decline_call';
   static const _actionOpenApp = 'open_app';
@@ -516,6 +512,12 @@ class FirebasePushService implements PushService {
   }
 
   Future<void> cancelCallNotifications(String callId) async {
+    if (!PlatformCapabilities.supportsLocalNotifications) {
+      if (PlatformCapabilities.isWeb) {
+        debugPrint('[WebPlatform] local notifications skipped reason=web');
+      }
+      return;
+    }
     // 1. Cancel the Flutter local notification (shown by _showIncomingCallNotification)
     final notificationId = _javaHashCode(callId) & 0x7fffffff;
     _log(
@@ -600,8 +602,7 @@ class FirebasePushService implements PushService {
     );
   }
 
-  bool get _isAndroid =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  bool get _isAndroid => PlatformCapabilities.isAndroid;
 
   Future<void> _requestFirebaseNotificationPermission() async {
     try {
@@ -838,6 +839,12 @@ class FirebasePushService implements PushService {
   }
 
   static Future<void> showLocalNotificationForAction(PushAction action) async {
+    if (!PlatformCapabilities.supportsLocalNotifications) {
+      if (PlatformCapabilities.isWeb) {
+        debugPrint('[WebPlatform] local notifications skipped reason=web');
+      }
+      return;
+    }
     if (action.type == PushActionType.incomingCall && action.isExpired) {
       debugPrint('[PushService] expired call push ignored');
       DiagnosticService.instance.log('fcm expired call push ignored');
@@ -851,20 +858,21 @@ class FirebasePushService implements PushService {
     if (action.type != PushActionType.message) {
       return;
     }
+    final l10n = await _notificationL10n();
     final sender = action.fromUsername;
     final title = sender == null || sender.isEmpty ? 'Hestia' : sender;
-    const body = 'New message';
+    final body = l10n.newMessageNotification;
     final idString = action.messageId ?? action.fromUserId ?? '';
     final notificationId = idString.isNotEmpty ? _javaHashCode(idString) : 9001;
     await _localNotifications.show(
       id: notificationId & 0x7fffffff,
       title: title,
       body: body,
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _messageChannelId,
-          _messageChannelName,
-          channelDescription: _messageChannelDescription,
+          l10n.pushMessagesChannel,
+          channelDescription: l10n.pushMessageChannelDescription,
           importance: Importance.high,
           priority: Priority.high,
           category: AndroidNotificationCategory.message,
@@ -879,9 +887,12 @@ class FirebasePushService implements PushService {
   }
 
   static Future<void> _showIncomingCallNotification(PushAction action) async {
+    final l10n = await _notificationL10n();
     final caller = action.fromUsername;
-    final title = action.video ? 'Incoming video call' : 'Incoming call';
-    final body = caller == null || caller.isEmpty ? 'Hestia call' : caller;
+    final title = action.video
+        ? l10n.incomingVideoCallNotification
+        : l10n.incomingVoiceCallNotification;
+    final body = caller == null || caller.isEmpty ? l10n.unknownCaller : caller;
     final callId = action.requestId ?? action.fromUserId ?? '';
     final notificationId = _javaHashCode(callId) & 0x7fffffff;
     _cancelledCallNotificationIds.remove(callId);
@@ -940,8 +951,8 @@ class FirebasePushService implements PushService {
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _callChannelId,
-          _callChannelName,
-          channelDescription: _callChannelDescription,
+          l10n.pushCallsChannel,
+          channelDescription: l10n.pushCallChannelDescription,
           importance: Importance.max,
           priority: Priority.max,
           category: AndroidNotificationCategory.call,
@@ -953,22 +964,22 @@ class FirebasePushService implements PushService {
           vibrationPattern: _callVibrationPattern,
           ongoing: true,
           autoCancel: false,
-          actions: const [
+          actions: [
             AndroidNotificationAction(
               _actionAcceptCall,
-              'Accept',
+              l10n.accept,
               showsUserInterface: true,
               semanticAction: SemanticAction.call,
             ),
             AndroidNotificationAction(
               _actionDeclineCall,
-              'Decline',
+              l10n.decline,
               showsUserInterface: false,
               semanticAction: SemanticAction.delete,
             ),
             AndroidNotificationAction(
               _actionOpenApp,
-              'Open app',
+              l10n.open,
               showsUserInterface: true,
             ),
           ],
@@ -1047,6 +1058,12 @@ class FirebasePushService implements PushService {
   }
 
   static Future<void> _ensureLocalNotificationsReady() async {
+    if (!PlatformCapabilities.supportsLocalNotifications) {
+      if (PlatformCapabilities.isWeb) {
+        debugPrint('[WebPlatform] local notifications skipped reason=web');
+      }
+      return;
+    }
     if (_localNotificationsReady) {
       return;
     }
@@ -1061,19 +1078,20 @@ class FirebasePushService implements PushService {
     );
     final android = _localNotifications.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
+    final l10n = await _notificationL10n();
     await android?.createNotificationChannel(
-      const AndroidNotificationChannel(
+      AndroidNotificationChannel(
         _messageChannelId,
-        _messageChannelName,
-        description: _messageChannelDescription,
+        l10n.pushMessagesChannel,
+        description: l10n.pushMessageChannelDescription,
         importance: Importance.high,
       ),
     );
     await android?.createNotificationChannel(
       AndroidNotificationChannel(
         _callChannelId,
-        _callChannelName,
-        description: _callChannelDescription,
+        l10n.pushCallsChannel,
+        description: l10n.pushCallChannelDescription,
         importance: Importance.max,
         playSound: true,
         sound: _ringtoneSound,
@@ -1082,15 +1100,28 @@ class FirebasePushService implements PushService {
       ),
     );
     await android?.createNotificationChannel(
-      const AndroidNotificationChannel(
+      AndroidNotificationChannel(
         _backgroundServiceChannelId,
-        _backgroundServiceChannelName,
-        description: _backgroundServiceChannelDescription,
+        l10n.pushBackgroundChannel,
+        description: l10n.pushBackgroundChannelDescription,
         importance: Importance.low,
         showBadge: false,
       ),
     );
     _localNotificationsReady = true;
+  }
+
+  static Future<AppLocalizations> _notificationL10n() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString('languageCode');
+    const supported = {'uk', 'ru', 'en', 'pl', 'es', 'cs', 'de'};
+    final systemCode = PlatformDispatcher.instance.locale.languageCode;
+    final code = supported.contains(stored)
+        ? stored!
+        : supported.contains(systemCode)
+            ? systemCode
+            : 'en';
+    return lookupAppLocalizations(Locale(code));
   }
 
   Future<void> _initLocalNotifications() => _ensureLocalNotificationsReady();

@@ -264,6 +264,36 @@ function iceServerUrls(iceServers) {
   return iceServers.map((server) => server.urls);
 }
 
+function iceServerStats(iceServers) {
+  const schemes = new Set();
+  let stunEntries = 0;
+  let turnEntries = 0;
+  for (const server of iceServers) {
+    const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
+    let serverHasStun = false;
+    let serverHasTurn = false;
+    for (const url of urls) {
+      const scheme = String(url || '').split(':', 1)[0].toLowerCase();
+      if (!scheme) continue;
+      schemes.add(scheme);
+      if (scheme === 'stun') serverHasStun = true;
+      if (scheme === 'turn' || scheme === 'turns') serverHasTurn = true;
+    }
+    if (serverHasStun) stunEntries += 1;
+    if (serverHasTurn) turnEntries += 1;
+  }
+  const orderedSchemes = ['stun', 'turn', 'turns']
+    .filter((scheme) => schemes.has(scheme))
+    .concat([...schemes].filter((scheme) => !['stun', 'turn', 'turns'].includes(scheme)));
+  return {
+    total: iceServers.length,
+    stunEntries,
+    turnEntries,
+    hasTurn: turnEntries > 0,
+    schemes: orderedSchemes,
+  };
+}
+
 function logStartupConfig() {
   logInfo(`[config] .env loaded: ${dotenvResult.error ? 'no' : 'yes'}`);
   if (dotenvResult.error && dotenvResult.error.code !== 'ENOENT') {
@@ -285,6 +315,8 @@ function logStartupConfig() {
   logInfo(`[config] TURN placeholder detected: ${TURN_PLACEHOLDER_DETECTED ? 'yes' : 'no'}`);
   logInfo(`[TURN] loaded count=${CONFIGURED_TURN_SERVER_COUNT} hasTurn=${CONFIGURED_TURN_SERVER_COUNT > 0} servers=${JSON.stringify(iceServerUrls(CONFIGURED_TURN_SERVERS))}`);
   logInfo(`[config] ICE servers parsed: ${ICE_SERVERS.length}`);
+  const stats = iceServerStats(ICE_SERVERS);
+  logInfo(`[config] ICE server stats total=${stats.total} stun=${stats.stunEntries} turn=${stats.turnEntries} schemes=${stats.schemes.join(',') || 'none'}`);
   if (ICE_SERVERS.length === 0) {
     logWarn('[config] ICE config is empty; calls can signal but ICE connectivity may fail.');
   }
@@ -3906,6 +3938,9 @@ function backendConfigPayload() {
       pushNotifications: FEATURE_PUSH_NOTIFICATIONS,
     },
     iceServers: FEATURE_VOICE_CALLS || FEATURE_VIDEO_CALLS ? ICE_SERVERS : [],
+    iceServerStats: FEATURE_VOICE_CALLS || FEATURE_VIDEO_CALLS
+      ? iceServerStats(ICE_SERVERS)
+      : iceServerStats([]),
     offlineTtlMs: OFFLINE_TTL_MS,
     websocketPath: '/ws',
     blobTransfer: {

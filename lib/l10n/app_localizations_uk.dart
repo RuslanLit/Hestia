@@ -644,6 +644,37 @@ class AppLocalizationsUk extends AppLocalizations {
   String get releaseNotes => 'Примітки до випуску';
 
   @override
+  String get downloadApk => 'Завантажити';
+
+  @override
+  String get downloadVerified => 'Завантаження перевірено';
+
+  @override
+  String get downloadVerificationFailed =>
+      'Перевірка завантаження не вдалася. Файл видалено.';
+
+  @override
+  String get downloadUnavailableForDevice =>
+      'Для цього пристрою немає перевіреного завантаження.';
+
+  @override
+  String get installVerifiedDownload => 'Установити';
+
+  @override
+  String get installPermissionRequired =>
+      'Дозвольте Hestia встановлювати невідомі застосунки, а потім знову натисніть «Установити».';
+
+  @override
+  String get openInstallSettings => 'Дозволити встановлення';
+
+  @override
+  String get installOpenFailed => 'Не вдалося відкрити інсталятор Android.';
+
+  @override
+  String get updatePackageMismatch =>
+      'Цей APK не може оновити Hestia, оскільки належить до іншого пакета застосунку.';
+
+  @override
   String get languageEnglish => 'English';
 
   @override
@@ -772,4 +803,29 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get noCameraFound => 'Камеру не знайдено.';
+
+  @override
+  String invalidServerUrl(String value) {
+    return 'Некоректна URL-адреса сервера: $value';
+  }
+
+  @override
+  String unsupportedServerUrlScheme(String scheme) {
+    return 'Непідтримувана схема URL-адреси сервера: $scheme';
+  }
+
+  @override
+  String get attachmentDownloadFailed => 'Не вдалося завантажити вкладення.';
+
+  @override
+  String get attachmentDecryptFailed => 'Не вдалося розшифрувати вкладення.';
+
+  @override
+  String get attachmentSaveFailed => 'Не вдалося зберегти вкладення.';
+
+  @override
+  String videoDiagnosticsOverlay(
+      int textureId, int width, int height, int frames) {
+    return 'Текстура $textureId | ${width}x$height | Кадри $frames';
+  }
 }

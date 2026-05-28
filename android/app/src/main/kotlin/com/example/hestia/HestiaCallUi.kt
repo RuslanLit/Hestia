@@ -169,9 +169,9 @@ object HestiaCallUi {
         Log.i(TAG, "canUseFullScreenIntent=$canUseFullScreen")
         val caller = action.optString("fromNickname", "")
         val title = if (action.optString("video") == "true" || action.optBoolean("video", false)) {
-            context.getString(R.string.incoming_video_call)
+            HestiaStrings.get(context, R.string.incoming_video_call)
         } else {
-            context.getString(R.string.incoming_call)
+            HestiaStrings.get(context, R.string.incoming_call)
         }
         val openIntent = mainActivityIntent(context, action, accept = false)
         val acceptIntent = mainActivityIntent(context, action, accept = true)
@@ -194,7 +194,7 @@ object HestiaCallUi {
         val notification = NotificationCompat.Builder(context, CALL_CHANNEL_ID)
             .setSmallIcon(android.R.drawable.sym_call_incoming)
             .setContentTitle(title)
-            .setContentText(caller.ifBlank { context.getString(R.string.hestia_call_fallback) })
+            .setContentText(caller.ifBlank { HestiaStrings.get(context, R.string.hestia_call_fallback) })
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -213,7 +213,7 @@ object HestiaCallUi {
             .setFullScreenIntent(fullScreenPendingIntent(context, action), canUseFullScreen)
             .addAction(
                 android.R.drawable.sym_action_call,
-                context.getString(R.string.accept),
+                HestiaStrings.get(context, R.string.accept),
                 PendingIntent.getActivity(
                     context,
                     acceptRequestCode,
@@ -223,7 +223,7 @@ object HestiaCallUi {
             )
             .addAction(
                 android.R.drawable.ic_menu_close_clear_cancel,
-                context.getString(R.string.decline),
+                HestiaStrings.get(context, R.string.decline),
                 PendingIntent.getService(
                     context,
                     declineRequestCode,
@@ -233,7 +233,7 @@ object HestiaCallUi {
             )
             .addAction(
                 android.R.drawable.ic_menu_view,
-                context.getString(R.string.open_app),
+                HestiaStrings.get(context, R.string.open_app),
                 PendingIntent.getActivity(
                     context,
                     openRequestCode,
@@ -311,7 +311,7 @@ object HestiaCallUi {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val channel = NotificationChannel(
             CALL_CHANNEL_ID,
-            context.getString(R.string.calls_channel),
+            HestiaStrings.get(context, R.string.calls_channel),
             NotificationManager.IMPORTANCE_HIGH,
         )
         channel.enableVibration(true)

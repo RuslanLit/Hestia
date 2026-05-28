@@ -6,6 +6,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pointycastle/export.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'platform_capabilities.dart';
+import 'web_smoke_log.dart';
+
 class CryptoService {
   CryptoService._();
   static final CryptoService instance = CryptoService._();
@@ -282,8 +285,17 @@ class CryptoService {
       return;
     }
 
-    final storedPrivateKey = await _readSecureWithMigration(_privateKeyPref);
-    final storedPublicKey = await _readSecureWithMigration(_publicKeyPref);
+    late final String? storedPrivateKey;
+    late final String? storedPublicKey;
+    try {
+      storedPrivateKey = await _readSecureWithMigration(_privateKeyPref);
+      storedPublicKey = await _readSecureWithMigration(_publicKeyPref);
+    } catch (error) {
+      if (PlatformCapabilities.isWeb) {
+        WebSmokeLog.log('runtime blocker reason=crypto_storage error=$error');
+      }
+      rethrow;
+    }
 
     if (storedPrivateKey != null && storedPublicKey != null) {
       _privateKey = ECPrivateKey(_decodeBigInt(storedPrivateKey), _domain);
@@ -298,8 +310,15 @@ class CryptoService {
     final privateKeyBase64 = _encodeBigInt(privateKey.d!, 32);
     final publicKeyBase64 = base64Encode(publicKey.Q!.getEncoded(false));
 
-    await _writeSecure(_privateKeyPref, privateKeyBase64);
-    await _writeSecure(_publicKeyPref, publicKeyBase64);
+    try {
+      await _writeSecure(_privateKeyPref, privateKeyBase64);
+      await _writeSecure(_publicKeyPref, publicKeyBase64);
+    } catch (error) {
+      if (PlatformCapabilities.isWeb) {
+        WebSmokeLog.log('runtime blocker reason=crypto_storage error=$error');
+      }
+      rethrow;
+    }
 
     _privateKey = privateKey;
     _publicKeyBase64 = publicKeyBase64;
@@ -705,5 +724,3 @@ bool _constantTimeEqualsWorker(List<int> left, List<int> right) {
   }
   return diff == 0;
 }
-
-

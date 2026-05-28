@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'config.dart';
@@ -18,10 +19,12 @@ import 'services/chat_service.dart';
 import 'services/diagnostic_service.dart';
 import 'services/locale_service.dart';
 import 'services/micro_onboarding_service.dart';
+import 'services/platform_capabilities.dart';
 import 'services/push_service.dart';
 import 'services/retention_service.dart';
 import 'services/storage_service.dart';
 import 'services/theme_service.dart';
+import 'services/web_smoke_log.dart';
 import 'theme/app_theme.dart';
 import 'widgets/motion.dart';
 import 'widgets/notifications.dart';
@@ -29,7 +32,22 @@ import 'widgets/ui_kit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  _installWebLayoutOverflowDiagnostics();
+  WebSmokeLog.log('app started');
   runApp(const HestiaApp());
+}
+
+void _installWebLayoutOverflowDiagnostics() {
+  final previous = FlutterError.onError;
+  FlutterError.onError = (details) {
+    if (kDebugMode && PlatformCapabilities.isWeb) {
+      final text = details.exceptionAsString();
+      if (text.contains('RenderFlex overflowed')) {
+        debugPrint('[WebLayout] overflow detected $text');
+      }
+    }
+    previous?.call(details);
+  };
 }
 
 class HestiaApp extends StatefulWidget {
@@ -162,23 +180,45 @@ class _HestiaAppState extends State<HestiaApp> with WidgetsBindingObserver {
       DiagnosticService.instance.log('startup ok $label');
     } catch (error) {
       debugPrint('[Startup] failed $label: $error');
+      if (PlatformCapabilities.isWeb) {
+        WebSmokeLog.log('runtime blocker reason=startup_$label error=$error');
+      }
       DiagnosticService.instance.log('startup failed $label error=$error');
     }
   }
 
   void _showTransientError(String message) {
-    _errorTimer?.cancel();
-    setState(() {
-      _error = message;
-    });
-    _errorTimer = Timer(const Duration(seconds: 4), () {
-      if (!mounted || _error != message) {
+    try {
+      _errorTimer?.cancel();
+      var displayMessage = message;
+      if (kIsWeb) {
+        try {
+          displayMessage = context.localizedError(message);
+        } catch (error) {
+          debugPrint(
+            '[CallStopFix] transient error localization failed error=$error',
+          );
+          displayMessage = message;
+        }
+      }
+      if (!mounted) {
+        debugPrint('[CallStopFix] transient error skipped reason=unmounted');
         return;
       }
       setState(() {
-        _error = null;
+        _error = displayMessage;
       });
-    });
+      _errorTimer = Timer(const Duration(seconds: 4), () {
+        if (!mounted || _error != displayMessage) {
+          return;
+        }
+        setState(() {
+          _error = null;
+        });
+      });
+    } catch (error) {
+      debugPrint('[CallStopFix] transient error display failed error=$error');
+    }
   }
 
   Future<void> _showIncomingCall(IncomingCallInfo info) async {
@@ -240,6 +280,9 @@ class _HestiaAppState extends State<HestiaApp> with WidgetsBindingObserver {
     }
 
     _incomingCallDialogCallId = info.callId;
+    if (PlatformCapabilities.isWeb) {
+      debugPrint('[WebPlatform] incoming call shown in-app only');
+    }
     CallService.instance.setRecipientUiDiagnostics(
       routeDialogState: 'incoming_dialog_showing',
     );
@@ -499,7 +542,7 @@ class _HestiaAppState extends State<HestiaApp> with WidgetsBindingObserver {
         'type': 'call_offer',
         'callId': callId,
         'fromUserId': action.fromUserId ?? '',
-        'fromNickname': action.fromUsername ?? 'Hestia call',
+        'fromNickname': action.fromUsername ?? context.l10n.unknownCaller,
         'video': action.video,
         'callCreatedAt':
             action.timestampMs ?? DateTime.now().millisecondsSinceEpoch,

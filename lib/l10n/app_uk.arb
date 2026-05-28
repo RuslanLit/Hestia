@@ -192,6 +192,15 @@
   "currentVersionLabel": "Поточна версія: {version}",
   "latestVersionLabel": "Остання версія: {version}",
   "releaseNotes": "Примітки до випуску",
+  "downloadApk": "Завантажити",
+  "downloadVerified": "Завантаження перевірено",
+  "downloadVerificationFailed": "Перевірка завантаження не вдалася. Файл видалено.",
+  "downloadUnavailableForDevice": "Для цього пристрою немає перевіреного завантаження.",
+  "installVerifiedDownload": "Установити",
+  "installPermissionRequired": "Дозвольте Hestia встановлювати невідомі застосунки, а потім знову натисніть «Установити».",
+  "openInstallSettings": "Дозволити встановлення",
+  "installOpenFailed": "Не вдалося відкрити інсталятор Android.",
+  "updatePackageMismatch": "Цей APK не може оновити Hestia, оскільки належить до іншого пакета застосунку.",
   "languageEnglish": "English",
   "languageUkrainian": "Українська",
   "languageRussian": "Русский",
@@ -230,5 +239,11 @@
   "noCameraVideoTrack": "Відеодоріжку камери не створено.",
   "micPermissionRequiredForCalls": "Для дзвінків потрібен дозвіл на мікрофон.",
   "cameraPermissionRequiredForVideoCalls": "Для відеодзвінків потрібен дозвіл на камеру.",
-  "noCameraFound": "Камеру не знайдено."
+  "noCameraFound": "Камеру не знайдено.",
+  "invalidServerUrl": "Некоректна URL-адреса сервера: {value}",
+  "unsupportedServerUrlScheme": "Непідтримувана схема URL-адреси сервера: {scheme}",
+  "attachmentDownloadFailed": "Не вдалося завантажити вкладення.",
+  "attachmentDecryptFailed": "Не вдалося розшифрувати вкладення.",
+  "attachmentSaveFailed": "Не вдалося зберегти вкладення.",
+  "videoDiagnosticsOverlay": "Текстура {textureId} | {width}x{height} | Кадри {frames}"
 }

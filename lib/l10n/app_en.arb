@@ -332,6 +332,15 @@
     }
   },
   "releaseNotes": "Release notes",
+  "downloadApk": "Download",
+  "downloadVerified": "Download verified",
+  "downloadVerificationFailed": "Download verification failed. The file was deleted.",
+  "downloadUnavailableForDevice": "No verified download is available for this device.",
+  "installVerifiedDownload": "Install",
+  "installPermissionRequired": "Allow Hestia to install unknown apps, then tap Install again.",
+  "openInstallSettings": "Allow installation",
+  "installOpenFailed": "Could not open the Android installer.",
+  "updatePackageMismatch": "This APK cannot update Hestia because it belongs to a different app package.",
   "languageEnglish": "English",
   "languageUkrainian": "Українська",
   "languageRussian": "Русский",
@@ -370,5 +379,41 @@
   "noCameraVideoTrack": "No camera video track was created.",
   "micPermissionRequiredForCalls": "Microphone permission is required for calls.",
   "cameraPermissionRequiredForVideoCalls": "Camera permission is required for video calls.",
-  "noCameraFound": "No camera was found."
+  "noCameraFound": "No camera was found.",
+  "invalidServerUrl": "Invalid server URL: {value}",
+  "@invalidServerUrl": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "unsupportedServerUrlScheme": "Unsupported server URL scheme: {scheme}",
+  "@unsupportedServerUrlScheme": {
+    "placeholders": {
+      "scheme": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentDownloadFailed": "Could not download the attachment.",
+  "attachmentDecryptFailed": "Could not decrypt the attachment.",
+  "attachmentSaveFailed": "Could not save the attachment.",
+  "videoDiagnosticsOverlay": "Texture {textureId} | {width}x{height} | Frames {frames}",
+  "@videoDiagnosticsOverlay": {
+    "placeholders": {
+      "textureId": {
+        "type": "int"
+      },
+      "width": {
+        "type": "int"
+      },
+      "height": {
+        "type": "int"
+      },
+      "frames": {
+        "type": "int"
+      }
+    }
+  }
 }

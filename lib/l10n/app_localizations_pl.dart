@@ -651,6 +651,37 @@ class AppLocalizationsPl extends AppLocalizations {
   String get releaseNotes => 'Informacje o wydaniu';
 
   @override
+  String get downloadApk => 'Pobierz';
+
+  @override
+  String get downloadVerified => 'Pobieranie zweryfikowane';
+
+  @override
+  String get downloadVerificationFailed =>
+      'Weryfikacja pobrania nie powiodła się. Plik został usunięty.';
+
+  @override
+  String get downloadUnavailableForDevice =>
+      'Brak zweryfikowanego pliku do pobrania dla tego urządzenia.';
+
+  @override
+  String get installVerifiedDownload => 'Zainstaluj';
+
+  @override
+  String get installPermissionRequired =>
+      'Zezwól Hestii na instalowanie nieznanych aplikacji, a następnie ponownie dotknij Zainstaluj.';
+
+  @override
+  String get openInstallSettings => 'Zezwól na instalację';
+
+  @override
+  String get installOpenFailed => 'Nie można otworzyć instalatora Android.';
+
+  @override
+  String get updatePackageMismatch =>
+      'Ten plik APK nie może zaktualizować Hestii, ponieważ należy do innego pakietu aplikacji.';
+
+  @override
   String get languageEnglish => 'English';
 
   @override
@@ -779,4 +810,29 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get noCameraFound => 'Nie znaleziono kamery.';
+
+  @override
+  String invalidServerUrl(String value) {
+    return 'Nieprawidłowy adres URL serwera: $value';
+  }
+
+  @override
+  String unsupportedServerUrlScheme(String scheme) {
+    return 'Nieobsługiwany schemat adresu URL serwera: $scheme';
+  }
+
+  @override
+  String get attachmentDownloadFailed => 'Nie udało się pobrać załącznika.';
+
+  @override
+  String get attachmentDecryptFailed => 'Nie udało się odszyfrować załącznika.';
+
+  @override
+  String get attachmentSaveFailed => 'Nie udało się zapisać załącznika.';
+
+  @override
+  String videoDiagnosticsOverlay(
+      int textureId, int width, int height, int frames) {
+    return 'Tekstura $textureId | ${width}x$height | Klatki $frames';
+  }
 }

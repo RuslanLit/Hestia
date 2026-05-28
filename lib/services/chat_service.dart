@@ -21,9 +21,66 @@ import 'local_data_service.dart';
 import 'push_service.dart';
 import 'retention_service.dart';
 import 'storage_service.dart';
+import 'web_smoke_log.dart';
 
 bool get _androidRuntime => !kIsWeb && Platform.isAndroid;
 const int _androidTemporaryLargeAttachmentMaxBytes = 100 * 1024 * 1024;
+
+void _webVoiceLog(String message) {
+  if (kIsWeb) {
+    debugPrint('[WebVoice] $message');
+  }
+}
+
+void _webFileLog(String message) {
+  if (kIsWeb) {
+    debugPrint('[WebFile] $message');
+  }
+}
+
+String _iceServerSchemeSummary(Iterable<Map<String, dynamic>> iceServers) {
+  final schemes = <String>{};
+  for (final server in iceServers) {
+    final urls = server['urls'];
+    final values =
+        urls is List ? urls.whereType<String>() : [if (urls is String) urls];
+    for (final url in values) {
+      final separator = url.indexOf(':');
+      if (separator > 0) {
+        schemes.add(url.substring(0, separator).toLowerCase());
+      }
+    }
+  }
+  final ordered = ['stun', 'turn', 'turns']
+      .where(schemes.contains)
+      .followedBy(schemes.where((scheme) =>
+          scheme != 'stun' && scheme != 'turn' && scheme != 'turns'))
+      .toList();
+  return ordered.isEmpty ? 'none' : ordered.join(',');
+}
+
+int _iceServerSchemeEntryCount(
+  Iterable<Map<String, dynamic>> iceServers,
+  bool Function(String scheme) matches,
+) {
+  var count = 0;
+  for (final server in iceServers) {
+    final urls = server['urls'];
+    final values =
+        urls is List ? urls.whereType<String>() : [if (urls is String) urls];
+    final serverSchemes = <String>{};
+    for (final url in values) {
+      final separator = url.indexOf(':');
+      if (separator > 0) {
+        serverSchemes.add(url.substring(0, separator).toLowerCase());
+      }
+    }
+    if (serverSchemes.any(matches)) {
+      count += 1;
+    }
+  }
+  return count;
+}
 
 enum ServerConnectionStatus {
   disconnected,
@@ -80,7 +137,9 @@ class AttachmentTransferProgress {
 }
 
 class ChatService extends ChangeNotifier {
-  ChatService._();
+  ChatService._() {
+    CallService.instance.refreshBackendIceConfig = loadBackendConfig;
+  }
   static final ChatService instance = ChatService._();
 
   UserProfile? profile;
@@ -317,6 +376,10 @@ class ChatService extends ChangeNotifier {
     if (savedProfile == null) {
       return;
     }
+    if (kIsWeb && !StorageService.instance.secureValuesLoaded) {
+      WebSmokeLog.log('runtime blocker reason=storage_credentials_unavailable');
+      return;
+    }
     if (savedProfile.authToken == null || savedProfile.authToken!.isEmpty) {
       await StorageService.instance.clearProfile();
       return;
@@ -512,6 +575,12 @@ class ChatService extends ChangeNotifier {
         DiagnosticService.instance.log(
           AttachmentPolicy.diagnosticsSummary(source: 'fallback'),
         );
+        _webVoiceLog('fallback reason=backend_config_unavailable');
+        CallService.instance.setIceServers(
+          const [],
+          source: 'default',
+          fallbackReason: 'backend_config_unavailable',
+        );
         return;
       }
       final features = config['features'];
@@ -560,7 +629,11 @@ class ChatService extends ChangeNotifier {
       final iceServers = config['iceServers'];
       if ((AppConfig.enableVoiceCalls || AppConfig.enableVideoCalls) &&
           iceServers is List) {
-        final hasTurn = iceServers.whereType<Map>().any((item) {
+        final iceServerMaps = iceServers
+            .whereType<Map>()
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList();
+        final hasTurn = iceServerMaps.any((item) {
           final urls = item['urls'];
           if (urls is String) {
             final lower = urls.toLowerCase();
@@ -577,11 +650,41 @@ class ChatService extends ChangeNotifier {
         DiagnosticService.instance.log(
           'backend config iceServers=${iceServers.length} hasTurn=$hasTurn',
         );
+        final turnEntries = _iceServerSchemeEntryCount(
+          iceServerMaps,
+          (scheme) => scheme == 'turn' || scheme == 'turns',
+        );
+        final stunEntries = _iceServerSchemeEntryCount(
+          iceServerMaps,
+          (scheme) => scheme == 'stun',
+        );
+        _webVoiceLog(
+          'backend ICE config loaded '
+          'parsed ICE servers count=${iceServerMaps.length} '
+          'TURN entries count=$turnEntries '
+          'STUN entries count=$stunEntries '
+          'schemes detected=${_iceServerSchemeSummary(iceServerMaps)} '
+          'hasTurn=$hasTurn',
+        );
+        _webVoiceLog(
+          'config source=backend '
+          'parsed ICE servers count=${iceServerMaps.length} '
+          'TURN entries count=$turnEntries '
+          'STUN entries count=$stunEntries '
+          'schemes detected=${_iceServerSchemeSummary(iceServerMaps)} '
+          'hasTurn=$hasTurn',
+        );
         CallService.instance.setIceServers(
-          iceServers
-              .whereType<Map>()
-              .map((item) => Map<String, dynamic>.from(item))
-              .toList(),
+          iceServerMaps,
+          source: 'backend',
+          fallbackReason: 'backend_ice_empty_or_invalid',
+        );
+      } else if (AppConfig.enableVoiceCalls || AppConfig.enableVideoCalls) {
+        _webVoiceLog('fallback reason=backend_ice_missing');
+        CallService.instance.setIceServers(
+          const [],
+          source: 'default',
+          fallbackReason: 'backend_ice_missing',
         );
       }
       final callMedia = config['callMedia'];
@@ -600,6 +703,12 @@ class ChatService extends ChangeNotifier {
     } catch (error) {
       DiagnosticService.instance.log(
         'backend config unavailable; using default STUN fallback',
+      );
+      _webVoiceLog('fallback reason=backend_config_error');
+      CallService.instance.setIceServers(
+        const [],
+        source: 'default',
+        fallbackReason: 'backend_config_error',
       );
       DiagnosticService.instance.log(
         AttachmentPolicy.diagnosticsSummary(source: 'fallback'),
@@ -1118,6 +1227,7 @@ class ChatService extends ChangeNotifier {
         'clientTimestamp': localCreatedAt.millisecondsSinceEpoch,
         'clientCreatedAt': localCreatedAt.millisecondsSinceEpoch,
       });
+      WebSmokeLog.log('message sent id=${_shortId(message.id)}');
     } catch (error) {
       DiagnosticService.instance.log(
         'outgoing message send failed id=${message.id} '
@@ -1146,6 +1256,7 @@ class ChatService extends ChangeNotifier {
     await _ensureLocalStorageReady(profile);
     final peerPublicKey = _requiredPeerPublicKey(peerUserId, peerNickname);
 
+    _webFileLog('picker opened');
     final result = await FilePicker.pickFiles(
       withData: kIsWeb,
       withReadStream: !kIsWeb && !Platform.isMacOS,
@@ -1158,6 +1269,10 @@ class ChatService extends ChangeNotifier {
     }
 
     final file = result.files.single;
+    _webFileLog(
+      'file selected name=${file.name} size=${file.size} '
+      'type=${AttachmentPolicy.kindForFileName(file.name) ?? 'unknown'}',
+    );
     await _logPickedAttachmentVerification(file, phase: 'selected');
     final preflightValidation = AttachmentPolicy.validatePlatformFile(
       file,
@@ -1373,6 +1488,10 @@ class ChatService extends ChangeNotifier {
         messageMetadata: metadata,
       );
       encryptionStopwatch.stop();
+      _webFileLog(
+        'encrypted name=$fileName size=${validation.sizeBytes} '
+        'payloadBytes=${encryptedAttachment.length}',
+      );
       DiagnosticService.instance.log(
         'attachment encryption completed id=$messageId '
         'kind=$attachmentKind fileSizeBytes=${validation.sizeBytes} '
@@ -1426,6 +1545,8 @@ class ChatService extends ChangeNotifier {
         'clientTimestamp': localCreatedAt.millisecondsSinceEpoch,
         'attachment': attachmentPayload,
       });
+      _webFileLog(
+          'attachment message sent name=$fileName size=${validation.sizeBytes}');
       _setAttachmentProgress(
         messageId,
         AttachmentTransferProgress(
@@ -1436,6 +1557,7 @@ class ChatService extends ChangeNotifier {
       );
       _scheduleSendTimeout(message.id);
     } catch (error) {
+      _webFileLog('error reason=send_failed');
       DiagnosticService.instance.log(
         'attachment send failed id=$messageId '
         'toUserId=${_shortId(peerUserId)} error=$error',
@@ -1608,6 +1730,10 @@ class ChatService extends ChangeNotifier {
       'kind=${validation.kind} sizeBytes=${validation.sizeBytes} '
       'payloadBytes=${encryptedAttachment.length}',
     );
+    _webFileLog(
+      'upload started name=$fileName size=${validation.sizeBytes} '
+      'payloadBytes=${encryptedAttachment.length}',
+    );
     _setAttachmentProgress(
       messageId,
       AttachmentTransferProgress(
@@ -1713,6 +1839,9 @@ class ChatService extends ChangeNotifier {
             );
           }
           DiagnosticService.instance.log('attachment upload blobId=$blobId');
+          _webFileLog(
+            'upload completed name=$fileName size=${validation.sizeBytes}',
+          );
           return blobId;
         }
         final serverMessage = _serverErrorMessage(response.body);
@@ -1745,6 +1874,7 @@ class ChatService extends ChangeNotifier {
       );
     }
     final uploadError = _attachmentUploadError(response);
+    _webFileLog('error reason=upload_failed status=${response.statusCode}');
     throw _AttachmentBlobUploadException(
       uploadError,
       allowInlineFallback: _canFallbackToInline(response),
@@ -1845,8 +1975,14 @@ class ChatService extends ChangeNotifier {
     return LocalDataService.instance.exportAttachment(attachment);
   }
 
-  Future<String?> exportEncryptedBackup(String passphrase) {
-    return BackupService.instance.exportEncryptedBackup(passphrase);
+  Future<String?> exportEncryptedBackup(
+    String passphrase, {
+    required String dialogTitle,
+  }) {
+    return BackupService.instance.exportEncryptedBackup(
+      passphrase,
+      dialogTitle: dialogTitle,
+    );
   }
 
   Future<void> importEncryptedBackup(String passphrase) async {
@@ -1922,6 +2058,7 @@ class ChatService extends ChangeNotifier {
     _channel = null;
     _setConnectionStatus(ServerConnectionStatus.connecting);
     _logConnection('connecting target=${AppConfig.wsUrl}');
+    WebSmokeLog.log('websocket connecting url=${AppConfig.wsUrl}');
     _recordForegroundServiceSocketConnecting();
 
     try {
@@ -2005,6 +2142,8 @@ class ChatService extends ChangeNotifier {
   void _handleSocketError(Object error) {
     _setConnectionStatus(ServerConnectionStatus.serverError);
     _recordForegroundServiceSocketError(error);
+    WebSmokeLog.log(
+        'runtime blocker reason=websocket_connect_failed error=$error');
     if (!_intentionalDisconnect) {
       _scheduleReconnect('socket_error');
     }
@@ -2311,6 +2450,7 @@ class ChatService extends ChangeNotifier {
         await _activateProfile(user);
         _setConnectionStatus(ServerConnectionStatus.connected);
         _logConnection('auth_ok received userId=${_shortId(user.userId)}');
+        WebSmokeLog.log('auth_ok userId=${_shortId(user.userId)}');
         _recordForegroundServiceAuthOk(user);
         if (AppConfig.enablePushNotifications) {
           unawaited(refreshPushRegistration());
@@ -2354,6 +2494,7 @@ class ChatService extends ChangeNotifier {
           ),
         );
         await LocalDataService.instance.saveContacts(_contacts);
+        WebSmokeLog.log('contacts loaded count=${contacts.length}');
         notifyListeners();
         break;
       case 'contact_requests':
@@ -2485,6 +2626,9 @@ class ChatService extends ChangeNotifier {
           );
         }
         if (stored) {
+          WebSmokeLog.log(
+            'message received id=${_shortId(messageJson['id']?.toString() ?? '')}',
+          );
           DiagnosticService.instance.log(
             'websocket sending delivery_ack id=${messageJson['id'] ?? 'none'}',
           );
@@ -2814,7 +2958,13 @@ class ChatService extends ChangeNotifier {
           await Future<void>.delayed(Duration.zero);
         }
         decrypted = await CryptoService.instance.decryptAttachment(base64Value);
+        if (decrypted != null) {
+          _webFileLog(
+            'decrypted name=${decrypted.name} size=${decrypted.bytes.length}',
+          );
+        }
       } catch (error) {
+        _webFileLog('error reason=decrypt_failed');
         DiagnosticService.instance.log(
           'attachment stage=decrypt exception messageId=$messageId '
           'kind=$kind fileSizeBytes=$sizeBytes error=$error',
@@ -2861,6 +3011,7 @@ class ChatService extends ChangeNotifier {
           bytes: decrypted.bytes,
         );
       } catch (error) {
+        _webFileLog('error reason=save_failed');
         DiagnosticService.instance.log(
           'attachment stage=save failed messageId=$messageId '
           'kind=${decrypted.kind} fileSizeBytes=${decrypted.bytes.length} '
@@ -2962,17 +3113,23 @@ class ChatService extends ChangeNotifier {
           'kind=${_attachmentKindForLog(attachmentJson)} '
           'fileSizeBytes=${_attachmentSizeForLog(attachmentJson)}',
         );
+        _webFileLog(
+          'download started blobId=$blobId '
+          'size=${_attachmentSizeForLog(attachmentJson)}',
+        );
         response = await _downloadAttachmentResponse(
           Uri.parse(downloadUrl),
           messageId: messageId,
           blobId: blobId,
         ).timeout(const Duration(minutes: 10));
       } on TimeoutException {
+        _webFileLog('error reason=download_timeout');
         DiagnosticService.instance.log(
           'attachment stage=download timeout blobId=$blobId',
         );
         return null;
       } catch (error) {
+        _webFileLog('error reason=download_failed');
         DiagnosticService.instance.log(
           'attachment stage=download network error=$error blobId=$blobId',
         );
@@ -2983,6 +3140,9 @@ class ChatService extends ChangeNotifier {
         'message=${_serverErrorMessage(response.body) ?? ''}',
       );
       if (response.statusCode == 200) {
+        _webFileLog(
+          'download completed blobId=$blobId bytes=${response.body.length}',
+        );
         return response.body;
       }
       if (response.statusCode != 404 && response.statusCode != 405) {

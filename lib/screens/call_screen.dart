@@ -10,6 +10,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:hestia/l10n/l10n.dart';
 import 'package:hestia/services/call_service.dart';
 import 'package:hestia/services/diagnostic_service.dart';
+import 'package:hestia/services/platform_capabilities.dart';
 import 'package:hestia/widgets/motion.dart';
 
 class CallScreen extends StatefulWidget {
@@ -38,9 +39,19 @@ class _CallScreenState extends State<CallScreen> {
       (_call.remoteAudioTrackCount > 0 ||
           _call.state == CallState.active ||
           _call.state == CallState.connected);
-  bool get _disableAudioplayers => !kIsWeb && defaultTargetPlatform == TargetPlatform.fuchsia;
+  bool get _needsBrowserAudioRenderer =>
+      kIsWeb &&
+      !_call.isVideoEnabled &&
+      (_call.remoteAudioTrackCount > 0 ||
+          _call.state == CallState.active ||
+          _call.state == CallState.connected);
+  bool get _disableAudioplayers =>
+      !PlatformCapabilities.supportsAutomaticRingtonePlayback ||
+      (!kIsWeb && defaultTargetPlatform == TargetPlatform.fuchsia);
   bool get _isDesktopVideoCall =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.fuchsia && _call.isVideoEnabled;
+      !kIsWeb &&
+      defaultTargetPlatform == TargetPlatform.fuchsia &&
+      _call.isVideoEnabled;
 
   @override
   void initState() {
@@ -95,6 +106,11 @@ class _CallScreenState extends State<CallScreen> {
     setState(() {});
   }
 
+  void _toggleCamera() {
+    _call.toggleCamera();
+    setState(() {});
+  }
+
   String _stateLabel(BuildContext context) {
     switch (_call.state) {
       case CallState.calling:
@@ -126,6 +142,11 @@ class _CallScreenState extends State<CallScreen> {
 
   Future<void> _startRingback(String reason) async {
     if (_disableAudioplayers) {
+      if (kIsWeb) {
+        debugPrint(
+            '[WebVoice] ringback skipped reason=browser_autoplay_not_guaranteed');
+        return;
+      }
       DiagnosticService.instance.log(
         'ringback skipped on Desktop due to audioplayers platform limitation reason=$reason',
       );
@@ -186,32 +207,40 @@ class _CallScreenState extends State<CallScreen> {
 
   Widget _buildAudioCallBody(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final compactWebHeight = kIsWeb && MediaQuery.sizeOf(context).height < 520;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           CircleAvatar(
-            radius: 48,
+            radius: compactWebHeight ? 36 : 48,
             backgroundColor: scheme.primary,
             child: Text(
               widget.peerNickname.isNotEmpty
                   ? widget.peerNickname[0].toUpperCase()
                   : '?',
-              style: TextStyle(fontSize: 40, color: scheme.onPrimary),
+              style: TextStyle(
+                fontSize: compactWebHeight ? 30 : 40,
+                color: scheme.onPrimary,
+              ),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: compactWebHeight ? 12 : 20),
           Text(
             widget.peerNickname,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 26,
+              fontSize: compactWebHeight ? 22 : 26,
               fontWeight: FontWeight.bold,
               color: scheme.onSurface,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: compactWebHeight ? 4 : 8),
           Text(
             _stateLabel(context),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 16, color: scheme.onSurfaceVariant),
           ),
         ],
@@ -321,9 +350,12 @@ class _CallScreenState extends State<CallScreen> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         child: Text(
-          'textureId=${_call.remoteRendererTextureId} '
-          '${_call.inboundVideoFrameWidth}x${_call.inboundVideoFrameHeight} '
-          'frames=${_call.inboundVideoFramesDecoded}',
+          context.l10n.videoDiagnosticsOverlay(
+            _call.remoteRendererTextureId,
+            _call.inboundVideoFrameWidth,
+            _call.inboundVideoFrameHeight,
+            _call.inboundVideoFramesDecoded,
+          ),
           style: const TextStyle(
             color: Colors.white,
             fontSize: 11,
@@ -337,8 +369,10 @@ class _CallScreenState extends State<CallScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final compactWebHeight = kIsWeb && MediaQuery.sizeOf(context).height < 520;
     final showDesktopAudioRenderer =
         !_isDesktopVideoCall && _needsDesktopAudioRenderer;
+    final showBrowserAudioRenderer = _needsBrowserAudioRenderer;
     _reportRemoteRendererViewForCurrentFrame();
     return Scaffold(
       backgroundColor: _call.isVideoEnabled ? Colors.black : scheme.surface,
@@ -347,7 +381,7 @@ class _CallScreenState extends State<CallScreen> {
           children: [
             // flutter_webrtc on Desktop needs a real painted RTCVideoView to
             // keep remote audio playout alive for audio-only calls.
-            if (showDesktopAudioRenderer)
+            if (showDesktopAudioRenderer || showBrowserAudioRenderer)
               Positioned(
                 left: 8,
                 top: 8,
@@ -361,6 +395,21 @@ class _CallScreenState extends State<CallScreen> {
                       color: Colors.black,
                       child: RTCVideoView(_call.remoteRenderer),
                     ),
+                  ),
+                ),
+              ),
+            if (kIsWeb && _call.browserAudioUnlockRecommended)
+              Positioned(
+                left: 24,
+                right: 24,
+                top: 24,
+                child: Center(
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      unawaited(_call.requestBrowserAudioUnlock());
+                    },
+                    icon: const Icon(Icons.volume_up),
+                    label: const Text('Click to enable audio'),
                   ),
                 ),
               ),
@@ -391,7 +440,7 @@ class _CallScreenState extends State<CallScreen> {
             Positioned(
               left: 0,
               right: 0,
-              bottom: 48,
+              bottom: compactWebHeight ? 20 : 48,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -407,14 +456,32 @@ class _CallScreenState extends State<CallScreen> {
                     label: _call.isMuted
                         ? context.l10n.muteCall
                         : context.l10n.unmuteCall,
+                    size: compactWebHeight ? 48 : 56,
                   ),
+                  if (_call.showLocalVideoPreview)
+                    _buildRoundButton(
+                      icon: _call.isCameraEnabled
+                          ? Icons.videocam
+                          : Icons.videocam_off,
+                      color: _call.isCameraEnabled
+                          ? scheme.secondaryContainer
+                          : scheme.error,
+                      iconColor: _call.isCameraEnabled
+                          ? scheme.onSecondaryContainer
+                          : scheme.onError,
+                      onTap: _toggleCamera,
+                      label: _call.isCameraEnabled
+                          ? context.l10n.cameraOn
+                          : context.l10n.cameraOff,
+                      size: compactWebHeight ? 48 : 56,
+                    ),
                   _buildRoundButton(
                     icon: Icons.call_end,
                     color: scheme.error,
                     iconColor: scheme.onError,
                     onTap: _call.endCall,
                     label: context.l10n.endCall,
-                    size: 72,
+                    size: compactWebHeight ? 60 : 72,
                   ),
                 ],
               ),
@@ -426,8 +493,12 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   void _reportRemoteRendererViewForCurrentFrame() {
-    final rendererMounted = _call.isVideoEnabled || _needsDesktopAudioRenderer;
-    final visible = _call.isVideoEnabled || _needsDesktopAudioRenderer;
+    final rendererMounted = _call.isVideoEnabled ||
+        _needsDesktopAudioRenderer ||
+        _needsBrowserAudioRenderer;
+    final visible = _call.isVideoEnabled ||
+        _needsDesktopAudioRenderer ||
+        _needsBrowserAudioRenderer;
     if (_lastReportedRendererMounted == rendererMounted &&
         _lastReportedRendererVisible == visible) {
       return;
@@ -443,12 +514,12 @@ class _CallScreenState extends State<CallScreen> {
         visible: visible,
         reason: _call.isVideoEnabled
             ? 'video-call-view'
-            : _needsDesktopAudioRenderer
-                ? 'desktop-audio-painted-24px-view'
-                : 'audio-no-renderer-view',
+            : _needsBrowserAudioRenderer
+                ? 'browser-audio-painted-24px-view'
+                : _needsDesktopAudioRenderer
+                    ? 'desktop-audio-painted-24px-view'
+                    : 'audio-no-renderer-view',
       );
     });
   }
 }
-
-

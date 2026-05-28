@@ -56,7 +56,7 @@
         "steps": [
           {
             "title": "Download the client",
-            "body": "Install Hestia on Android or open the web version."
+            "body": "Install Hestia on Android. Other platforms are coming later."
           },
           {
             "title": "Connect to a server",
@@ -184,7 +184,7 @@
         "steps": [
           {
             "title": "Встановіть клієнт",
-            "body": "Встановіть Hestia на Android або відкрийте веб-версію."
+            "body": "Встановіть Hestia на Android. Інші платформи з'являться пізніше."
           },
           {
             "title": "Підключіться до сервера",
@@ -286,7 +286,7 @@
         "steps": [
           {
             "title": "Установите клиент",
-            "body": "Установите Hestia на Android или откройте веб-версию."
+            "body": "Установите Hestia на Android. Другие платформы появятся позже."
           },
           {
             "title": "Подключитесь к серверу",
@@ -388,7 +388,7 @@
         "steps": [
           {
             "title": "Zainstaluj klienta",
-            "body": "Zainstaluj Hestia na Androidzie albo otwórz wersję web."
+            "body": "Zainstaluj Hestia na Androidzie. Inne platformy pojawią się później."
           },
           {
             "title": "Połącz z serwerem",
@@ -490,7 +490,7 @@
         "steps": [
           {
             "title": "Instala el cliente",
-            "body": "Instala Hestia en Android o abre la versión web."
+            "body": "Instala Hestia en Android. Las demás plataformas llegarán más adelante."
           },
           {
             "title": "Conéctate a un servidor",
@@ -592,7 +592,7 @@
         "steps": [
           {
             "title": "Nainstalujte klienta",
-            "body": "Nainstalujte Hestia na Android nebo otevřete webovou verzi."
+            "body": "Nainstalujte Hestia na Android. Další platformy přijdou později."
           },
           {
             "title": "Připojte se k serveru",
@@ -694,7 +694,7 @@
         "steps": [
           {
             "title": "Client installieren",
-            "body": "Installiere Hestia auf Android oder öffne die Webversion."
+            "body": "Installiere Hestia auf Android. Weitere Plattformen folgen später."
           },
           {
             "title": "Mit einem Server verbinden",

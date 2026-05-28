@@ -63,6 +63,15 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    applicationVariants.all {
+        outputs.all {
+            // Public direct-download APKs use one release build number for every ABI.
+            @Suppress("DEPRECATION")
+            (this as com.android.build.gradle.api.ApkVariantOutput).versionCodeOverride =
+                flutter.versionCode
+        }
+    }
 }
 
 
