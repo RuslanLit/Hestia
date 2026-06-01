@@ -1,8 +1,8 @@
 {
   "version": "1.0.0",
   "build": "1000",
-  "releasedAt": "2026-05-27T12:54:12Z",
-  "notes": "Hestia 1.0.0 is the first public Android release with stable incoming call wake-up, TURN-based voice calls, and manual verified APK updates.",
+  "releasedAt": "2026-06-01T10:11:56Z",
+  "notes": "Hestia 1.0.0 Android stabilization build with stable foreground call delivery and missed-call persistence.",
   "knownIssues": [
     "If caller times out before callee answers, callee may continue ringing and late Accept will not connect. Decline/miss and call again."
   ],
@@ -13,22 +13,22 @@
       "available": true,
       "file": "hestia-1.0.0-android-arm64-v8a.apk",
       "url": "https://hestiachat.site/releases/v1.0.0/hestia-1.0.0-android-arm64-v8a.apk",
-      "sha256": "72dd2e5649c6430cbf33259eb8d67b7f3eb403e824e8fcf50ed805acb1866e8a",
-      "sizeBytes": 37314148
+      "sha256": "c2d4540af0574b88f6514ce1b8bbbb849c482e835eaf979a14a885e258b2ffd1",
+      "sizeBytes": 37576400
     },
     "androidArmv7": {
       "available": true,
       "file": "hestia-1.0.0-android-armeabi-v7a.apk",
       "url": "https://hestiachat.site/releases/v1.0.0/hestia-1.0.0-android-armeabi-v7a.apk",
-      "sha256": "1df2381ff24a23c1eff702ad51e7492b2fdcc537b19ff764b8702ce9144d9e72",
-      "sizeBytes": 29979418
+      "sha256": "223886ff1fd47695990d342f757021760b5f59a71f2f974dff5521d55d441c47",
+      "sizeBytes": 30225286
     },
     "androidX64": {
       "available": true,
       "file": "hestia-1.0.0-android-x86_64.apk",
       "url": "https://hestiachat.site/releases/v1.0.0/hestia-1.0.0-android-x86_64.apk",
-      "sha256": "ae2594f2aba8f622adae35a207adab4c5c8fdab3515538c237eb411a24978e35",
-      "sizeBytes": 42806045
+      "sha256": "63152c8d931a320140eda5e152db1a6630d705163eef906876f87f1a22cc509f",
+      "sizeBytes": 43068297
     }
   }
 }

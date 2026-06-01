@@ -1,3 +1,3 @@
-72dd2e5649c6430cbf33259eb8d67b7f3eb403e824e8fcf50ed805acb1866e8a  hestia-1.0.0-android-arm64-v8a.apk
-1df2381ff24a23c1eff702ad51e7492b2fdcc537b19ff764b8702ce9144d9e72  hestia-1.0.0-android-armeabi-v7a.apk
-ae2594f2aba8f622adae35a207adab4c5c8fdab3515538c237eb411a24978e35  hestia-1.0.0-android-x86_64.apk
+c2d4540af0574b88f6514ce1b8bbbb849c482e835eaf979a14a885e258b2ffd1  hestia-1.0.0-android-arm64-v8a.apk
+223886ff1fd47695990d342f757021760b5f59a71f2f974dff5521d55d441c47  hestia-1.0.0-android-armeabi-v7a.apk
+63152c8d931a320140eda5e152db1a6630d705163eef906876f87f1a22cc509f  hestia-1.0.0-android-x86_64.apk
