@@ -834,7 +834,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (kIsWeb) {
       if (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS) {
-        return 'web_mobile_unsupported';
+        return context?.l10n.videoCallUnavailable ?? 'web_mobile_unsupported';
       }
       return null;
     }
@@ -844,7 +844,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return context?.l10n.desktopVideoExperimental ?? 'desktop_experimental';
   }
 
-  bool _webVideoTemporarilyDisabled() => true;
+  bool _webVideoTemporarilyDisabled() => false;
 
   String _shortId(String value) =>
       value.length <= 8 ? value : '${value.substring(0, 8)}...';

@@ -31,6 +31,16 @@ class HestiaForegroundService : Service() {
     private var webSocket: WebSocket? = null
     private var reconnectAttempts = 0
     private var stopping = false
+    private var socketConnected = false
+    private var socketAuthenticated = false
+    private var socketConnectedAtMs = 0L
+    private var socketLastServerActivityAtMs = 0L
+    private var socketAuthenticatedAtMs = 0L
+    private var socketUserId = ""
+    private var socketDeviceId = ""
+    private var socketWsUrl = ""
+    private var socketRole = ""
+    private var reconnectScheduled = false
     private val seenCallIds = LinkedHashSet<String>()
 
     override fun onCreate() {
@@ -48,7 +58,7 @@ class HestiaForegroundService : Service() {
                 stopping = true
                 HestiaAlwaysReachable.markLastRestartReason(this, "logout_stop")
                 webSocket?.close(1000, "logout")
-                webSocket = null
+                clearSocketState()
                 getSharedPreferences(CONFIG_PREFS, MODE_PRIVATE).edit().clear().apply()
                 HestiaAlwaysReachable.markSocketState(this, connected = false, authenticated = false)
                 HestiaAlwaysReachable.markServiceRunning(this, false)
@@ -110,7 +120,7 @@ class HestiaForegroundService : Service() {
     override fun onDestroy() {
         log("service destroyed")
         webSocket?.close(1000, "destroyed")
-        webSocket = null
+        clearSocketState()
         HestiaAlwaysReachable.markSocketState(this, connected = false, authenticated = false)
         HestiaAlwaysReachable.markServiceRunning(this, false, unexpected = !stopping)
         super.onDestroy()
@@ -124,16 +134,48 @@ class HestiaForegroundService : Service() {
             return
         }
         if (webSocket != null) {
-            log("websocket already exists")
-            return
+            val reusable = existingSocketReusable(config)
+            val lastFrameAgeMs = socketAge(socketLastServerActivityAtMs)
+            val lastAuthOkAgeMs = socketAge(socketAuthenticatedAtMs)
+            Log.i(
+                ANDROID_WS_TAG,
+                "websocket exists check open=$socketConnected authenticated=$socketAuthenticated " +
+                    "lastFrameAgeMs=$lastFrameAgeMs lastAuthOkAgeMs=$lastAuthOkAgeMs " +
+                    "role=${socketRole.ifBlank { "unknown" }} expectedRole=foreground_service " +
+                    "userMatch=${socketUserId == config.userId} deviceMatch=${socketDeviceId == config.deviceId} " +
+                    "urlMatch=${socketWsUrl == config.wsUrl}",
+            )
+            if (reusable) {
+                log("websocket already exists")
+                return
+            }
+            val reason = staleSocketReason(config)
+            Log.i(ANDROID_WS_TAG, "stale websocket detected reason=$reason")
+            closeStaleWebSocket(reason)
         }
+        Log.i(ANDROID_WS_TAG, "reconnecting foreground websocket")
         log("websocket connecting url=${config.wsUrl}")
+        reconnectScheduled = false
         HestiaAlwaysReachable.markSocketState(this, connected = false, authenticated = false)
         val request = Request.Builder().url(config.wsUrl).build()
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
+                if (this@HestiaForegroundService.webSocket !== webSocket) {
+                    webSocket.close(1000, "superseded")
+                    return
+                }
                 reconnectAttempts = 0
+                socketConnected = true
+                socketAuthenticated = false
+                socketConnectedAtMs = System.currentTimeMillis()
+                socketLastServerActivityAtMs = socketConnectedAtMs
+                socketAuthenticatedAtMs = 0L
+                socketUserId = config.userId
+                socketDeviceId = config.deviceId
+                socketWsUrl = config.wsUrl
+                socketRole = "foreground_service"
                 log("websocket connected")
+                Log.i(ANDROID_WS_TAG, "websocket connected role=foreground_service")
                 HestiaAlwaysReachable.markSocketState(this@HestiaForegroundService, connected = true, authenticated = false)
                 val auth = JSONObject()
                     .put("type", "auth")
@@ -148,6 +190,7 @@ class HestiaForegroundService : Service() {
                     .put("socketRole", "foreground_service")
                     .put("appVersion", config.appVersion)
                 webSocket.send(auth.toString())
+                Log.i(ANDROID_WS_TAG, "auth sent role=foreground_service userId=${short(config.userId)} deviceId=${short(config.deviceId)}")
                 log("auth sent userId=${short(config.userId)} deviceId=${short(config.deviceId)}")
             }
 
@@ -156,24 +199,33 @@ class HestiaForegroundService : Service() {
             }
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                Log.i(ANDROID_WS_TAG, "websocket closed/onDone code=$code reason=$reason")
                 log("socket closed code=$code reason=$reason")
-                this@HestiaForegroundService.webSocket = null
-                HestiaAlwaysReachable.markSocketState(this@HestiaForegroundService, connected = false, authenticated = false)
-                if (!stopping && !reason.contains("Duplicate foreground service socket", ignoreCase = true)) {
+                val currentSocket = this@HestiaForegroundService.webSocket === webSocket
+                if (currentSocket) {
+                    clearSocketState()
+                    HestiaAlwaysReachable.markSocketState(this@HestiaForegroundService, connected = false, authenticated = false)
+                }
+                if (currentSocket && !stopping && !reason.contains("Duplicate foreground service socket", ignoreCase = true)) {
                     scheduleReconnect("socket_closed")
                 }
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                Log.i(ANDROID_WS_TAG, "websocket error=${t.message ?: t.javaClass.simpleName}")
                 log("socket error=${t.message ?: t.javaClass.simpleName}")
-                this@HestiaForegroundService.webSocket = null
-                HestiaAlwaysReachable.markSocketState(this@HestiaForegroundService, connected = false, authenticated = false)
-                if (!stopping) scheduleReconnect("socket_failure")
+                val currentSocket = this@HestiaForegroundService.webSocket === webSocket
+                if (currentSocket) {
+                    clearSocketState()
+                    HestiaAlwaysReachable.markSocketState(this@HestiaForegroundService, connected = false, authenticated = false)
+                }
+                if (currentSocket && !stopping) scheduleReconnect("socket_failure")
             }
         })
     }
 
     private fun handleFrame(text: String) {
+        socketLastServerActivityAtMs = System.currentTimeMillis()
         val json = try {
             JSONObject(text)
         } catch (error: Exception) {
@@ -184,7 +236,10 @@ class HestiaForegroundService : Service() {
         log("incoming frame type=$type")
         when (type) {
             "auth_ok" -> {
+                socketAuthenticated = true
+                socketAuthenticatedAtMs = System.currentTimeMillis()
                 log("auth_ok")
+                Log.i(ANDROID_WS_TAG, "auth_ok received userId=${short(socketUserId)} role=${socketRole.ifBlank { "unknown" }}")
                 HestiaAlwaysReachable.markSocketState(this, connected = true, authenticated = true)
             }
             "call_offer_init" -> handleCallOffer(json)
@@ -396,12 +451,74 @@ class HestiaForegroundService : Service() {
         prefs.edit().putString(KEY_PENDING_ACTIONS, array.toString()).apply()
     }
 
+    private fun existingSocketReusable(config: ServiceConfig): Boolean =
+        staleSocketReason(config) == null
+
+    private fun staleSocketReason(config: ServiceConfig): String? {
+        if (webSocket == null) return "missing_socket"
+        if (!socketConnected) return "not_connected"
+        if (!socketAuthenticated) return "not_authenticated"
+        if (socketUserId != config.userId) return "user_changed"
+        if (socketDeviceId != config.deviceId) return "device_changed"
+        if (socketWsUrl != config.wsUrl) return "server_url_changed"
+        if (socketRole != "foreground_service") return "wrong_socket_role"
+        val lastServerActivityAgeMs = socketAge(socketLastServerActivityAtMs)
+        if (lastServerActivityAgeMs > SOCKET_FRESHNESS_TTL_MS) {
+            Log.i(
+                ANDROID_WS_TAG,
+                "heartbeat timeout; reconnect required lastFrameAgeMs=$lastServerActivityAgeMs thresholdMs=$SOCKET_FRESHNESS_TTL_MS",
+            )
+            return "heartbeat_timeout"
+        }
+        val authAgeMs = socketAge(socketAuthenticatedAtMs)
+        if (authAgeMs > AUTH_FRESHNESS_TTL_MS) return "auth_stale"
+        return null
+    }
+
+    private fun closeStaleWebSocket(reason: String?) {
+        val socket = webSocket
+        Log.i(ANDROID_WS_TAG, "closing stale websocket reason=${reason ?: "unknown"}")
+        clearSocketState()
+        HestiaAlwaysReachable.markSocketState(this, connected = false, authenticated = false)
+        try {
+            socket?.close(1001, "stale_${reason ?: "unknown"}")
+        } catch (error: Exception) {
+            Log.i(ANDROID_WS_TAG, "stale websocket close failed reason=${reason ?: "unknown"} error=${error.message}")
+            socket?.cancel()
+        }
+    }
+
+    private fun clearSocketState() {
+        webSocket = null
+        socketConnected = false
+        socketAuthenticated = false
+        socketConnectedAtMs = 0L
+        socketLastServerActivityAtMs = 0L
+        socketAuthenticatedAtMs = 0L
+        socketUserId = ""
+        socketDeviceId = ""
+        socketWsUrl = ""
+        socketRole = ""
+    }
+
+    private fun socketAge(timestampMs: Long): Long =
+        if (timestampMs <= 0L) Long.MAX_VALUE else (System.currentTimeMillis() - timestampMs).coerceAtLeast(0L)
+
     private fun scheduleReconnect(reason: String) {
+        if (reconnectScheduled || stopping) {
+            Log.i(ANDROID_WS_TAG, "reconnect already scheduled reason=$reason stopping=$stopping")
+            return
+        }
         val delayMs = min(30_000L, 2_000L * (reconnectAttempts + 1))
         reconnectAttempts += 1
+        reconnectScheduled = true
         HestiaAlwaysReachable.markLastRestartReason(this, reason)
+        Log.i(ANDROID_WS_TAG, "reconnect backoff ms=$delayMs reason=$reason attempt=$reconnectAttempts")
         log("socket reconnect scheduled delayMs=$delayMs reason=$reason")
-        android.os.Handler(mainLooper).postDelayed({ connectIfReady() }, delayMs)
+        android.os.Handler(mainLooper).postDelayed({
+            reconnectScheduled = false
+            connectIfReady()
+        }, delayMs)
     }
 
     private fun storeConfig(intent: Intent?) {
@@ -544,6 +661,9 @@ class HestiaForegroundService : Service() {
         const val KEY_APP_STATE = "app_state"
         const val CONFIG_PREFS = "hestia_foreground_service_config"
         private const val TAG = "HestiaFgService"
+        private const val ANDROID_WS_TAG = "AndroidWs"
+        private const val SOCKET_FRESHNESS_TTL_MS = 90_000L
+        private const val AUTH_FRESHNESS_TTL_MS = 15 * 60_000L
         private const val BACKGROUND_NOTIFICATION_ID = 7001
         private const val BACKGROUND_CHANNEL_ID = "hestia_background_service"
         private const val MESSAGE_CHANNEL_ID = "hestia_messages"

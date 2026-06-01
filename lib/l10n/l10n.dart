@@ -180,6 +180,24 @@ extension HestiaErrorLocalizations on AppLocalizations {
         de: 'Kamera nicht verfügbar. Weiter mit Audio.',
         en: 'Camera unavailable. Continuing with audio.',
       );
+  String get waitingForVideo => _extra(
+        uk: 'Очікування відео...',
+        ru: 'Ожидание видео...',
+        pl: 'Oczekiwanie na wideo...',
+        es: 'Esperando vídeo...',
+        cs: 'Čekání na video...',
+        de: 'Warten auf Video...',
+        en: 'Waiting for video...',
+      );
+  String get videoCallUnavailable => _extra(
+        uk: 'Відеодзвінок недоступний',
+        ru: 'Видеозвонок недоступен',
+        pl: 'Połączenie wideo niedostępne',
+        es: 'Videollamada no disponible',
+        cs: 'Videohovor není dostupný',
+        de: 'Videoanruf nicht verfügbar',
+        en: 'Video call unavailable',
+      );
   String cannotEncryptFor(String name) => _extra(
         uk: 'Не вдалося зашифрувати для $name: ключа шифрування ще немає.',
         ru: 'Не удалось зашифровать для $name: ключа шифрования пока нет.',

@@ -328,6 +328,27 @@ class _CallScreenState extends State<CallScreen> {
                 ),
               ),
             ),
+            if (_call.remoteVideoTrackCount == 0)
+              Center(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.58),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    child: Text(
+                      context.l10n.waitingForVideo,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             Positioned(
               left: 8,
               top: 8,

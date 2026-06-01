@@ -28,6 +28,9 @@ const QUEUE_CLEANUP_INTERVAL_MS = Number(
 const PENDING_DELIVERY_TTL_MS = Number(
   process.env.PENDING_DELIVERY_TTL_MS || 10 * 60 * 1000,
 );
+const PENDING_CALL_LIVE_DELIVERY_SAFETY_MARGIN_MS = Number(
+  process.env.PENDING_CALL_LIVE_DELIVERY_SAFETY_MARGIN_MS || 5 * 1000,
+);
 const WS_HEARTBEAT_INTERVAL_MS = Number(
   process.env.WS_HEARTBEAT_INTERVAL_MS || 30 * 1000,
 );
@@ -39,6 +42,12 @@ const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 const QUEUE_BLOB_CHECKSUM = process.env.QUEUE_BLOB_CHECKSUM === 'true';
 const FCM_SERVICE_ACCOUNT_JSON = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '';
 const FCM_SERVICE_ACCOUNT_FILE = process.env.GOOGLE_APPLICATION_CREDENTIALS || '';
+const FCM_DEFAULT_CREDENTIALS_FILE = path.join(
+  process.env.HOME || '',
+  '.config',
+  'gcloud',
+  'application_default_credentials.json',
+);
 const FEATURE_FILE_ATTACHMENTS = process.env.FEATURE_FILE_ATTACHMENTS !== 'false';
 const FEATURE_VOICE_CALLS = process.env.FEATURE_VOICE_CALLS !== 'false';
 const FEATURE_VIDEO_CALLS = process.env.FEATURE_VIDEO_CALLS !== 'false';
@@ -235,9 +244,11 @@ const failedLoginBuckets = new Map();
 const repeatedContactRequests = new Map();
 const callCooldowns = new Map();
 const pendingCallOffers = new Map();
+const deliveredMissedCallIds = new Map();
 const pendingDeliveries = new Map(); // messageId -> sender userId
 const pushDedup = new Map();
 const presenceTimers = new Map();
+let missedCallSequence = 0;
 let saveTimer = null;
 let saveQueued = false;
 let shuttingDown = false;
@@ -300,6 +311,15 @@ function logStartupConfig() {
     logWarn(`[config] .env load warning: ${dotenvResult.error.message}`);
   }
   logInfo(`[config] features attachments=${FEATURE_FILE_ATTACHMENTS ? 'on' : 'off'} voiceCalls=${FEATURE_VOICE_CALLS ? 'on' : 'off'} videoCalls=${FEATURE_VIDEO_CALLS ? 'on' : 'off'} push=${FEATURE_PUSH_NOTIFICATIONS ? 'on' : 'off'}`);
+  const fcmStatus = fcmConfigurationStatus();
+  logInfo(
+    `[config] FCM push feature=${FEATURE_PUSH_NOTIFICATIONS ? 'enabled' : 'disabled'} ` +
+    `credentialSource=${fcmStatus.credentialSource} projectId=${fcmStatus.hasProjectId ? 'yes' : 'no'} ` +
+    `initialized=${fcmStatus.initialized ? 'yes' : 'no'}`,
+  );
+  logInfo(`[push] featureEnabled=${FEATURE_PUSH_NOTIFICATIONS ? 'true' : 'false'}`);
+  logInfo(`[push] fcmInitialized=${fcmStatus.initialized ? 'true' : 'false'}`);
+  logInfo(`[push] credentialSource=${fcmStatus.credentialSource}`);
   logInfo(`[config] voiceCalls ${FEATURE_VOICE_CALLS ? 'enabled' : 'disabled'}`);
   logInfo(`[config] videoCalls ${FEATURE_VIDEO_CALLS ? 'enabled' : 'disabled'}`);
   logInfo(
@@ -343,11 +363,12 @@ function validateStartupConfig() {
   }
 
   // IMPORTANT: Firebase FCM should be configured for push notifications
-  const fcmConfigured =
-    (process.env.FIREBASE_PROJECT_ID || loadFcmServiceAccount()?.project_id) &&
-    (FCM_SERVICE_ACCOUNT_JSON || FCM_SERVICE_ACCOUNT_FILE);
-  if (FEATURE_PUSH_NOTIFICATIONS && !fcmConfigured) {
-    warnings.push('Firebase FCM not configured; push notifications will be disabled. Optional but recommended.');
+  const fcmStatus = fcmConfigurationStatus();
+  if (FEATURE_PUSH_NOTIFICATIONS && !fcmStatus.initialized) {
+    warnings.push(
+      `Firebase FCM is enabled but not initialized; call push fallback will fail. ` +
+      `credentialSource=${fcmStatus.credentialSource} projectId=${fcmStatus.hasProjectId ? 'yes' : 'no'}`,
+    );
   }
 
   // Check database file is writable
@@ -927,6 +948,19 @@ function foregroundServiceSocketCount(userId) {
     socket.platform === 'android' && socket.socketRole === 'foreground_service').length;
 }
 
+function mainAppBackgroundSocketCount(userId) {
+  return userSockets(userId).filter((socket) =>
+    socket.platform === 'android' &&
+    socket.socketRole !== 'foreground_service' &&
+    socket.appLifecycleState === 'background').length;
+}
+
+function mainAppActiveSocketCount(userId) {
+  return userSockets(userId).filter((socket) =>
+    socket.socketRole !== 'foreground_service' &&
+    socket.appLifecycleState !== 'background').length;
+}
+
 function androidSocketCount(userId) {
   return userSockets(userId).filter((socket) => socket.platform === 'android').length;
 }
@@ -951,6 +985,30 @@ function targetPlatformSummary(user, userId) {
       `${socket.platform || 'unknown'}:${socket.deviceId || socket.sessionId || 'unknown'}:${socket.pushMode || 'none'}:${socket.socketRole || 'unknown'}:${socket.appLifecycleState || 'unknown'}`)
     .join(',');
   return `sessions=[${sessionPlatforms || 'none'}] sockets=[${socketPlatforms || 'none'}]`;
+}
+
+function callDeliveryRisk(user, userId) {
+  const foregroundSockets = foregroundServiceSocketCount(userId);
+  const activeSockets = activeUserSockets(userId).length;
+  const backgroundSockets = mainAppBackgroundSocketCount(userId);
+  const openSockets = userSockets(userId).length;
+  const fcmTokens = user ? androidPushSessions(user).length : 0;
+  if (foregroundSockets > 0) {
+    return 'foreground_service_socket';
+  }
+  if (activeSockets > 0) {
+    return 'active_socket_no_foreground_service';
+  }
+  if (backgroundSockets > 0) {
+    return 'background_socket_only';
+  }
+  if (openSockets > 0) {
+    return 'open_socket_only';
+  }
+  if (fcmTokens > 0) {
+    return 'fcm_only';
+  }
+  return 'no_delivery_path';
 }
 
 function attachmentDebugSummary(attachment) {
@@ -1217,6 +1275,15 @@ function pairCooldown(map, key, windowMs) {
   }
   map.set(key, now);
   return true;
+}
+
+function hasActivePendingCallBetween(userA, userB) {
+  return Array.from(pendingCallOffers.values()).some((offer) =>
+    isPendingCallStatus(offer.status) &&
+    (
+      (offer.fromUserId === userA && offer.toUserId === userB) ||
+      (offer.fromUserId === userB && offer.toUserId === userA)
+    ));
 }
 
 function tooManyRequests(ws) {
@@ -1498,7 +1565,23 @@ function cleanupPendingDeliveries() {
 function cleanupPendingCallOffers() {
   const now = Date.now();
   let removed = 0;
+  for (const [callId, deliveredAt] of deliveredMissedCallIds.entries()) {
+    if (now - Number(deliveredAt || 0) > PENDING_DELIVERY_TTL_MS) {
+      deliveredMissedCallIds.delete(callId);
+    }
+  }
   for (const [callId, offer] of pendingCallOffers.entries()) {
+    if (isPendingCallStatus(offer.status) && now > pendingCallFreshness(offer, now).expiresAt) {
+      offer.status = 'expired';
+      offer.deliveryState = 'expired';
+      offer.endedAt = Number(offer.expiresAt || now) || now;
+      offer.endedExpiresAt = now + PENDING_DELIVERY_TTL_MS;
+      offer.missedSequence = offer.missedSequence || ++missedCallSequence;
+      pendingCallOffers.set(callId, offer);
+      logInfo(`[missed-call] expired callId=${callId} recipient=${offer.toUserId}`);
+      logInfo(`[missed-call] persisted callId=${callId} recipient=${offer.toUserId} sequence=${offer.missedSequence} reason=ring_timeout`);
+      continue;
+    }
     if (now > Number(offer.endedExpiresAt || offer.expiresAt || 0)) {
       pendingCallOffers.delete(callId);
       removed += 1;
@@ -1615,6 +1698,13 @@ function queueOfflineMessage(toUserId, payload) {
   if (cleanup.removed > 0) {
     logInfo(`[queue] cleanup removed ${cleanup.removed} messages before enqueue`);
   }
+  const existing = data.queuedMessages.find(
+    (item) => item.id === payload?.id && item.toUserId === toUserId,
+  );
+  if (existing) {
+    logInfo(`[queue] duplicate_skipped messageId=${payload?.id || 'none'} recipient=${toUserId}`);
+    return { ok: true, duplicate: true };
+  }
   const payloadBytes = queuedPayloadBytes(payload);
   const attachmentBytes = queuedAttachmentBytes(payload);
   const attachmentFiles = payload?.attachment ? 1 : 0;
@@ -1655,7 +1745,11 @@ function queueOfflineMessage(toUserId, payload) {
     expiresAt,
   });
   saveData();
-  return { ok: true };
+  logInfo(
+    `[queue] persisted messageId=${payload.id || 'none'} recipient=${toUserId} ` +
+    `reason=${payload.queueReason || 'offline_or_no_active_main_app'} ttlMs=${OFFLINE_TTL_MS}`,
+  );
+  return { ok: true, duplicate: false };
 }
 
 function queuedPayloadBytes(payload) {
@@ -1799,6 +1893,12 @@ function deliverQueuedMessages(ws, userId) {
     const recipientPublicKey = item.payload?.recipientPublicKey;
     return !recipientPublicKey || recipientPublicKey === user?.publicKey;
   });
+  if (queued.length > 0) {
+    logInfo(
+      `[queue] delivering_after_auth recipient=${userId} count=${queued.length} ` +
+      `socketRole=${ws.socketRole || 'unknown'} appState=${ws.appLifecycleState || 'unknown'}`,
+    );
+  }
   for (const item of queued) {
     const message = restoreQueuedPayload(item);
     if (!message) {
@@ -1814,6 +1914,7 @@ function deliverQueuedMessages(ws, userId) {
       message,
       queued: true,
     });
+    logInfo(`[queue] delivered_after_auth messageId=${item.id || 'none'} recipient=${userId}`);
   }
   if (cleanup.removed > 0 || cleanup.migrated > 0 || data.queuedMessages.length !== cleanup.queue.length) {
     saveData();
@@ -1888,6 +1989,7 @@ function finishAuth(ws, user, session, msg = {}) {
   sendContactRequests(ws, user.id);
   sendSessions(ws);
   deliverQueuedMessages(ws, user.id);
+  deliverPendingCallOffers(ws, user.id);
   schedulePresence(user.id);
 }
 
@@ -2122,12 +2224,26 @@ function removePushToken(ws, msg) {
 function updateClientAppState(ws, msg) {
   const rawState = String(msg.state || msg.appLifecycleState || '').trim();
   const backgroundStates = new Set(['inactive', 'paused', 'detached', 'hidden', 'background', 'minimized']);
+  const previousState = ws.appLifecycleState || 'unknown';
   ws.appLifecycleState = backgroundStates.has(rawState) ? 'background' : 'active';
   ws.appLifecycleUpdatedAt = Date.now();
   logDebug(
     `[debug] app state updated userId=${ws.userId || 'unknown'} ` +
     `sessionId=${ws.sessionId || 'none'} state=${ws.appLifecycleState}`,
   );
+  if (
+    ws.userId &&
+    ws.socketRole !== 'foreground_service' &&
+    previousState === 'background' &&
+    ws.appLifecycleState === 'active'
+  ) {
+    logInfo(
+      `[queue] app_active_delivery_check recipient=${ws.userId} ` +
+      `sessionId=${ws.sessionId || 'none'}`,
+    );
+    deliverQueuedMessages(ws, ws.userId);
+    deliverPendingCallOffers(ws, ws.userId);
+  }
 }
 
 function handleRetentionEvent(ws, msg) {
@@ -2158,29 +2274,199 @@ function getCallOffer(ws, msg) {
       message: 'Call unavailable.',
     });
   }
-  if (offer.status && offer.status !== 'ringing') {
+  if (!isPendingCallStatus(offer.status)) {
     pendingCallOffers.delete(callId);
-    return send(ws, {
-      type: 'missed_call',
-      callId,
-      fromUserId: offer.fromUserId,
-      fromNickname: offer.fromNickname || '',
-      timestamp: offer.endedAt || offer.createdAt || Date.now(),
-      video: false,
-    });
+    logInfo(`[missed-call] delivered_on_reconnect callId=${callId} recipient=${ws.userId} reason=${offer.status}`);
+    return send(ws, missedCallPayload(callId, offer));
   }
-  if (Date.now() > Number(offer.expiresAt || 0)) {
+  const assessment = inspectPendingCallOffer(callId, offer, ws.userId);
+  if (!assessment.deliverLive) {
+    logPendingCallNotDelivered(callId, offer, ws.userId, assessment);
     pendingCallOffers.delete(callId);
-    return send(ws, {
-      type: 'missed_call',
-      callId,
-      fromUserId: offer.fromUserId,
-      fromNickname: offer.fromNickname || '',
-      timestamp: offer.createdAt || Date.now(),
-      video: false,
-    });
+    if (!assessment.deliverMissed) {
+      return send(ws, {
+        type: 'call_unavailable',
+        callId,
+        reason: assessment.reason,
+        message: 'Call unavailable.',
+      });
+    }
+    logInfo(`[missed-call] delivered_on_reconnect callId=${callId} recipient=${ws.userId} reason=${assessment.reason}`);
+    return send(ws, missedCallPayload(callId, {
+      ...offer,
+      status: assessment.reason === 'expired_before_auth_delivery' ? 'expired' : 'missed',
+      endedAt: Date.now(),
+    }));
   }
+  offer.deliveryState = 'delivered_live';
+  pendingCallOffers.set(callId, offer);
+  logInfo(`[pending-call] delivered_live callId=${callId} recipient=${ws.userId}`);
   send(ws, offer.payload);
+}
+
+function missedCallPayload(callId, offer) {
+  return {
+    type: 'missed_call',
+    callId,
+    fromUserId: offer.fromUserId,
+    fromNickname: offer.fromNickname || '',
+    timestamp: offer.endedAt || offer.createdAt || Date.now(),
+    video: Boolean(offer.payload?.video === true || offer.payload?.video === 'true'),
+  };
+}
+
+function isPendingCallStatus(status) {
+  return !status || status === 'pending' || status === 'ringing';
+}
+
+function pendingCallFreshness(offer, now = Date.now()) {
+  const createdAt = Number(
+    offer?.createdAt ||
+    offer?.payload?.callCreatedAt ||
+    offer?.payload?.serverTimestamp ||
+    now,
+  ) || now;
+  const ttlMs = Math.max(1, Number(
+    offer?.callOfferTtlMs ||
+    offer?.payload?.callOfferTtlMs ||
+    CALL_OFFER_TTL_MS,
+  ) || CALL_OFFER_TTL_MS);
+  const expiresAt = Number(offer?.expiresAt || createdAt + ttlMs) || (createdAt + ttlMs);
+  const ageMs = Math.max(0, now - createdAt);
+  const remainingMs = Math.max(0, expiresAt - now);
+  return { createdAt, ttlMs, expiresAt, ageMs, remainingMs };
+}
+
+function inspectPendingCallOffer(callId, offer, userId, now = Date.now()) {
+  const freshness = pendingCallFreshness(offer, now);
+  const safetyMarginMs = Math.max(0, PENDING_CALL_LIVE_DELIVERY_SAFETY_MARGIN_MS);
+  const status = offer?.status || 'pending';
+  logInfo(
+    `[pending-call] inspect callId=${callId} recipient=${userId} ` +
+    `state=${status} ageMs=${freshness.ageMs} ttlMs=${freshness.ttlMs} ` +
+    `remainingMs=${freshness.remainingMs}`,
+  );
+  if (!isPendingCallStatus(status)) {
+    return { deliverLive: false, deliverMissed: true, reason: status, ...freshness };
+  }
+  if (freshness.ageMs >= freshness.ttlMs || now >= freshness.expiresAt) {
+    return { deliverLive: false, deliverMissed: true, reason: 'expired_before_auth_delivery', ...freshness };
+  }
+  if (freshness.remainingMs < safetyMarginMs) {
+    return { deliverLive: false, deliverMissed: true, reason: 'too_late_for_live_delivery', ...freshness };
+  }
+  if (!hasOpenSocket(offer.fromUserId)) {
+    return { deliverLive: false, deliverMissed: true, reason: 'caller_offline', ...freshness };
+  }
+  if (!hasActiveContact(offer.fromUserId, offer.toUserId)) {
+    return { deliverLive: false, deliverMissed: false, reason: 'not_active_contact', ...freshness };
+  }
+  if (isBlockedBy(offer.fromUserId, offer.toUserId) || isBlockedBy(offer.toUserId, offer.fromUserId)) {
+    return { deliverLive: false, deliverMissed: false, reason: 'blocked', ...freshness };
+  }
+  return { deliverLive: true, deliverMissed: false, reason: 'fresh', ...freshness };
+}
+
+function logPendingCallNotDelivered(callId, offer, userId, assessment) {
+  if (assessment.reason === 'expired_before_auth_delivery') {
+    logInfo(
+      `[pending-call] expired_before_delivery callId=${callId} recipient=${userId} ` +
+      `ageMs=${assessment.ageMs} ttlMs=${assessment.ttlMs}`,
+    );
+    logInfo(`[missed-call] persisted callId=${callId} recipient=${userId} reason=expired_before_auth_delivery`);
+    return;
+  }
+  if (assessment.reason === 'too_late_for_live_delivery') {
+    logInfo(
+      `[pending-call] too_late_for_live_delivery callId=${callId} recipient=${userId} ` +
+      `ageMs=${assessment.ageMs} ttlMs=${assessment.ttlMs} remainingMs=${assessment.remainingMs}`,
+    );
+    logInfo(`[missed-call] persisted callId=${callId} recipient=${userId} reason=too_late_for_live_delivery`);
+    return;
+  }
+  logInfo(`[pending-call] skipped state=${offer.status || 'pending'} callId=${callId} recipient=${userId} reason=${assessment.reason}`);
+}
+
+function canDeliverMissedCallToSocket(ws) {
+  return ws.socketRole !== 'foreground_service';
+}
+
+function markMissedCallDeferred(callId, offer, assessment, now = Date.now()) {
+  const nextStatus = assessment.reason === 'cancelled_by_caller' ? 'cancelled_by_caller' :
+    assessment.reason === 'expired_before_auth_delivery' ? 'expired' :
+    assessment.reason === 'too_late_for_live_delivery' ? 'expired' :
+    'missed';
+  offer.status = nextStatus;
+  offer.deliveryState = nextStatus;
+  offer.endedAt = offer.endedAt || now;
+  offer.endedExpiresAt = now + PENDING_DELIVERY_TTL_MS;
+  offer.missedSequence = offer.missedSequence || ++missedCallSequence;
+  pendingCallOffers.set(callId, offer);
+}
+
+function deliverPendingCallOffers(ws, userId) {
+  const now = Date.now();
+  let delivered = 0;
+  let missed = 0;
+  const recipientOffers = Array.from(pendingCallOffers.entries())
+    .filter(([, offer]) => offer.toUserId === userId)
+    .sort(([, a], [, b]) =>
+      Number(a.missedSequence || 0) - Number(b.missedSequence || 0) ||
+      Number(a.createdAt || 0) - Number(b.createdAt || 0));
+  logInfo(`[missed-call] pending_count recipient=${userId} count=${recipientOffers.length}`);
+  if (recipientOffers.length > 0 && canDeliverMissedCallToSocket(ws)) {
+    logInfo(`[missed-call] delivering_after_auth recipient=${userId} count=${recipientOffers.length}`);
+  }
+  for (const [callId, offer] of recipientOffers) {
+    if (offer.toUserId !== userId) {
+      continue;
+    }
+    if (deliveredMissedCallIds.has(callId)) {
+      pendingCallOffers.delete(callId);
+      logInfo(`[missed-call] duplicate_skipped callId=${callId} recipient=${userId}`);
+      continue;
+    }
+    const assessment = inspectPendingCallOffer(callId, offer, userId, now);
+    if (assessment.deliverLive) {
+      offer.deliveryState = 'delivered_live';
+      pendingCallOffers.set(callId, offer);
+      send(ws, offer.payload);
+      delivered += 1;
+      logInfo(`[pending-call] delivered_live callId=${callId} recipient=${userId}`);
+      logInfo(
+        `[call-offer-init-debug] stage=delivered_after_auth reason=pending_call ` +
+        `targetUserId=${userId} callId=${callId} deliveryRisk=${callDeliveryRisk(findUserById(userId), userId)}`,
+      );
+      continue;
+    }
+    logPendingCallNotDelivered(callId, offer, userId, assessment);
+    if (assessment.deliverMissed) {
+      markMissedCallDeferred(callId, offer, assessment, now);
+      if (!canDeliverMissedCallToSocket(ws)) {
+        logInfo(
+          `[missed-call] delivery_deferred callId=${callId} recipient=${userId} ` +
+          `socketRole=${ws.socketRole || 'unknown'} reason=awaiting_main_app_socket`,
+        );
+        continue;
+      }
+      send(ws, missedCallPayload(callId, offer));
+      deliveredMissedCallIds.set(callId, now);
+      logInfo(`[missed-call] marked_delivered callId=${callId} recipient=${userId}`);
+    }
+    pendingCallOffers.delete(callId);
+    missed += assessment.deliverMissed ? 1 : 0;
+    logInfo(
+      `[call-offer-init-debug] stage=missed_after_auth reason=${assessment.reason} ` +
+      `targetUserId=${userId} callId=${callId}`,
+    );
+    if (assessment.deliverMissed) {
+      logInfo(`[missed-call] delivered_after_auth callId=${callId} recipient=${userId} reason=${assessment.reason}`);
+      logInfo(`[missed-call] delivered_on_reconnect callId=${callId} recipient=${userId} reason=${assessment.reason}`);
+    }
+  }
+  if (delivered > 0 || missed > 0) {
+    logInfo(`[call-offer-init-debug] pending_after_auth userId=${userId} delivered=${delivered} missed=${missed}`);
+  }
 }
 
 function pushPayloadForMessage(message) {
@@ -2197,10 +2483,13 @@ function pushPayloadForCall(signal) {
   const timestamp = Number(signal?.serverTimestamp || signal?.callCreatedAt || Date.now()) || Date.now();
   return {
     type: 'call',
+    callType: signal?.video ? 'video' : 'voice',
     callId: String(signal?.callId || ''),
     fromUserId: String(signal?.fromUserId || ''),
     fromNickname: String(signal?.fromNickname || signal?.fromUsername || ''),
     video: signal?.video ? 'true' : 'false',
+    callCreatedAt: String(Number(signal?.callCreatedAt || timestamp) || timestamp),
+    serverTimestamp: String(timestamp),
     timestamp: String(timestamp),
     ttlMs: String(signal?.callOfferTtlMs || CALL_OFFER_TTL_MS),
   };
@@ -2214,6 +2503,73 @@ function pushDataPayload(payload) {
   );
 }
 
+function pushState({
+  eligible = false,
+  attempted = false,
+  delivered = false,
+  skipReason = 'none',
+  tokenCount = 0,
+} = {}) {
+  return {
+    fcmEligible: eligible,
+    fcmAttempted: attempted,
+    fcmDelivered: delivered,
+    fcmSkipReason: skipReason,
+    fcmTokenCount: tokenCount,
+  };
+}
+
+function fcmPushPlanForUser(user, options = {}) {
+  if (!FEATURE_PUSH_NOTIFICATIONS) {
+    return pushState({ skipReason: 'feature_disabled' });
+  }
+  const fcmStatus = fcmConfigurationStatus();
+  if (!fcmStatus.initialized) {
+    return pushState({ skipReason: 'no_credentials' });
+  }
+  const androidSessions = ensureSessions(user).filter((session) => session.platform === 'android');
+  const sessions = ensureSessions(user)
+    .filter((session) =>
+      session.id !== options.excludeSessionId &&
+      session.pushProvider === 'fcm' &&
+      (!options.androidOnly || session.platform === 'android') &&
+      typeof session.pushToken === 'string' &&
+      session.pushToken.length > 0);
+  if (sessions.length === 0) {
+    const reason = androidSessions.some((session) => session.pushProvider === 'no_gms') ? 'no_gms' : 'no_token';
+    return pushState({ skipReason: reason });
+  }
+  return pushState({
+    eligible: true,
+    skipReason: 'none',
+    tokenCount: sessions.length,
+  });
+}
+
+function fcmCredentialSource() {
+  if (FCM_SERVICE_ACCOUNT_JSON) {
+    return 'env_json';
+  }
+  if (FCM_SERVICE_ACCOUNT_FILE) {
+    return fs.existsSync(FCM_SERVICE_ACCOUNT_FILE) ? 'credentials_file' : 'none';
+  }
+  if (FCM_DEFAULT_CREDENTIALS_FILE && fs.existsSync(FCM_DEFAULT_CREDENTIALS_FILE)) {
+    return 'default_credentials';
+  }
+  return 'none';
+}
+
+function fcmConfigurationStatus() {
+  const account = loadFcmServiceAccount();
+  const hasProjectId = Boolean(process.env.FIREBASE_PROJECT_ID || account?.project_id);
+  const initialized = Boolean(account?.client_email && account?.private_key && hasProjectId);
+  return {
+    credentialSource: fcmCredentialSource(),
+    hasProjectId,
+    initialized,
+  };
+}
+
 function loadFcmServiceAccount() {
   if (fcmServiceAccount !== null) {
     return fcmServiceAccount;
@@ -2225,6 +2581,13 @@ function loadFcmServiceAccount() {
     }
     if (FCM_SERVICE_ACCOUNT_FILE && fs.existsSync(FCM_SERVICE_ACCOUNT_FILE)) {
       fcmServiceAccount = JSON.parse(fs.readFileSync(FCM_SERVICE_ACCOUNT_FILE, 'utf8'));
+      return fcmServiceAccount;
+    }
+    if (!FCM_SERVICE_ACCOUNT_JSON &&
+        !FCM_SERVICE_ACCOUNT_FILE &&
+        FCM_DEFAULT_CREDENTIALS_FILE &&
+        fs.existsSync(FCM_DEFAULT_CREDENTIALS_FILE)) {
+      fcmServiceAccount = JSON.parse(fs.readFileSync(FCM_DEFAULT_CREDENTIALS_FILE, 'utf8'));
       return fcmServiceAccount;
     }
   } catch (error) {
@@ -2340,14 +2703,17 @@ async function sendFcmDataMessage(token, payload) {
 function sendPushToUser(userId, payload, options = {}) {
   const isCallPush = payload?.type === 'call';
   const pushLabel = isCallPush ? 'FCM call push' : 'FCM push';
-  if (!FEATURE_PUSH_NOTIFICATIONS) {
-    logInfo(`[push] ${pushLabel} attempted=no reason=feature_disabled userId=${userId} type=${payload?.type || 'unknown'}`);
-    return;
-  }
+  const pushId = payload?.callId || payload?.messageId || 'none';
   const user = findUserById(userId);
   if (!user) {
-    logInfo(`[push] ${pushLabel} attempted=no reason=user_not_found userId=${userId} type=${payload?.type || 'unknown'}`);
-    return;
+    logInfo(`[push] ${pushLabel} attempted=no reason=user_not_found userId=${userId} type=${payload?.type || 'unknown'} id=${pushId}`);
+    return pushState({ skipReason: 'user_not_found' });
+  }
+  const plan = fcmPushPlanForUser(user, options);
+  if (!plan.fcmEligible) {
+    logInfo(`[push] ${pushLabel} attempted=no reason=${plan.fcmSkipReason} userId=${userId} type=${payload?.type || 'unknown'} id=${pushId}`);
+    logInfo(`[push] fcmAttempted=false fcmDelivered=false reason=${plan.fcmSkipReason} userId=${userId} type=${payload?.type || 'unknown'} id=${pushId}`);
+    return plan;
   }
   const now = Date.now();
   const dedupKey = [
@@ -2358,8 +2724,12 @@ function sendPushToUser(userId, payload, options = {}) {
   const cooldownMs = Number(options.cooldownMs || 90 * 1000);
   const previousPushAt = pushDedup.get(dedupKey) || 0;
   if (now - previousPushAt < cooldownMs) {
-    logInfo(`[push] ${pushLabel} attempted=no reason=dedup_cooldown userId=${userId} type=${payload?.type || 'unknown'} id=${payload?.callId || payload?.messageId || 'none'}`);
-    return;
+    logInfo(`[push] ${pushLabel} attempted=no reason=dedup_cooldown userId=${userId} type=${payload?.type || 'unknown'} id=${pushId}`);
+    return pushState({
+      eligible: true,
+      skipReason: 'dedup_cooldown',
+      tokenCount: plan.fcmTokenCount,
+    });
   }
   pushDedup.set(dedupKey, now);
   for (const [key, timestamp] of pushDedup.entries()) {
@@ -2374,15 +2744,15 @@ function sendPushToUser(userId, payload, options = {}) {
       (!options.androidOnly || session.platform === 'android') &&
       typeof session.pushToken === 'string' &&
       session.pushToken.length > 0);
-  logInfo(`[push] ${pushLabel} send start userId=${userId} type=${payload?.type || 'unknown'} id=${payload?.callId || payload?.messageId || 'none'}`);
+  logInfo(`[push] ${pushLabel} attempted=yes reason=send_start userId=${userId} type=${payload?.type || 'unknown'} id=${pushId}`);
   logInfo(`[push] ${pushLabel} recipient token count userId=${userId} count=${sessions.length}`);
   for (const session of sessions) {
     sendFcmDataMessage(session.pushToken, payload)
       .then(() => {
-        logInfo(`[push] ${pushLabel} success userId=${userId} deviceId=${session.deviceId || 'unknown'} id=${payload?.callId || payload?.messageId || 'none'}`);
+        logInfo(`[push] ${pushLabel} success reason=success userId=${userId} deviceId=${session.deviceId || 'unknown'} id=${pushId}`);
       })
       .catch((error) => {
-        logWarn(`[push] ${pushLabel} failure userId=${userId} deviceId=${session.deviceId || 'unknown'} error=${error.message}`);
+        logWarn(`[push] ${pushLabel} failure reason=firebase_error userId=${userId} deviceId=${session.deviceId || 'unknown'} id=${pushId} error=${error.message}`);
         if (error.invalidToken) {
           delete session.pushToken;
           delete session.pushProvider;
@@ -2394,6 +2764,13 @@ function sendPushToUser(userId, payload, options = {}) {
         }
       });
   }
+  return pushState({
+    eligible: true,
+    attempted: true,
+    delivered: false,
+    skipReason: 'none',
+    tokenCount: sessions.length,
+  });
 }
 
 function sendUsers(ws, currentUserId) {
@@ -2982,27 +3359,39 @@ function relayMessage(ws, msg) {
     message: payload,
   });
   const recipientAndroidTokenCount = androidPushSessions(recipient).length;
+  const recipientMainAppActiveSockets = mainAppActiveSocketCount(recipient.id);
+  const recipientNeedsDurableQueue = deliveredCount === 0 || recipientMainAppActiveSockets === 0;
   logInfo(
     `[push-debug] message route recipient=${recipient.id} messageId=${messageId} ` +
     `activeSockets=${activeUserSockets(recipient.id).length} openSockets=${userSockets(recipient.id).length} ` +
+    `mainAppActiveSockets=${recipientMainAppActiveSockets} ` +
     `androidSockets=${androidSocketCount(recipient.id)} androidSocketsWithoutFcm=${androidSocketWithoutFcmCount(recipient, recipient.id)} ` +
     `foregroundServiceSockets=${foregroundServiceSocketCount(recipient.id)} ` +
     `socketStates=${socketStateSummary(recipient.id) || 'none'} ` +
     `recipientSessions=${recipientSessionSummary(recipient) || 'none'} ` +
     `androidTokens=${recipientAndroidTokenCount} pushSessions=${pushSessionSummary(recipient) || 'none'} ` +
     `forwardedToSocket=${deliveredCount > 0} forwardedSockets=${deliveredCount} ` +
+    `queuedForDurableDelivery=${recipientNeedsDurableQueue} ` +
     `fcmAttempted=${deliveredCount === 0 || !hasActiveSocket(recipient.id)}`,
   );
+  let queueResult = null;
+  if (recipientNeedsDurableQueue) {
+    queueResult = queueOfflineMessage(recipient.id, payload);
+    if (!queueResult.ok) {
+      pendingDeliveries.delete(payload.id);
+      return fail('queue_failed', 'queue_failed', sender.id);
+    }
+    logInfo(
+      `[queue] durable_delivery_pending messageId=${messageId} recipient=${recipient.id} ` +
+      `reason=${deliveredCount === 0 ? 'no_open_socket' : 'no_active_main_app_socket'} ` +
+      `forwardedSockets=${deliveredCount} mainAppActiveSockets=${recipientMainAppActiveSockets}`,
+    );
+  }
   if (deliveredCount === 0) {
     logDebug(
       `[debug] message recipient offline sender=${sender.id} to=${recipient.id} ` +
       `messageId=${messageId}`,
     );
-    const queueResult = queueOfflineMessage(recipient.id, payload);
-    if (!queueResult.ok) {
-      pendingDeliveries.delete(payload.id);
-      return fail('queue_failed', 'queue_failed', sender.id);
-    }
     logDebug(
       `[debug] message queued offline sender=${sender.id} to=${recipient.id} ` +
       `messageId=${messageId}`,
@@ -3048,7 +3437,7 @@ function relayCallSignal(ws, msg) {
   let forwarded = 0;
   let signalType = rawType;
   let contactState = null;
-  let callOfferInitFcmAttempted = false;
+  let callOfferPushState = pushState();
 
   const logCallEvent = (stage, reason = 'none') => {
     logDebug(
@@ -3070,18 +3459,28 @@ function relayCallSignal(ws, msg) {
     }
     const targetUser = recipient || (rawToUserId ? findUserById(rawToUserId) : null);
     const targetUserId = targetUser?.id || rawToUserId || 'empty';
-    const fcmTokenCount = targetUser ? androidPushSessions(targetUser).length : 0;
+    const targetOpenSockets = userSockets(targetUserId).length;
+    const targetActiveSockets = activeUserSockets(targetUserId).length;
+    const targetForegroundServiceSockets = foregroundServiceSocketCount(targetUserId);
+    const targetMainAppBackgroundSockets = mainAppBackgroundSocketCount(targetUserId);
+    const queuedForPush = stage === 'push_start' || stage === 'queued_for_push' ||
+      (stage === 'routed' && targetActiveSockets === 0);
+    const deliveryRisk = targetUser ? callDeliveryRisk(targetUser, targetUserId) : 'unknown';
     logInfo(
       `[call-offer-init-debug] stage=${stage} reason=${reason} ` +
       `callerUserId=${ws.userId || 'unauthenticated'} targetUserId=${targetUserId} callId=${callId || 'empty'} ` +
-      `targetActiveSockets=${activeUserSockets(targetUserId).length} targetOpenSockets=${userSockets(targetUserId).length} ` +
+      `targetActiveSockets=${targetActiveSockets} targetOpenSockets=${targetOpenSockets} ` +
+      `foregroundServiceSockets=${targetForegroundServiceSockets} mainAppBackgroundSockets=${targetMainAppBackgroundSockets} ` +
+      `queuedForPush=${queuedForPush} deliveryRisk=${deliveryRisk} ` +
       `targetSessions=${targetUser ? recipientSessionSummary(targetUser) || 'none' : 'none'} ` +
       `targetPlatforms=${targetUser ? targetPlatformSummary(targetUser, targetUserId) : 'none'} ` +
       `contactActive=${activeContact} senderHasActiveContact=${contactState?.senderHasActiveContact ?? false} ` +
       `recipientHasActiveContact=${contactState?.recipientHasActiveContact ?? false} ` +
       `blockedByCaller=${blockedBySender} blockedByTarget=${blockedByRecipient} ` +
       `forwardedSockets=${forwarded} forwardedToSockets=${forwarded > 0} ` +
-      `pushedViaFcm=${callOfferInitFcmAttempted && fcmTokenCount > 0} fcmTokens=${fcmTokenCount}`,
+      `fcmEligible=${callOfferPushState.fcmEligible} fcmAttempted=${callOfferPushState.fcmAttempted} ` +
+      `fcmDelivered=${callOfferPushState.fcmDelivered} fcmSkipReason=${callOfferPushState.fcmSkipReason} ` +
+      `fcmTokens=${callOfferPushState.fcmTokenCount}`,
     );
   };
 
@@ -3167,9 +3566,6 @@ function relayCallSignal(ws, msg) {
     if (!rateLimit(ws, 'call_offer', 8, 60 * 1000)) {
       return callUnavailable('rate_limited');
     }
-    if (!pairCooldown(callCooldowns, `${ws.userId}:${rawToUserId}`, 30 * 1000)) {
-      return callUnavailable('cooldown');
-    }
   }
   if (msg.video === true && !FEATURE_VIDEO_CALLS) {
     return callUnavailable('invalid_payload', 'Video calls are disabled.');
@@ -3187,6 +3583,15 @@ function relayCallSignal(ws, msg) {
   blockedByRecipient = isBlockedBy(recipient.id, sender.id);
   targetSocketExists = hasOpenSocket(recipient.id);
   targetOnline = isUserOnline(recipient.id);
+  if (rawType === 'call_offer_init' &&
+      hasActivePendingCallBetween(ws.userId, rawToUserId) &&
+      activeUserSockets(recipient.id).length > 0 &&
+      !pairCooldown(callCooldowns, `${ws.userId}:${rawToUserId}`, 30 * 1000)) {
+    return callUnavailable('cooldown');
+  }
+  if (rawType === 'call_offer_init') {
+    callOfferPushState = fcmPushPlanForUser(recipient, { androidOnly: true });
+  }
   logCallEvent('routed');
   logCallOfferInitRoute('routed');
   if (blockedBySender || blockedByRecipient) {
@@ -3216,23 +3621,57 @@ function relayCallSignal(ws, msg) {
     rawType === 'call_rejected' ||
     rawType === 'call_hangup' ||
     signalType === 'call_answer';
+  let keepEndedPendingForMissedDelivery = false;
   if (signalEndsPendingOffer && existingPendingOffer && (
       (existingPendingOffer.fromUserId === sender.id && existingPendingOffer.toUserId === recipient.id) ||
       (existingPendingOffer.fromUserId === recipient.id && existingPendingOffer.toUserId === sender.id))) {
     existingPendingOffer.status =
       signalType === 'call_answer' ? 'answered' :
-      rawType === 'call_hangup' ? (msg.reason === 'timeout' ? 'timed_out' : 'ended') :
+      rawType === 'call_hangup' && sender.id === existingPendingOffer.fromUserId ?
+        (msg.reason === 'timeout' ? 'expired' : 'cancelled_by_caller') :
+      rawType === 'call_hangup' ? 'ended' :
       'rejected';
+    existingPendingOffer.deliveryState = existingPendingOffer.status;
     existingPendingOffer.endedAt = Date.now();
-    existingPendingOffer.endedExpiresAt = Date.now() + CALL_OFFER_TTL_MS;
+    existingPendingOffer.endedExpiresAt = Date.now() + PENDING_DELIVERY_TTL_MS;
     pendingCallOffers.set(callId, existingPendingOffer);
+    keepEndedPendingForMissedDelivery =
+      rawType === 'call_hangup' &&
+      sender.id === existingPendingOffer.fromUserId &&
+      mainAppActiveSocketCount(existingPendingOffer.toUserId) === 0;
+    if (rawType === 'call_hangup') {
+      logInfo(
+        `[missed-call] call_hangup updated queued callId=${callId} ` +
+        `recipient=${existingPendingOffer.toUserId} reason=${existingPendingOffer.status}`,
+      );
+      if (keepEndedPendingForMissedDelivery) {
+        logInfo(
+          `[missed-call] persisted callId=${callId} recipient=${existingPendingOffer.toUserId} ` +
+          `sequence=${existingPendingOffer.missedSequence || 'none'} ` +
+          `reason=caller_hangup_no_active_main_app`,
+        );
+      }
+    }
   }
 
   if (!targetOnline && rawType !== 'call_offer_init') {
+    if (signalEndsPendingOffer && existingPendingOffer) {
+      return;
+    }
     return callUnavailable('recipient_offline', 'User is offline.');
   }
 
   if (rawType === 'call_offer_init') {
+    const duplicatePendingOffer = pendingCallOffers.get(callId);
+    if (duplicatePendingOffer && duplicatePendingOffer.toUserId === recipient.id) {
+      logInfo(
+        `[missed-call] duplicate_skipped callId=${callId} recipient=${recipient.id} ` +
+        `sequence=${duplicatePendingOffer.missedSequence || 'none'} reason=existing_pending_call`,
+      );
+      if (!targetOnline) {
+        return;
+      }
+    }
     recordRetentionEvent(sender.id, 'call_started', { source: 'call' });
     recordRetentionEvent(recipient.id, 'call_received', { source: 'call' });
     pendingCallOffers.set(callId, {
@@ -3241,29 +3680,55 @@ function relayCallSignal(ws, msg) {
       fromNickname: sender.nickname,
       payload: signal,
       createdAt: signal.callCreatedAt,
+      callOfferTtlMs: CALL_OFFER_TTL_MS,
       expiresAt: signal.callCreatedAt + CALL_OFFER_TTL_MS,
-      status: 'ringing',
+      status: 'pending',
+      deliveryState: 'pending',
+      missedSequence: ++missedCallSequence,
     });
+    const routeDeliveryRisk = callDeliveryRisk(recipient, recipient.id);
+    const queuedForPush = !targetOnline || activeUserSockets(recipient.id).length === 0;
     logInfo(
       `[push-debug] call route recipient=${recipient.id} callId=${callId} ` +
-      `activeSockets=${activeUserSockets(recipient.id).length} openSockets=${userSockets(recipient.id).length} ` +
+      `targetActiveSockets=${activeUserSockets(recipient.id).length} targetOpenSockets=${userSockets(recipient.id).length} ` +
       `androidSockets=${androidSocketCount(recipient.id)} androidSocketsWithoutFcm=${androidSocketWithoutFcmCount(recipient, recipient.id)} ` +
-      `foregroundServiceSockets=${foregroundServiceSocketCount(recipient.id)} ` +
+      `foregroundServiceSockets=${foregroundServiceSocketCount(recipient.id)} mainAppBackgroundSockets=${mainAppBackgroundSocketCount(recipient.id)} ` +
+      `queuedForPush=${queuedForPush} deliveryRisk=${routeDeliveryRisk} ` +
+      `fcmEligible=${callOfferPushState.fcmEligible} fcmAttempted=${callOfferPushState.fcmAttempted} ` +
+      `fcmDelivered=${callOfferPushState.fcmDelivered} fcmSkipReason=${callOfferPushState.fcmSkipReason} ` +
       `socketStates=${socketStateSummary(recipient.id) || 'none'} ` +
       `recipientSessions=${recipientSessionSummary(recipient) || 'none'} ` +
       `androidTokens=${androidPushSessions(recipient).length} pushSessions=${pushSessionSummary(recipient) || 'none'} ` +
-      'fcmAttempted=true',
+      `fcmTokens=${callOfferPushState.fcmTokenCount}`,
     );
-    callOfferInitFcmAttempted = true;
-    logCallOfferInitRoute('push_start');
-    sendPushToUser(recipient.id, pushPayloadForCall(signal), {
+    callOfferPushState = sendPushToUser(recipient.id, pushPayloadForCall(signal), {
       androidOnly: true,
       cooldownMs: 45 * 1000,
     });
+    const queuedOffer = pendingCallOffers.get(callId);
+    if (queuedOffer) {
+      queuedOffer.queuedForPush = queuedForPush;
+      queuedOffer.deliveryRisk = routeDeliveryRisk;
+      queuedOffer.fcmEligible = callOfferPushState.fcmEligible;
+      queuedOffer.fcmAttempted = callOfferPushState.fcmAttempted;
+      queuedOffer.fcmDelivered = callOfferPushState.fcmDelivered;
+      queuedOffer.fcmSkipReason = callOfferPushState.fcmSkipReason;
+      pendingCallOffers.set(callId, queuedOffer);
+    }
+    logCallOfferInitRoute('push_start');
     logDebug(
       `[debug] call push sent sender=${sender.id} to=${recipient.id} callId=${callId} targetOnline=${targetOnline}`,
     );
     if (!targetOnline) {
+      const persistReason =
+        callOfferPushState.fcmSkipReason === 'feature_disabled' ? 'offline_fcm_disabled' :
+        callOfferPushState.fcmAttempted ? 'offline_push_attempted' :
+        `offline_push_${callOfferPushState.fcmSkipReason}`;
+      const persistedOffer = pendingCallOffers.get(callId);
+      logInfo(
+        `[missed-call] persisted callId=${callId} recipient=${recipient.id} ` +
+        `sequence=${persistedOffer?.missedSequence || 'none'} reason=${persistReason}`,
+      );
       logDebug(
         `[debug] call signal queued_for_push sender=${sender.id} to=${recipient.id} type=${rawType} forwardedType=${signalType} callId=${callId}`,
       );
@@ -3276,19 +3741,21 @@ function relayCallSignal(ws, msg) {
     rawType === 'call_hangup' ||
     signalType === 'call_answer'
   ) {
-    if (targetOnline || signalType === 'call_answer') {
+    if ((targetOnline || signalType === 'call_answer') && !keepEndedPendingForMissedDelivery) {
       pendingCallOffers.delete(callId);
     }
   }
 
   forwarded = sendToUser(recipient.id, signal);
   logCallOfferInitRoute('forwarded');
+  const forwardDeliveryRisk = callDeliveryRisk(recipient, recipient.id);
   logInfo(
     `[push-debug] call forward recipient=${recipient.id} callId=${callId} ` +
     `forwardedToSocket=${forwarded > 0} forwardedSockets=${forwarded} ` +
-    `activeSockets=${activeUserSockets(recipient.id).length} openSockets=${userSockets(recipient.id).length} ` +
+    `targetActiveSockets=${activeUserSockets(recipient.id).length} targetOpenSockets=${userSockets(recipient.id).length} ` +
     `androidSockets=${androidSocketCount(recipient.id)} androidSocketsWithoutFcm=${androidSocketWithoutFcmCount(recipient, recipient.id)} ` +
-    `foregroundServiceSockets=${foregroundServiceSocketCount(recipient.id)} ` +
+    `foregroundServiceSockets=${foregroundServiceSocketCount(recipient.id)} mainAppBackgroundSockets=${mainAppBackgroundSocketCount(recipient.id)} ` +
+    `queuedForPush=${rawType === 'call_offer_init' && !targetOnline} deliveryRisk=${forwardDeliveryRisk} ` +
     `socketStates=${socketStateSummary(recipient.id) || 'none'} ` +
     `recipientSessions=${recipientSessionSummary(recipient) || 'none'}`,
   );

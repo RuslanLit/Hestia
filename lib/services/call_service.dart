@@ -165,6 +165,7 @@ class CallService {
   bool _remoteVideoRendererAttachedLogged = false;
   int _remoteVideoViewRevisionMs = 0;
   int _inboundVideoFramesDecoded = 0;
+  int _inboundVideoFramesReceived = 0;
   int _inboundVideoFrameWidth = 0;
   int _inboundVideoFrameHeight = 0;
   final ValueNotifier<List<String>> debugEvents = ValueNotifier<List<String>>(
@@ -188,7 +189,10 @@ class CallService {
       !kIsWeb &&
       defaultTargetPlatform == TargetPlatform.fuchsia &&
       _receiveVideoOnly;
-  bool get _supportsWebForegroundVideoCalls => false;
+  bool get _supportsWebForegroundVideoCalls =>
+      kIsWeb &&
+      defaultTargetPlatform != TargetPlatform.android &&
+      defaultTargetPlatform != TargetPlatform.iOS;
   bool get _supportsRealVideoCalls =>
       _supportsWebForegroundVideoCalls ||
       (!kIsWeb && defaultTargetPlatform == TargetPlatform.android);
@@ -444,7 +448,7 @@ class CallService {
         'id=${_short(track.id ?? '')}',
       );
     }
-    _webVideo('camera toggled ${enabled ? 'on' : 'off'}');
+    _webVideo(enabled ? 'camera enabled' : 'camera disabled');
     _notifyMediaListeners();
   }
 
@@ -723,9 +727,7 @@ class CallService {
       return;
     }
     if (_state != CallState.idle) return;
-    _callStopFix(video
-        ? 'start video call blocked/enabled request'
-        : 'start voice call');
+    _callStopFix(video ? 'start video call enabled' : 'start voice call');
     _callGeneration++;
     _callTerminating = false;
     _pendingRemoteCandidates.clear();
@@ -745,8 +747,7 @@ class CallService {
     video = video && _supportsRealVideoCalls;
     if (requestedVideo && !video) {
       _webVideo('fallback to audio reason=video_unsupported');
-      _callStopFix(
-          'start video call blocked reason=web_video_temporarily_disabled');
+      _callStopFix('start video call blocked reason=video_unsupported');
     }
     final startedAtMs = DateTime.now().millisecondsSinceEpoch;
     _activeCallId = _generateId();
@@ -1708,16 +1709,14 @@ class CallService {
       () => _ensureMediaPermissions(video: video),
     );
     await _awaitWebRtcStep('enable audio output', _enableMobileAudioOutput);
-    if (kIsWeb) {
-      final refresh = refreshBackendIceConfig;
-      if (refresh == null) {
-        _webVoice('fallback reason=backend_refresh_hook_missing');
-      } else {
-        await _awaitWebRtcStep(
-          'refresh backend ICE config',
-          refresh,
-        );
-      }
+    final refresh = refreshBackendIceConfig;
+    if (refresh == null) {
+      _webVoice('fallback reason=backend_refresh_hook_missing');
+    } else {
+      await _awaitWebRtcStep(
+        'refresh backend ICE config',
+        refresh,
+      );
     }
     _iceConfigHasTurn = _iceServers.any(_iceServerHasTurn);
     _debug(
@@ -1791,6 +1790,8 @@ class CallService {
         _debug('enumerateDevices diagnostic only');
         _debug('getUserMedia fallback attempt');
       }
+      _webVideo(
+          'getUserMedia requested constraints audio=true video=$activeVideo');
       _localStream = await _awaitWebRtcStep(
         'getUserMedia',
         () => navigator.mediaDevices.getUserMedia({
@@ -1925,6 +1926,7 @@ class CallService {
       if (track.kind == 'video') {
         _debug('video track added id=${_short(track.id ?? '')}');
         _debug('local video track added id=${_short(track.id ?? '')}');
+        _webVideo('local video track added id=${_short(track.id ?? '')}');
       }
       _trace(
         'local ${track.kind} track added id=${_short(track.id ?? '')} '
@@ -1956,7 +1958,24 @@ class CallService {
         'enabled=${event.track.enabled} muted=${event.track.muted} '
         'streams=${event.streams.length}',
       );
+      if (kIsWeb) {
+        final streamId =
+            event.streams.isNotEmpty ? _short(event.streams[0].id) : 'none';
+        _webVideo(
+          'onTrack kind=${event.track.kind} '
+          'track=${_short(event.track.id ?? '')} '
+          'enabled=${event.track.enabled} muted=${event.track.muted} '
+          'stream=$streamId',
+        );
+      }
       if (event.streams.isNotEmpty) {
+        if (kIsWeb && event.track.kind == 'video') {
+          _installRemoteVideoTrackDiagnostics(
+            event.track,
+            event.streams[0],
+            generation,
+          );
+        }
         if (_receiveVideoOnly) {
           _remoteStream = event.streams[0];
           _debug('remote renderer attach skipped reason=sdp_only_step1');
@@ -1969,6 +1988,10 @@ class CallService {
         final remoteVideoTracks = event.streams[0].getVideoTracks();
         _remoteAudioTrackCount = remoteAudioTracks.length;
         _remoteVideoTrackCount = remoteVideoTracks.length;
+        _webVideo(
+          'remote stream tracks stream=${_short(event.streams[0].id)} '
+          'audio=${remoteAudioTracks.length} video=${remoteVideoTracks.length}',
+        );
         _trace('remote audio tracks count=${remoteAudioTracks.length}');
         _trace('remote video tracks count=${remoteVideoTracks.length}');
         if (remoteVideoTracks.isNotEmpty) {
@@ -2234,12 +2257,33 @@ class CallService {
         'enabled=${event.track.enabled} muted=${event.track.muted} '
         'streams=${event.streams.length}',
       );
+      if (kIsWeb) {
+        final streamId =
+            event.streams.isNotEmpty ? _short(event.streams[0].id) : 'none';
+        _webVideo(
+          'onTrack kind=${event.track.kind} '
+          'track=${_short(event.track.id ?? '')} '
+          'enabled=${event.track.enabled} muted=${event.track.muted} '
+          'stream=$streamId',
+        );
+      }
       if (event.streams.isNotEmpty) {
+        if (kIsWeb && event.track.kind == 'video') {
+          _installRemoteVideoTrackDiagnostics(
+            event.track,
+            event.streams[0],
+            generation,
+          );
+        }
         unawaited(_attachRemoteStreamForPlayback(event.streams[0], generation));
         final remoteAudioTracks = event.streams[0].getAudioTracks();
         final remoteVideoTracks = event.streams[0].getVideoTracks();
         _remoteAudioTrackCount = remoteAudioTracks.length;
         _remoteVideoTrackCount = remoteVideoTracks.length;
+        _webVideo(
+          'remote stream tracks stream=${_short(event.streams[0].id)} '
+          'audio=${remoteAudioTracks.length} video=${remoteVideoTracks.length}',
+        );
         if (remoteAudioTracks.isNotEmpty) {
           _debug(
               'remote audio track received count=${remoteAudioTracks.length}');
@@ -2605,6 +2649,7 @@ class CallService {
     _remoteVideoRendererAttachedLogged = false;
     _remoteVideoViewRevisionMs = 0;
     _inboundVideoFramesDecoded = 0;
+    _inboundVideoFramesReceived = 0;
     _inboundVideoFrameWidth = 0;
     _inboundVideoFrameHeight = 0;
     _connectionState = 'not_created';
@@ -3603,6 +3648,10 @@ class CallService {
     if (!_isCurrentCallGeneration(generation, 'remote stream attach')) {
       return;
     }
+    if (kIsWeb && stream.getVideoTracks().isNotEmpty) {
+      await _attachRemoteStreamForWebVideo(stream, generation);
+      return;
+    }
     if (_isDesktopReceiveVideoOnlyActive) {
       final callId = currentCallId;
       final streamId = stream.id;
@@ -3658,6 +3707,120 @@ class CallService {
     await _attachRemoteStreamForPlaybackBody(stream, generation);
   }
 
+  void _installRemoteVideoTrackDiagnostics(
+    MediaStreamTrack track,
+    MediaStream stream,
+    int generation,
+  ) {
+    if (!kIsWeb) {
+      return;
+    }
+    final trackId = _short(track.id ?? '');
+    final streamId = _short(stream.id);
+    _webVideo(
+      'remote video track diagnostics installed '
+      'track=$trackId enabled=${track.enabled} muted=${track.muted} '
+      'stream=$streamId readyState=${_trackReadyState(track)}',
+    );
+    track.onMute = () {
+      _webVideo('remote video track muted track=$trackId stream=$streamId');
+    };
+    track.onUnMute = () {
+      _webVideo('remote video track unmuted track=$trackId stream=$streamId');
+      unawaited(_attachRemoteStreamForWebVideo(stream, generation));
+    };
+    track.onEnded = () {
+      _webVideo('remote video track ended track=$trackId stream=$streamId');
+    };
+  }
+
+  Future<void> _attachRemoteStreamForWebVideo(
+    MediaStream stream,
+    int generation,
+  ) async {
+    if (!kIsWeb ||
+        !_isCurrentCallGeneration(generation, 'web video stream attach')) {
+      return;
+    }
+    final videoTracks = stream.getVideoTracks();
+    if (videoTracks.isEmpty) {
+      _webVideo(
+        'remote renderer refresh skipped reason=no_video_track '
+        'stream=${_short(stream.id)}',
+      );
+      await _attachRemoteStreamForPlaybackBody(stream, generation);
+      return;
+    }
+    _remoteStream = stream;
+    _remoteAudioTrackCount = stream.getAudioTracks().length;
+    _remoteVideoTrackCount = videoTracks.length;
+    _webVideo(
+      'remote renderer refresh start stream=${_short(stream.id)} '
+      'audio=$_remoteAudioTrackCount video=$_remoteVideoTrackCount '
+      'viewMounted=$_remoteRendererViewMounted '
+      'viewVisible=$_remoteRendererViewVisible '
+      '${_rendererSummary(_remoteRenderer, 'remoteRenderer')}',
+    );
+    for (final track in videoTracks) {
+      track.enabled = true;
+      _webVideo(
+        'remote video track state track=${_short(track.id ?? '')} '
+        'enabled=${track.enabled} muted=${track.muted} '
+        'readyState=${_trackReadyState(track)}',
+      );
+    }
+    try {
+      await _ensureRenderersReady('web video remote stream attach');
+      await _selectDesktopAudioOutput();
+      if (!_isCurrentCallGeneration(generation, 'web video renderer detach')) {
+        return;
+      }
+      _webVideo(
+        'remoteRenderer srcObject assign phase=detach '
+        'hadSrcObject=${_remoteRenderer.srcObject != null} '
+        'viewMounted=$_remoteRendererViewMounted '
+        'viewVisible=$_remoteRendererViewVisible',
+      );
+      _remoteRenderer.srcObject = null;
+      _remoteVideoViewRevisionMs = DateTime.now().millisecondsSinceEpoch;
+      _notifyMediaListeners();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      if (!_isCurrentCallGeneration(
+          generation, 'web video renderer reattach')) {
+        return;
+      }
+      _webVideo(
+        'remoteRenderer srcObject assign phase=reattach '
+        'stream=${_short(stream.id)} video=${videoTracks.length} '
+        'viewMounted=$_remoteRendererViewMounted '
+        'viewVisible=$_remoteRendererViewVisible',
+      );
+      _remoteRenderer.srcObject = stream;
+      await _remoteRenderer.setVolume(1.0);
+      _remoteVideoViewRevisionMs = DateTime.now().millisecondsSinceEpoch;
+      _notifyMediaListeners();
+      _webVideo(
+        'remote renderer refreshed stream=${_short(stream.id)} '
+        '${_rendererSummary(_remoteRenderer, 'remoteRenderer')}',
+      );
+      unawaited(Future<void>.delayed(const Duration(milliseconds: 100), () {
+        if (!_isCurrentCallGeneration(
+            generation, 'web video delayed rebuild')) {
+          return;
+        }
+        _remoteVideoViewRevisionMs = DateTime.now().millisecondsSinceEpoch;
+        _webVideo('remote renderer delayed rebuild after refresh');
+        _notifyMediaListeners();
+      }));
+    } catch (error) {
+      _webVideo('remote renderer refresh failed error=$error');
+      _recommendBrowserAudioUnlock('web_video_remote_attach_failed');
+    }
+    if (_isCurrentCallGeneration(generation, 'start playback stats')) {
+      _startPlaybackStatsTimer();
+    }
+  }
+
   Future<void> _attachRemoteStreamForPlaybackBody(
     MediaStream stream,
     int generation, {
@@ -3692,6 +3855,12 @@ class CallService {
           generation, 'remote renderer setSrcObject')) {
         return;
       }
+      _webVideo(
+        'remoteRenderer srcObject assign phase=playback '
+        'stream=${_short(stream.id)} audio=${audioTracks.length} '
+        'video=${videoTracks.length} viewMounted=$_remoteRendererViewMounted '
+        'viewVisible=$_remoteRendererViewVisible',
+      );
       await _remoteRenderer.setSrcObject(stream: stream);
       if (_isDesktopReceiveVideoOnlyActive) {
         _remotePlaybackAttachedCallId = currentCallId;
@@ -3826,8 +3995,8 @@ class CallService {
         );
         _updateOutboundAudioFlowWatch(delta: delta);
       }
-      if (_isDesktopReceiveVideoOnlyActive) {
-        _logDesktopInboundVideoDiagnostics(stats);
+      if (kIsWeb || _isDesktopReceiveVideoOnlyActive) {
+        _logInboundVideoDiagnostics(stats);
       }
     } catch (error) {
       _trace('playback stats unavailable: $error');
@@ -3862,9 +4031,10 @@ class CallService {
     }
   }
 
-  void _logDesktopInboundVideoDiagnostics(List<StatsReport> stats) {
+  void _logInboundVideoDiagnostics(List<StatsReport> stats) {
     int? bytesReceived;
     int? framesDecoded;
+    int? framesReceived;
     int? framesDropped;
     int? frameWidth;
     int? frameHeight;
@@ -3882,6 +4052,7 @@ class CallService {
       }
       bytesReceived = _asInt(values['bytesReceived']) ?? bytesReceived;
       framesDecoded = _asInt(values['framesDecoded']) ?? framesDecoded;
+      framesReceived = _asInt(values['framesReceived']) ?? framesReceived;
       framesDropped = _asInt(values['framesDropped']) ?? framesDropped;
       frameWidth = _asInt(values['frameWidth']) ?? frameWidth;
       frameHeight = _asInt(values['frameHeight']) ?? frameHeight;
@@ -3894,10 +4065,14 @@ class CallService {
       _lastInboundVideoBytes = bytesReceived;
     }
     final previousFramesDecoded = _inboundVideoFramesDecoded;
+    final previousFramesReceived = _inboundVideoFramesReceived;
     final previousFrameWidth = _inboundVideoFrameWidth;
     final previousFrameHeight = _inboundVideoFrameHeight;
     if (framesDecoded != null) {
       _inboundVideoFramesDecoded = framesDecoded;
+    }
+    if (framesReceived != null) {
+      _inboundVideoFramesReceived = framesReceived;
     }
     if (frameWidth != null) {
       _inboundVideoFrameWidth = frameWidth;
@@ -3906,6 +4081,7 @@ class CallService {
       _inboundVideoFrameHeight = frameHeight;
     }
     if ((_inboundVideoFramesDecoded > 0 && previousFramesDecoded == 0) ||
+        (_inboundVideoFramesReceived > 0 && previousFramesReceived == 0) ||
         _inboundVideoFrameWidth != previousFrameWidth ||
         _inboundVideoFrameHeight != previousFrameHeight) {
       _remoteVideoViewRevisionMs = DateTime.now().millisecondsSinceEpoch;
@@ -3921,16 +4097,24 @@ class CallService {
         : remoteVideoTracks
             .map((track) => 'enabled=${track.enabled} muted=${track.muted}')
             .join(',');
-    _debug(
-      'inboundVideo bytesReceived=${bytesReceived ?? 0} delta=$delta '
-      'framesDecoded=${framesDecoded ?? 0} '
-      'framesDropped=${framesDropped ?? 0} '
-      'frameWidth=${frameWidth ?? 0} frameHeight=${frameHeight ?? 0} '
-      'packetsReceived=${packetsReceived ?? 0} '
-      'packetsLost=${packetsLost ?? 0} jitter=${jitter ?? 0} '
-      'remoteRenderer srcObject ${srcObjectPresent ? 'yes' : 'no'} '
-      'remoteVideo track $trackStates',
-    );
+    final message =
+        'inboundVideo bytesReceived=${bytesReceived ?? 0} delta=$delta '
+        'framesDecoded=${framesDecoded ?? 0} '
+        'framesReceived=${framesReceived ?? 0} '
+        'framesDropped=${framesDropped ?? 0} '
+        'frameWidth=${frameWidth ?? 0} frameHeight=${frameHeight ?? 0} '
+        'packetsReceived=${packetsReceived ?? 0} '
+        'packetsLost=${packetsLost ?? 0} jitter=${jitter ?? 0} '
+        'remoteRenderer srcObject=${srcObjectPresent ? 'true' : 'false'} '
+        'renderVideo=${_remoteRendererDisposed ? false : _remoteRenderer.renderVideo} '
+        'streamAudio=${_remoteStream?.getAudioTracks().length ?? 0} '
+        'streamVideo=${_remoteStream?.getVideoTracks().length ?? 0} '
+        'remoteVideo=${remoteVideoTracks.length} '
+        'viewMounted=$_remoteRendererViewMounted '
+        'viewVisible=$_remoteRendererViewVisible '
+        'remoteVideo track $trackStates';
+    _debug(message);
+    _webVideo(message);
   }
 
   void _updateOutboundAudioFlowWatch({required int? delta}) {
